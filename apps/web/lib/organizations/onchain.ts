@@ -32,8 +32,14 @@ export async function verifyGrantVault(address: Address) {
   const client = publicClient();
   let code: string | undefined;
   try {
+    if ((await client.getChainId()) !== 133)
+      throw new ApiError(
+        422,
+        "The configured HSK RPC is not serving chain 133.",
+      );
     code = await client.getCode({ address });
   } catch (error) {
+    if (error instanceof ApiError) throw error;
     throw onchainReadError(error);
   }
   if (!code || code === "0x")

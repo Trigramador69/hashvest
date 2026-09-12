@@ -23,23 +23,12 @@ export type SiweChallenge = ApplicationOrigin & {
 
 export function getApplicationOrigin(request: Request): ApplicationOrigin {
   const configured = process.env.AUTH_APP_URL?.trim();
-  const forwardedProto = request.headers
-    .get("x-forwarded-proto")
-    ?.split(",")[0]
-    ?.trim();
-  const forwardedHost = request.headers
-    .get("x-forwarded-host")
-    ?.split(",")[0]
-    ?.trim();
   let candidate: URL;
   try {
-    candidate = configured
-      ? new URL(configured)
-      : new URL(
-          forwardedHost
-            ? `${forwardedProto === "http" ? "http" : "https"}://${forwardedHost}`
-            : request.url,
-        );
+    // Use an explicitly configured public origin behind a proxy. Otherwise use
+    // the request URL; forwarded headers are not trusted because clients can
+    // spoof them when the proxy does not strip and replace them.
+    candidate = new URL(configured || request.url);
   } catch {
     throw new Error("The application origin is invalid.");
   }

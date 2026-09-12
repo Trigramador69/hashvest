@@ -28,6 +28,9 @@ export async function readJson(request: Request): Promise<unknown> {
 
 export function assertSameOrigin(request: Request) {
   const requestOrigin = request.headers.get("origin");
+  const fetchSite = request.headers.get("sec-fetch-site");
+  if (fetchSite === "cross-site")
+    throw new ApiError(403, "Cross-origin request rejected.");
   if (requestOrigin && requestOrigin !== getApplicationOrigin(request).origin)
     throw new ApiError(403, "Cross-origin request rejected.");
 }
