@@ -78,6 +78,59 @@ export const es: TranslationDictionary = {
   "home.strategies.hybrid.body":
     "Desbloqueado = min(liberado por tiempo, monto de hitos aprobados). Ambas condiciones limitan cada reclamo.",
 
+  // Directorio de miembros, creación de organización y página pública de subvención.
+  "members.loading.title": "Cargando miembros",
+  "members.loading.body": "Leyendo el directorio de la organización…",
+  "members.error.title": "No se pudieron cargar los miembros",
+  "members.error.body":
+    "Revisa la configuración del espacio de trabajo y reinténtalo.",
+  "members.add.title": "Añadir un miembro",
+  "members.add.lede":
+    "Añade una wallet al directorio de la organización. Las etiquetas de rol son solo metadatos de presentación; los permisos de emisor, beneficiario y revisor del GrantVault siguen onchain.",
+  "members.field.wallet": "Dirección de la wallet",
+  "members.field.displayName": "Nombre visible",
+  "members.field.displayName.placeholder": "María Rodríguez",
+  "members.field.role": "Rol o cargo",
+  "members.field.optional": "(opcional)",
+  "members.field.role.placeholder": "Revisora de tesorería",
+  "members.add.action": "Añadir miembro",
+  "members.add.pending": "Añadiendo miembro…",
+  "members.directory.title": "Directorio de miembros",
+  "members.directory.count.one": "{count} wallet en este espacio de trabajo.",
+  "members.directory.count.other":
+    "{count} wallets en este espacio de trabajo.",
+  "members.directory.empty": "Todavía no hay miembros.",
+  "members.edit.save": "Guardar",
+  "members.edit.saving": "Guardando…",
+  "members.edit.cancel": "Cancelar",
+  "members.owner": "Propietario",
+  "members.edit": "Editar",
+  "members.remove": "Eliminar",
+  "members.removeConfirm": "¿Eliminar a este miembro de la organización?",
+  "neworg.eyebrow": "Nueva organización",
+  "neworg.title": "Crea un espacio de trabajo.",
+  "neworg.lede":
+    "Monta un sitio tranquilo para tu ecosistema, tu startup, tu DAO, tu fundación o tu equipo de tesorería.",
+  "neworg.profile.title": "El perfil de tu organización",
+  "neworg.profile.lede":
+    "Se te añadirá automáticamente como propietario único. Las etiquetas de rol de la organización describen a las personas; no cambian los permisos del GrantVault.",
+  "neworg.field.name": "Nombre de la organización",
+  "neworg.field.name.placeholder": "Ecosistema HashKey LATAM",
+  "neworg.field.displayName": "Tu nombre visible",
+  "neworg.field.displayName.placeholder": "Alejandro Castro",
+  "neworg.field.role": "Tu rol o cargo",
+  "neworg.field.role.placeholder": "Responsable de ecosistema",
+  "neworg.ownerWallet": "Wallet propietaria conectada:",
+  "neworg.action": "Crear organización",
+  "neworg.pending": "Creando el espacio de trabajo…",
+  "neworg.locked.title": "La creación de organizaciones está bloqueada",
+  "neworg.locked.body":
+    "Conéctate e inicia sesión con la wallet que deba ser propietaria de esta organización.",
+  "grantpage.invalid.title": "Dirección de subvención no válida",
+  "grantpage.invalid.body":
+    "Abre una dirección de GrantVault válida en {network}.",
+  "grantpage.back": "Volver a mis subvenciones",
+
   // Espacio de trabajo: panel, navegación de organización, acceso y faucet de demo.
   "dashboard.eyebrow": "Tu espacio de trabajo",
   "dashboard.title": "Subvenciones con propósito.",

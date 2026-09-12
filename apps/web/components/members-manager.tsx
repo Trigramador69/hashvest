@@ -12,6 +12,7 @@ import {
 } from "@/hooks/use-organizations";
 import { useSession } from "@/hooks/use-session";
 import { errorMessage } from "@/lib/protocol/grants";
+import { useTranslations } from "@/lib/shared/i18n/provider";
 
 import { AddressDisplay, Notice } from "./grant-ui";
 import { MemberIdentity } from "./organization-ui";
@@ -19,6 +20,7 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 export function MembersManager({ organizationId }: { organizationId: string }) {
+  const t = useTranslations();
   const session = useSession();
   const organization = useOrganization(organizationId);
   const members = useOrganizationMembers(organizationId);
@@ -35,14 +37,14 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
   if (!session.walletMatches) return null;
   if (organization.isPending || members.isPending)
     return (
-      <Notice title="Loading members">
-        <p>Reading the organization directory…</p>
+      <Notice title={t("members.loading.title")}>
+        <p>{t("members.loading.body")}</p>
       </Notice>
     );
   if (organization.isError || members.isError)
     return (
-      <Notice title="Members could not be loaded" error>
-        <p>Check the workspace configuration and retry.</p>
+      <Notice title={t("members.error.title")} error>
+        <p>{t("members.error.body")}</p>
       </Notice>
     );
   const isOwner = Boolean(organization.data?.membership.isOwner);
@@ -86,7 +88,7 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
   }
 
   async function remove(memberId: string) {
-    if (!window.confirm("Remove this member from the organization?")) return;
+    if (!window.confirm(t("members.removeConfirm"))) return;
     try {
       await removeMember.mutateAsync(memberId);
     } catch {
@@ -99,11 +101,9 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
       {isOwner && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Add a member</CardTitle>
+            <CardTitle className="text-lg">{t("members.add.title")}</CardTitle>
             <p className="pt-2 text-sm leading-6 text-muted-foreground">
-              Add a wallet to the organization directory. Role labels are
-              presentation metadata only; GrantVault issuer, beneficiary, and
-              reviewer permissions stay onchain.
+              {t("members.add.lede")}
             </p>
           </CardHeader>
           <CardContent>
@@ -113,7 +113,7 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
             >
               <label className="space-y-2 md:col-span-2">
                 <span className="block text-sm font-medium">
-                  Wallet address
+                  {t("members.field.wallet")}
                 </span>
                 <input
                   className="field font-mono"
@@ -126,34 +126,38 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
                 />
               </label>
               <label className="space-y-2">
-                <span className="block text-sm font-medium">Display name</span>
+                <span className="block text-sm font-medium">
+                  {t("members.field.displayName")}
+                </span>
                 <input
                   className="field"
                   value={displayName}
                   onChange={(event) => setDisplayName(event.target.value)}
-                  placeholder="Maria Rodriguez"
+                  placeholder={t("members.field.displayName.placeholder")}
                   maxLength={100}
                   required
                 />
               </label>
               <label className="space-y-2">
                 <span className="block text-sm font-medium">
-                  Role/title{" "}
+                  {t("members.field.role")}{" "}
                   <span className="font-normal text-muted-foreground">
-                    (optional)
+                    {t("members.field.optional")}
                   </span>
                 </span>
                 <input
                   className="field"
                   value={roleLabel}
                   onChange={(event) => setRoleLabel(event.target.value)}
-                  placeholder="Treasury Reviewer"
+                  placeholder={t("members.field.role.placeholder")}
                   maxLength={100}
                 />
               </label>
               <div className="md:col-span-2">
                 <Button type="submit" disabled={addMember.isPending}>
-                  {addMember.isPending ? "Adding member…" : "Add member"}
+                  {addMember.isPending
+                    ? t("members.add.pending")
+                    : t("members.add.action")}
                 </Button>
               </div>
               {addMember.isError && (
@@ -170,16 +174,22 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
       )}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Member directory</CardTitle>
+          <CardTitle className="text-lg">
+            {t("members.directory.title")}
+          </CardTitle>
           <p className="pt-2 text-sm text-muted-foreground">
-            {memberList.length} {memberList.length === 1 ? "wallet" : "wallets"}{" "}
-            in this workspace.
+            {t(
+              memberList.length === 1
+                ? "members.directory.count.one"
+                : "members.directory.count.other",
+              { count: memberList.length },
+            )}
           </p>
         </CardHeader>
         <CardContent>
           {!memberList.length ? (
             <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
-              No members yet.
+              {t("members.directory.empty")}
             </p>
           ) : (
             <div className="space-y-3">
@@ -192,7 +202,7 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
                     >
                       <label className="space-y-2">
                         <span className="block text-xs font-medium text-muted-foreground">
-                          Display name
+                          {t("members.field.displayName")}
                         </span>
                         <input
                           className="field"
@@ -206,7 +216,7 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
                       </label>
                       <label className="space-y-2">
                         <span className="block text-xs font-medium text-muted-foreground">
-                          Role/title
+                          {t("members.field.role")}
                         </span>
                         <input
                           className="field"
@@ -223,7 +233,9 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
                           size="sm"
                           disabled={updateMember.isPending}
                         >
-                          {updateMember.isPending ? "Saving…" : "Save"}
+                          {updateMember.isPending
+                            ? t("members.edit.saving")
+                            : t("members.edit.save")}
                         </Button>
                         <Button
                           type="button"
@@ -231,7 +243,7 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
                           variant="outline"
                           onClick={() => setEditingId(undefined)}
                         >
-                          Cancel
+                          {t("members.edit.cancel")}
                         </Button>
                       </div>
                       {updateMember.isError && (
@@ -252,7 +264,7 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
                         />
                         {member.isOwner && (
                           <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-                            Owner
+                            {t("members.owner")}
                           </span>
                         )}
                         {isOwner && (
@@ -262,7 +274,7 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
                               variant="outline"
                               onClick={() => startEdit(member)}
                             >
-                              Edit
+                              {t("members.edit")}
                             </Button>
                             {!member.isOwner && (
                               <Button
@@ -271,7 +283,7 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
                                 onClick={() => void remove(member.id)}
                                 disabled={removeMember.isPending}
                               >
-                                Remove
+                                {t("members.remove")}
                               </Button>
                             )}
                           </>
