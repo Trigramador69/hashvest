@@ -37,7 +37,14 @@ cd ../..
 
 The Foundry dependencies are intentionally ignored in Git and can be installed again on a fresh checkout. CI performs the same dependency installation when the directories are absent.
 
-Copy `.env.example` to `.env` for Foundry commands. To make the browser variables available to Next.js, copy it to `apps/web/.env.local` as well, then set `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID`. Supabase variables can remain empty until Supabase is needed.
+Create each local environment file from the template owned by the package that uses it:
+
+```bash
+cp apps/web/.env.local.example apps/web/.env.local
+cp packages/contracts/.env.example packages/contracts/.env
+```
+
+Set `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` in `apps/web/.env.local` for real wallet connections. Supabase variables can remain empty until Supabase is needed. Keep `DEPLOYER_PRIVATE_KEY` only in `packages/contracts/.env`; it is never needed by the web app.
 
 ## Commands
 
@@ -63,7 +70,7 @@ pnpm contracts:deploy:testnet
 ## Deploying the example contract to HSK Testnet
 
 1. Install the Foundry dependencies if they are not present.
-2. Copy `.env.example` to `.env`.
+2. Copy `packages/contracts/.env.example` to `packages/contracts/.env`.
 3. Set `DEPLOYER_PRIVATE_KEY` to a funded development wallet. Do not use a production key.
 4. Confirm `HSK_TESTNET_RPC_URL` if a custom RPC is required.
 5. Run:
@@ -91,7 +98,6 @@ hashvest/
 │   └── migrations/
 ├── .github/
 │   └── workflows/
-├── .env.example
 ├── package.json
 ├── pnpm-workspace.yaml
 └── turbo.json

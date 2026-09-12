@@ -17,7 +17,7 @@
     "format:check": "prettier --check .",
     "contracts:build": "pnpm --dir packages/contracts build",
     "contracts:test": "pnpm --dir packages/contracts test",
-    "contracts:deploy:testnet": "dotenv -e .env -- pnpm --dir packages/contracts run deploy:testnet"
+    "contracts:deploy:testnet": "dotenv -e packages/contracts/.env -- pnpm --dir packages/contracts run deploy:testnet"
   },
   "devDependencies": {
     "dotenv-cli": "11.0.0",
