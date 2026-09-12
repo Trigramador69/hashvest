@@ -122,6 +122,7 @@ export function GrantCard({
     totalAllocation: g.totalAllocation,
     claimedAmount: g.claimedAmount,
     vaultBalance: g.balance,
+    revoked: g.revoked,
   });
   const roles = resolveProtocolRoles(walletAddress, g);
   const pendingMilestones = g.milestones.filter(

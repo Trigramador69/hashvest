@@ -1,5 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { format } from "prettier";
 import { getAddress, isAddress, isHash, zeroAddress } from "viem";
 import { artifactPath, broadcastPath, deploymentPath, root } from "./paths.mjs";
@@ -122,7 +123,10 @@ async function main() {
   }
 }
 
-if (process.argv[1] === new URL(import.meta.url).pathname) {
+if (
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
   main().catch((error) => {
     console.error(error.message);
     process.exitCode = 1;

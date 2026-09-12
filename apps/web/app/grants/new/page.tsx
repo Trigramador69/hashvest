@@ -70,6 +70,7 @@ type GrantConfiguration = {
   cliff: bigint;
   duration: bigint;
   eligibilityProvider: Address;
+  revocable: boolean;
 };
 type PreparedGrant = {
   config: GrantConfiguration;
@@ -225,6 +226,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
     { title: "", amount: "" },
   ]);
   const [provider, setProvider] = useState("");
+  const [revocable, setRevocable] = useState(false);
   const [presetKey, setPresetKey] = useState<GrantPresetKey | null>(null);
   const [appliedPreset, setAppliedPreset] = useState<AppliedPresetDraft>();
   const [validationError, setValidationError] = useState("");
@@ -447,6 +449,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         cliff: cliffSeconds,
         duration: durationSeconds,
         eligibilityProvider: provider ? getAddress(provider) : zeroAddress,
+        revocable,
       },
       milestones: items,
       symbol: tokenMetadata.data.symbol,
@@ -509,6 +512,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
               args: [factory, 0n],
               chainId: 133,
               account: assertTestnetWallet(account),
+              gas: 60_000n,
             }),
           );
         }
@@ -520,6 +524,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             args: [factory, config.totalAllocation],
             chainId: 133,
             account: assertTestnetWallet(account),
+            gas: 80_000n,
           }),
         );
       }
@@ -539,6 +544,9 @@ export function NewGrant({ organizationId }: NewGrantProps) {
           args: [config, items],
           chainId: 133,
           account: assertTestnetWallet(account),
+          gas: simulation.request.gas
+            ? (simulation.request.gas * 130n) / 100n
+            : undefined,
         }),
       );
       const events = parseEventLogs({
@@ -571,6 +579,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             candidateDuration,
             candidateProvider,
             candidateMilestones,
+            candidateRevocable,
           ] = await Promise.all([
             client.readContract({
               address: candidate,
@@ -632,6 +641,13 @@ export function NewGrant({ organizationId }: NewGrantProps) {
               abi: grantVaultAbi,
               functionName: "getMilestones",
             }),
+            client
+              .readContract({
+                address: candidate,
+                abi: grantVaultAbi,
+                functionName: "revocable",
+              })
+              .catch(() => false),
           ]);
           return (
             candidateTitle === config.title &&
@@ -647,6 +663,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             candidateDuration === config.duration &&
             candidateProvider.toLowerCase() ===
               config.eligibilityProvider.toLowerCase() &&
+            candidateRevocable === config.revocable &&
             candidateMilestones.length === items.length &&
             candidateMilestones.every(
               (milestone, index) =>
@@ -1221,6 +1238,28 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                           </Field>
                         </div>
                       </details>
+                      <div className="rounded-xl border p-4">
+                        <label className="flex items-start gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            className="mt-1 size-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            checked={revocable}
+                            onChange={(event) =>
+                              setRevocable(event.target.checked)
+                            }
+                          />
+                          <div>
+                            <span className="text-sm font-medium">
+                              Revocable grant
+                            </span>
+                            <span className="block text-xs leading-5 text-muted-foreground mt-0.5">
+                              Enables issuer clawback of unearned tokens. Tokens
+                              already earned or claimed by the beneficiary
+                              remain strictly preserved and protected.
+                            </span>
+                          </div>
+                        </label>
+                      </div>
                     </>
                   )}
                   {step === 3 && prepared && (
@@ -1338,12 +1377,17 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                           ))}
                         </div>
                       )}
-                      <Notice title="These terms are permanent">
+                      <Notice
+                        title={
+                          prepared.config.revocable
+                            ? "Revocable grant terms"
+                            : "These terms are permanent"
+                        }
+                      >
                         <p>
-                          No revocation, withdrawals by the issuer, or changes
-                          to grant economics. You will approve token spending if
-                          needed, then create and fully fund the vault in one
-                          transaction.
+                          {prepared.config.revocable
+                            ? "This grant is revocable by the issuer. Revocation claws back unearned funds to your wallet while strictly preserving any value already earned or claimed by the beneficiary."
+                            : "No revocation, withdrawals by the issuer, or changes to grant economics. You will approve token spending if needed, then create and fully fund the vault in one transaction."}
                         </p>
                       </Notice>
                     </>
