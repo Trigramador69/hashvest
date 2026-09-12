@@ -53,7 +53,8 @@ export const en = {
     "HashVest turns token allocations into fully funded grants that unlock with time, milestones, or both.",
   "home.cta.openApp": "Open application",
   "home.cta.createGrant": "Create a grant",
-  "home.note": "Live on {network} · ERC20 tokens · No revocation",
+  "home.note":
+    "Live on {network} · ERC20 tokens · Optional issuer revocation · Earned value protected",
 
   "home.steps.title": "One allocation. Clear conditions.",
   "home.steps.fund.title": "Treasury funds a vault",

@@ -32,6 +32,7 @@ import {
   tokenAmount,
 } from "@/lib/protocol/grants";
 import { deriveGrantState } from "@/lib/protocol/grant-state";
+import { deriveRevocationPreview } from "@/lib/protocol/revocation";
 import { ParticipantIdentity } from "./grant-card";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
 
@@ -104,6 +105,11 @@ export function GrantDetail({ address }: { address: Address }) {
       </div>
     );
   const g = grant.data;
+  const revocationPreview = deriveRevocationPreview({
+    totalAllocation: g.totalAllocation,
+    claimedAmount: g.claimedAmount,
+    earnedAmount: g.revoked ? g.revocationEarnedAmount : g.unlockedAmount,
+  });
   const state = deriveGrantState({
     totalAllocation: g.totalAllocation,
     claimedAmount: g.claimedAmount,
@@ -294,10 +300,10 @@ export function GrantDetail({ address }: { address: Address }) {
           <p>
             This grant was revoked by the issuer. The beneficiary’s earned
             entitlement was locked at{" "}
-            <strong>{amount(g.revocationEarnedAmount)}</strong> at the time of
-            revocation. Unearned tokens (
-            {amount(g.totalAllocation - g.revocationEarnedAmount)}) were
-            recovered by the issuer.
+            <strong>{amount(revocationPreview.earnedAmount)}</strong> at the
+            time of revocation. Unearned tokens (
+            {amount(revocationPreview.recoveredAmount)}) were recovered by the
+            issuer.
             {g.claimableAmount > 0n
               ? ` The beneficiary preserves the remaining ${amount(g.claimableAmount)} of earned value and can claim it below.`
               : " All earned tokens have been claimed."}
@@ -434,7 +440,7 @@ export function GrantDetail({ address }: { address: Address }) {
                           !milestone.approved &&
                           (g.revoked ? (
                             <span className="text-xs text-muted-foreground">
-                              Locked (Revoked)
+                              Grant revoked; milestones locked.
                             </span>
                           ) : (
                             <Button
@@ -622,7 +628,7 @@ export function GrantDetail({ address }: { address: Address }) {
                     Beneficiary Earned Entitlement:
                   </span>
                   <span className="font-semibold text-primary">
-                    {amount(g.unlockedAmount)}
+                    {amount(revocationPreview.earnedAmount)}
                   </span>
                 </div>
                 <div className="flex justify-between p-3">
@@ -630,13 +636,13 @@ export function GrantDetail({ address }: { address: Address }) {
                     Earned but Unclaimed:
                   </span>
                   <span className="font-semibold">
-                    {amount(g.claimableAmount)}
+                    {amount(revocationPreview.earnedUnclaimedAmount)}
                   </span>
                 </div>
                 <div className="flex justify-between bg-secondary/50 p-3">
                   <span className="font-medium">Issuer Treasury Clawback:</span>
                   <span className="font-bold text-destructive">
-                    {amount(g.totalAllocation - g.unlockedAmount)}
+                    {amount(revocationPreview.recoveredAmount)}
                   </span>
                 </div>
               </div>
@@ -645,7 +651,7 @@ export function GrantDetail({ address }: { address: Address }) {
                 vesting and milestone approvals permanently. Tokens already
                 earned or claimed by the beneficiary remain strictly in their
                 custody or claimable. Unearned tokens (
-                {amount(g.totalAllocation - g.unlockedAmount)}) will return
+                {amount(revocationPreview.recoveredAmount)}) will return
                 immediately to your connected wallet.
               </div>
               <div className="flex justify-end gap-3 pt-2">

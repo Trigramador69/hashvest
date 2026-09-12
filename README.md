@@ -1,6 +1,6 @@
 # HashVest
 
-HashVest is a programmable grant and vesting protocol for HashKey Chain. An issuer creates and fully funds an immutable ERC20 GrantVault; a beneficiary claims tokens as time, milestone approval, or both make them available.
+HashVest is a programmable grant and vesting protocol for HashKey Chain. An issuer creates and fully funds an ERC20 GrantVault with immutable terms; a beneficiary claims tokens as time, milestone approval, or both make them available.
 
 This is a hackathon MVP for HSK Testnet. It is unaudited, uses demo assets, and is not production custody software.
 
@@ -10,6 +10,7 @@ This is a hackathon MVP for HSK Testnet. It is unaudited, uses demo assets, and 
 - Milestone grants with fixed amounts approved by a designated reviewer.
 - Hybrid grants where both conditions constrain the claim: `unlocked = min(time vested, approved milestone amount)`.
 - Optional `IEligibilityProvider` adapter, including a clearly labeled administrator-controlled demo allowlist.
+- Optional one-way issuer revocation that recovers only unearned allocation while preserving earned and claimed beneficiary value.
 - One fully funded vault per grant; SafeERC20 rejects underfunded fee-on-transfer funding.
 - Beneficiary-only claims, role dashboards, explorer links, and real HSK Testnet transactions.
 
@@ -31,7 +32,7 @@ HashVestFactory ---- role discovery arrays
 GrantVault #1, #2, #3 ...
 ```
 
-Each vault stores the issuer, beneficiary, reviewer, token, allocation, strategy, vesting schedule, milestone titles and amounts, and optional eligibility provider as immutable terms. Only milestone approval and claimed amount change after creation. The protocol has no issuer withdrawal, revocation, upgradeability, indexer, or native HSK grant. Organization metadata is an optional off-chain product layer and never replaces contract state.
+Each vault stores the issuer, beneficiary, reviewer, token, allocation, strategy, vesting schedule, milestone titles and amounts, eligibility provider, and revocable mode as immutable terms. Milestone approvals, claims, and the optional one-way revocation state are the only lifecycle changes after creation. Revocation freezes earned value and returns only unearned allocation to the issuer; non-revocable grants and previously deployed vaults remain permanent. Organization metadata is an optional off-chain product layer and never replaces contract state.
 
 ### Protocol and Cloud layers
 
@@ -168,13 +169,13 @@ The current Blockscout endpoint returned HTTP 413 (`Request Entity Too Large`) f
 
 The direct protocol flow remains available at `/grants/new`: enter raw beneficiary/reviewer addresses and create TIME, MILESTONE, or HYBRID grants without organization metadata. Existing GrantVaults can be attached later by an organization owner from the overview using **Link an existing GrantVault**. The server verifies bytecode, GrantVault reads, and the actual onchain issuer before association.
 
-Every approval, creation, milestone, faucet, and claim transaction exposes an HSK Testnet explorer link. Use `/app` to move between role-specific grants.
+Every approval, creation, milestone, faucet, claim, and revocation transaction exposes an HSK Testnet explorer link. Use `/app` to move between role-specific grants.
 
 For the controlled-wallet browser rehearsal, copy the public-address-only fixture and follow [`docs/browser-rehearsal.md`](docs/browser-rehearsal.md). `pnpm rehearsal:check` performs a read-only HSK/deployment/wallet readiness check; live browser execution and evidence are tracked separately in HAS-20.
 
 ## Security boundary
 
-HashVest MVP has not been professionally audited. It targets HSK Testnet only, uses a faucet-mintable demo token, and should not hold production funds. The contracts have no revocation or emergency issuer withdrawal path by design. `DemoEligibilityProvider` is an adapter demonstration, not KYC or compliance.
+HashVest MVP has not been professionally audited. It targets HSK Testnet only, uses a faucet-mintable demo token, and should not hold production funds. Revocation is available only on explicitly revocable new vaults, is issuer-only and one-way, and preserves earned beneficiary entitlement; non-revocable and old vaults have no issuer withdrawal path. `DemoEligibilityProvider` is an adapter demonstration, not KYC or compliance.
 
 ## Roadmap
 
@@ -207,4 +208,4 @@ supabase/migrations      Cloud     Tracked product-context schema and RLS migrat
 
 Imports run one way: Cloud may depend on Protocol, never the reverse. `pnpm boundary:check` enforces this, along with service-role secret containment, protocol export drift, and documentation links. See [`docs/architecture.md`](docs/architecture.md).
 
-Important organization implementation files include `apps/web/lib/auth` (SIWE challenge verification and signed sessions), `apps/web/lib/organizations` (validation, server authorization, HSK GrantVault verification, types, and browser API client), `apps/web/hooks/use-organizations.ts` (TanStack Query data layer), and `apps/web/components/organization-*` / `members-manager.tsx` (workspace UI). No Solidity protocol contract was changed for this layer.
+Important organization implementation files include `apps/web/lib/auth` (SIWE challenge verification and signed sessions), `apps/web/lib/organizations` (validation, server authorization, HSK GrantVault verification, types, and browser API client), `apps/web/hooks/use-organizations.ts` (TanStack Query data layer), and `apps/web/components/organization-*` / `members-manager.tsx` (workspace UI). Organization lifecycle state remains derived from live protocol reads; it is not stored in Supabase.

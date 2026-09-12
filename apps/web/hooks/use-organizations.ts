@@ -12,6 +12,7 @@ import { grantVaultAbi } from "@hashvest/web3";
 
 import { organizationApi } from "@/lib/cloud/organizations/client";
 import { deriveGrantLifecycle } from "@/lib/protocol/grant-state";
+import { readRevocationState } from "@/lib/protocol/revocation";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
 
 import { useSession } from "./use-session";
@@ -167,6 +168,7 @@ type GrantSummary = {
   beneficiary: Address;
   reviewer: Address;
   milestones: readonly { approved: boolean }[];
+  revoked: boolean;
 };
 
 export function useOrganizationGrantStats(
@@ -192,6 +194,7 @@ export function useOrganizationGrantStats(
           beneficiary,
           reviewer,
           milestones,
+          revocationState,
         ] = await Promise.all([
           client.readContract({ ...contract, functionName: "issuer" }),
           client.readContract({ ...contract, functionName: "totalAllocation" }),
@@ -200,6 +203,19 @@ export function useOrganizationGrantStats(
           client.readContract({ ...contract, functionName: "beneficiary" }),
           client.readContract({ ...contract, functionName: "reviewer" }),
           client.readContract({ ...contract, functionName: "getMilestones" }),
+          readRevocationState({
+            revocable: () =>
+              client.readContract({ ...contract, functionName: "revocable" }),
+            revoked: () =>
+              client.readContract({ ...contract, functionName: "revoked" }),
+            revokedAt: () =>
+              client.readContract({ ...contract, functionName: "revokedAt" }),
+            revocationEarnedAmount: () =>
+              client.readContract({
+                ...contract,
+                functionName: "revocationEarnedAmount",
+              }),
+          }),
         ]);
         return {
           vaultAddress: address,
@@ -210,6 +226,7 @@ export function useOrganizationGrantStats(
           beneficiary,
           reviewer,
           milestones,
+          revoked: revocationState.revoked,
         };
       },
     })),
@@ -227,11 +244,13 @@ export function useOrganizationGrantStats(
         deriveGrantLifecycle({
           totalAllocation: summary.totalAllocation,
           claimedAmount: summary.claimedAmount,
+          revoked: summary.revoked,
         }) === "ACTIVE",
     ).length,
     pendingReviews: summaries.filter(
       (summary) =>
         resolveProtocolRoles(wallet, summary).isReviewer &&
+        !summary.revoked &&
         summary.milestones.some((milestone) => !milestone.approved),
     ).length,
     claimableGrants: summaries.filter(

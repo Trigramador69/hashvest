@@ -113,8 +113,8 @@ was actually automated and observed.
       of `40` and `60` hvUSD.
 - [ ] Leave eligibility disabled.
 - [ ] Select the organization member `Treasury Reviewer` in **Reviewer**; do
-      not replace it with an external address. Confirm the terms are permanent
-      before submitting.
+      not replace it with an external address. Leave **Revocable grant**
+      unchecked and confirm the terms are permanent before submitting.
 - [ ] Approve token spending if prompted, then submit **Approve & create
       grant** from the issuer wallet.
 - [ ] Wait for the receipt. Record the GrantVault address and the public
