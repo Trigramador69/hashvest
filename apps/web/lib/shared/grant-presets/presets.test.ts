@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import { assertValidCatalog } from "./apply-preset";
-import { GRANT_PRESETS, getGrantPreset, type GrantPresetKey } from "./presets";
+import {
+  GRANT_PRESETS,
+  findGrantPreset,
+  getGrantPreset,
+  type GrantPresetKey,
+} from "./presets";
 
 const expectedKeys: GrantPresetKey[] = [
   "builder-grant",
@@ -53,5 +58,13 @@ describe("grant preset catalog", () => {
     expect(() => getGrantPreset("nope" as GrantPresetKey)).toThrow(
       "Unknown grant preset",
     );
+  });
+
+  it("reads a stored template key back without throwing on an unknown one", () => {
+    expect(findGrantPreset("builder-grant")?.name).toBe("Builder Grant");
+    // organization_grants.template_key holds arbitrary text, and a key may be
+    // retired or belong to an organization template (HAS-13).
+    for (const key of ["retired-preset", "", null, undefined])
+      expect(findGrantPreset(key)).toBeUndefined();
   });
 });

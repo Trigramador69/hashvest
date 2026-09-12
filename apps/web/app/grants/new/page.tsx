@@ -48,17 +48,29 @@ import {
   validParty,
 } from "@/lib/protocol/grants";
 import {
-  applyPresetToDraft,
-  splitAllocationByPercent,
-  type AppliedPresetDraft,
-} from "@/lib/shared/grant-presets/apply-preset";
-import {
   GRANT_PRESETS,
   getGrantPreset,
   type GrantPresetKey,
 } from "@/lib/shared/grant-presets/presets";
+import {
+  BLANK_PRESET_FIELDS,
+  clearPreset,
+  resyncMilestoneAmounts,
+  selectPreset,
+  type AppliedPreset,
+} from "@/lib/shared/grant-presets/wizard-state";
 
-const steps = ["Grant", "Strategy", "Conditions", "Review"];
+const steps = ["Template", "Grant", "Strategy", "Conditions", "Review"];
+
+/** Named so the step a block belongs to survives inserting another one. */
+const STEP = {
+  template: 0,
+  grant: 1,
+  strategy: 2,
+  conditions: 3,
+  review: 4,
+} as const;
+
 type MilestoneInput = { title: string; amount: string };
 type GrantConfiguration = {
   title: string;
@@ -152,14 +164,12 @@ function PresetPicker({
 }) {
   const active = selected ? getGrantPreset(selected) : undefined;
   return (
-    <div className="space-y-3">
-      <div>
-        <h3 className="font-semibold">Start from a preset</h3>
-        <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          Optional. A preset fills in a strategy, schedule, and milestone split
-          that you can edit or clear. It never changes what the vault stores.
-        </p>
-      </div>
+    <div className="space-y-4">
+      <p className="text-sm leading-6 text-muted-foreground">
+        Optional. A preset fills in a strategy, schedule, and milestone split
+        that you can edit or clear on the next steps. It never changes what the
+        vault stores.
+      </p>
       <div className="grid gap-3 sm:grid-cols-2">
         {GRANT_PRESETS.map((preset) => (
           <PresetOption
@@ -180,9 +190,37 @@ function PresetPicker({
         />
       </div>
       {active && (
-        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
           <p className="text-sm leading-6">{active.description}</p>
-          <ul className="mt-3 space-y-1 text-xs leading-5 text-muted-foreground">
+          <div className="mt-3 flex flex-wrap gap-2">
+            {active.bestFor.map((audience) => (
+              <span
+                key={audience}
+                className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
+              >
+                {audience}
+              </span>
+            ))}
+          </div>
+          {active.milestones && (
+            <dl className="mt-4 space-y-1 border-t border-primary/20 pt-4 text-xs">
+              {active.milestones.map((milestone) => (
+                <div
+                  className="flex justify-between gap-4"
+                  key={milestone.title}
+                >
+                  <dt className="text-muted-foreground">{milestone.title}</dt>
+                  <dd>{milestone.percentOfAllocation}% of the allocation</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          {active.timing && (
+            <p className="mt-4 border-t border-primary/20 pt-4 text-xs leading-5 text-muted-foreground">
+              {active.timing.realWorldNote}
+            </p>
+          )}
+          <ul className="mt-4 space-y-1 border-t border-primary/20 pt-4 text-xs leading-5 text-muted-foreground">
             {active.assumptions.map((assumption) => (
               <li key={assumption}>· {assumption}</li>
             ))}
@@ -228,8 +266,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   ]);
   const [provider, setProvider] = useState("");
   const [revocable, setRevocable] = useState(false);
-  const [presetKey, setPresetKey] = useState<GrantPresetKey | null>(null);
-  const [appliedPreset, setAppliedPreset] = useState<AppliedPresetDraft>();
+  const [applied, setApplied] = useState<AppliedPreset>();
   const [validationError, setValidationError] = useState("");
   const [prepared, setPrepared] = useState<PreparedGrant>();
   const [createdAddress, setCreatedAddress] = useState<Address>();
@@ -248,62 +285,52 @@ export function NewGrant({ organizationId }: NewGrantProps) {
       (session.walletMatches && organization.data?.membership.isOwner)),
   );
 
-  function sameMilestones(items: MilestoneInput[], other: MilestoneInput[]) {
-    return (
-      items.length === other.length &&
-      items.every(
-        (item, index) =>
-          item.title === other[index].title &&
-          item.amount === other[index].amount,
-      )
-    );
+  /** The subset of form state a preset may write, in the shape the rules use. */
+  function presetFields() {
+    return {
+      title,
+      description,
+      allocation,
+      strategy,
+      unit,
+      cliff,
+      duration,
+      milestones,
+      reviewerRequired: applied?.fields.reviewerRequired ?? false,
+    };
   }
 
   /**
-   * Applies a preset to the fields below. Everything it writes stays editable,
-   * and an allocation the user already typed always wins over the suggestion.
+   * Applies a preset to the fields below, or returns to a blank form.
+   *
+   * Everything a preset writes stays editable, and anything the user typed
+   * themselves survives both switching presets and choosing Custom / blank.
+   * `wizard-state.ts` owns that distinction and is tested there.
    */
-  function selectPreset(key: GrantPresetKey | null) {
+  function choosePreset(key: GrantPresetKey | null) {
     setValidationError("");
     if (!key) {
-      clearPreset();
+      writePresetFields(clearPreset(presetFields(), applied));
+      setApplied(undefined);
       return;
     }
-    const draft = applyPresetToDraft(getGrantPreset(key), {
-      allocationDecimal: allocation,
+    const next = selectPreset(key, presetFields(), applied, {
       decimals: tokenMetadata.data?.decimals,
-      title,
+      applyDescription: Boolean(organizationId),
     });
-    setTitle(draft.title);
-    if (organizationId) setDescription(draft.description);
-    setAllocation(draft.allocation);
-    setStrategy(draft.strategy);
-    setUnit(draft.unit);
-    setCliff(draft.cliff);
-    setDuration(draft.duration);
-    setMilestones(
-      draft.milestones.length ? draft.milestones : [{ title: "", amount: "" }],
-    );
-    setPresetKey(key);
-    setAppliedPreset(draft);
+    writePresetFields(next.fields);
+    setApplied(next);
   }
 
-  /** Clears only the values still holding what the preset wrote; edits survive. */
-  function clearPreset() {
-    const draft = appliedPreset;
-    if (draft) {
-      if (title === draft.title) setTitle("");
-      if (description === draft.description) setDescription("");
-      if (allocation === draft.allocation) setAllocation("");
-      if (strategy === draft.strategy) setStrategy(0);
-      if (unit === draft.unit) setUnit("60");
-      if (cliff === draft.cliff) setCliff("0");
-      if (duration === draft.duration) setDuration("5");
-      if (sameMilestones(milestones, draft.milestones))
-        setMilestones([{ title: "", amount: "" }]);
-    }
-    setPresetKey(null);
-    setAppliedPreset(undefined);
+  function writePresetFields(fields: typeof BLANK_PRESET_FIELDS) {
+    setTitle(fields.title);
+    setDescription(fields.description);
+    setAllocation(fields.allocation);
+    setStrategy(fields.strategy);
+    setUnit(fields.unit);
+    setCliff(fields.cliff);
+    setDuration(fields.duration);
+    setMilestones(fields.milestones);
   }
 
   /**
@@ -312,26 +339,15 @@ export function NewGrant({ organizationId }: NewGrantProps) {
    */
   function changeAllocation(value: string) {
     setAllocation(value);
-    const draft = appliedPreset;
-    if (
-      !presetKey ||
-      !draft?.milestones.length ||
-      !sameMilestones(milestones, draft.milestones)
-    )
-      return;
-    const amounts = splitAllocationByPercent(
+    const resynced = resyncMilestoneAmounts(
       value,
-      tokenMetadata.data?.decimals ?? 18,
-      getGrantPreset(presetKey).milestones?.map(
-        (milestone) => milestone.percentOfAllocation,
-      ) ?? [],
+      milestones,
+      applied,
+      tokenMetadata.data?.decimals,
     );
-    const updated = draft.milestones.map((milestone, index) => ({
-      title: milestone.title,
-      amount: amounts[index] ?? "",
-    }));
-    setMilestones(updated);
-    setAppliedPreset({ ...draft, allocation: value, milestones: updated });
+    if (!resynced) return;
+    setMilestones(resynced.fields.milestones);
+    setApplied(resynced);
   }
 
   function validateMemberSelection(
@@ -462,9 +478,9 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   function next() {
     setValidationError("");
     try {
-      if (step === 0) validateGrant();
-      if (step === 2) setPrepared(prepare());
-      setStep((current) => Math.min(current + 1, 3));
+      if (step === STEP.grant) validateGrant();
+      if (step === STEP.conditions) setPrepared(prepare());
+      setStep((current) => Math.min(current + 1, STEP.review));
     } catch (error) {
       setValidationError(errorMessage(error));
     }
@@ -756,7 +772,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         description: description.trim() || null,
         // Optional product metadata: which preset this grant started from. It
         // carries no onchain authority and never changes the vault's terms.
-        templateKey: presetKey,
+        templateKey: applied?.key ?? null,
       });
       setMetadataSync("saved");
     } catch (error) {
@@ -874,7 +890,10 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         </Card>
       ) : (
         <>
-          <ol aria-label="Creation progress" className="grid grid-cols-4 gap-2">
+          <ol
+            aria-label="Creation progress"
+            className="grid grid-cols-2 gap-2 sm:grid-cols-5"
+          >
             {steps.map((label, index) => (
               <li
                 key={label}
@@ -893,6 +912,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
               <CardTitle className="text-xl">
                 {
                   [
+                    "Start from a template",
                     "Who is this grant for?",
                     "Choose how tokens unlock",
                     "Set the conditions",
@@ -905,17 +925,19 @@ export function NewGrant({ organizationId }: NewGrantProps) {
               <form
                 onSubmit={(event) => {
                   event.preventDefault();
-                  if (step < 3) next();
+                  if (step < STEP.review) next();
                 }}
                 className="space-y-6"
               >
                 <fieldset className="min-w-0 space-y-6" disabled={tx.pending}>
-                  {step === 0 && (
+                  {step === STEP.template && (
+                    <PresetPicker
+                      selected={applied?.key ?? null}
+                      onSelect={choosePreset}
+                    />
+                  )}
+                  {step === STEP.grant && (
                     <>
-                      <PresetPicker
-                        selected={presetKey}
-                        onSelect={selectPreset}
-                      />
                       <Field
                         label="Grant title"
                         hint="For example: Ecosystem builder grant or Contributor allocation."
@@ -1033,7 +1055,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                       </Field>
                     </>
                   )}
-                  {step === 1 && (
+                  {step === STEP.strategy && (
                     <div className="space-y-3">
                       {strategies.map((name, index) => (
                         <label
@@ -1059,7 +1081,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                       ))}
                     </div>
                   )}
-                  {step === 2 && (
+                  {step === STEP.conditions && (
                     <>
                       {strategy !== 1 && (
                         <div className="space-y-5">
@@ -1117,9 +1139,10 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             </Field>
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {presetKey && getGrantPreset(presetKey).timing
-                              ? getGrantPreset(presetKey).timing?.realWorldNote
-                              : "Demo tip: use a 5-minute duration and a 0-minute cliff."}
+                            {(applied &&
+                              getGrantPreset(applied.key).timing
+                                ?.realWorldNote) ??
+                              "Demo tip: use a 5-minute duration and a 0-minute cliff."}
                           </p>
                         </div>
                       )}
@@ -1282,7 +1305,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                       </div>
                     </>
                   )}
-                  {step === 3 && prepared && (
+                  {step === STEP.review && prepared && (
                     <>
                       <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
                         <p className="text-xs font-semibold uppercase tracking-wide text-primary">
@@ -1303,9 +1326,9 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                         <p className="mt-2 text-sm text-muted-foreground">
                           {strategyDescriptions[prepared.config.strategy]}
                         </p>
-                        {presetKey && (
+                        {applied && (
                           <p className="mt-3 text-xs text-muted-foreground">
-                            Started from the {getGrantPreset(presetKey).name}{" "}
+                            Started from the {getGrantPreset(applied.key).name}{" "}
                             preset. That is workspace metadata only — the terms
                             below are what goes onchain.
                           </p>
@@ -1422,7 +1445,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                   <Button
                     type="button"
                     variant="outline"
-                    disabled={step === 0 || tx.pending}
+                    disabled={step === STEP.template || tx.pending}
                     onClick={() => {
                       setStep((current) => current - 1);
                       setValidationError("");
@@ -1430,8 +1453,11 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                   >
                     Back
                   </Button>
-                  {step < 3 ? (
-                    <Button type="submit" disabled={step === 2 && !address}>
+                  {step < STEP.review ? (
+                    <Button
+                      type="submit"
+                      disabled={step === STEP.conditions && !address}
+                    >
                       Continue →
                     </Button>
                   ) : (
@@ -1452,7 +1478,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                   )}
                 </div>
                 {prepared &&
-                  step === 3 &&
+                  step === STEP.review &&
                   address &&
                   address.toLowerCase() !== prepared.issuer.toLowerCase() && (
                     <p role="alert" className="text-sm text-destructive">
@@ -1464,7 +1490,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
               </form>
             </CardContent>
           </Card>
-          {step === 0 && <DemoFaucet />}
+          {step === STEP.grant && <DemoFaucet />}
         </>
       )}
     </div>
