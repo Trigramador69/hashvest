@@ -15,6 +15,10 @@ import {
   TransactionStatus,
 } from "@/components/grant-ui";
 import { useGrant } from "@/hooks/use-grant";
+import {
+  useGrantContext,
+  useOrganizationMembers,
+} from "@/hooks/use-organizations";
 import { assertTestnetWallet, useTransaction } from "@/hooks/use-transaction";
 import {
   dateLabel,
@@ -24,9 +28,15 @@ import {
   strategyDescriptions,
   tokenAmount,
 } from "@/lib/grants";
+import { ParticipantIdentity } from "./grant-card";
+import { resolveProtocolRoles } from "@/lib/organizations/permissions";
 
 export function GrantDetail({ address }: { address: Address }) {
   const grant = useGrant(address);
+  const grantContext = useGrantContext(address);
+  const organizationMembers = useOrganizationMembers(
+    grantContext.data?.organization.id,
+  );
   const wallet = useAccount();
   const client = usePublicClient({ chainId: 133 });
   const { writeContractAsync } = useWriteContract();
@@ -64,10 +74,9 @@ export function GrantDetail({ address }: { address: Address }) {
       </div>
     );
   const g = grant.data;
-  const isBeneficiary =
-    wallet.address?.toLowerCase() === g.beneficiary.toLowerCase();
-  const isReviewer = wallet.address?.toLowerCase() === g.reviewer.toLowerCase();
-  const isIssuer = wallet.address?.toLowerCase() === g.issuer.toLowerCase();
+  const roles = resolveProtocolRoles(wallet.address, g);
+  const isBeneficiary = roles.isBeneficiary;
+  const isReviewer = roles.isReviewer;
   const canWrite =
     wallet.isConnected &&
     wallet.chainId === 133 &&
@@ -75,11 +84,6 @@ export function GrantDetail({ address }: { address: Address }) {
     !grant.isRefetchError;
   const showTime = g.strategy !== 1;
   const showMilestones = g.strategy !== 0;
-  const roles = [
-    isIssuer && "Issuer",
-    isBeneficiary && "Beneficiary",
-    isReviewer && "Reviewer",
-  ].filter(Boolean);
   const amount = (value: bigint) =>
     `${tokenAmount(value, g.decimals)} ${g.symbol}`;
 
@@ -157,9 +161,24 @@ export function GrantDetail({ address }: { address: Address }) {
 
   return (
     <div className="space-y-7">
-      <Link className="text-sm font-medium text-primary" href="/app">
-        ← My grants
-      </Link>
+      <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
+        <Link className="text-primary" href="/app">
+          ← My grants
+        </Link>
+        {grantContext.data && (
+          <>
+            <span className="text-muted-foreground">/</span>
+            <Link
+              className="text-primary hover:underline"
+              href={`/app/organizations/${grantContext.data.organization.id}`}
+            >
+              {grantContext.data.organization.name}
+            </Link>
+            <span className="text-muted-foreground">/</span>
+            <span className="text-muted-foreground">{g.title}</span>
+          </>
+        )}
+      </div>
       <PageHeading
         eyebrow="Grant vault · HSK Testnet"
         title={g.title}
@@ -170,8 +189,13 @@ export function GrantDetail({ address }: { address: Address }) {
         }
       >
         <AddressDisplay address={address} full />
+        {grantContext.data?.grant.description && (
+          <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
+            {grantContext.data.grant.description}
+          </p>
+        )}
         <div className="mt-3 flex flex-wrap gap-2">
-          {roles.map((role) => (
+          {roles.roles.map((role) => (
             <span
               className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium"
               key={String(role)}
@@ -357,7 +381,14 @@ export function GrantDetail({ address }: { address: Address }) {
                   >
                     <dt className="text-muted-foreground">{label}</dt>
                     <dd>
-                      <AddressDisplay address={getAddress(party)} />
+                      {label === "Token" ? (
+                        <AddressDisplay address={getAddress(party)} />
+                      ) : (
+                        <ParticipantIdentity
+                          address={getAddress(party)}
+                          members={organizationMembers.data}
+                        />
+                      )}
                     </dd>
                   </div>
                 ))}

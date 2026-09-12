@@ -35,14 +35,14 @@ export function ParticipantIdentity({
   address,
   members,
 }: {
-  label: string;
+  label?: string;
   address: Address;
   members?: OrganizationMember[];
 }) {
   const member = findMemberByWallet(members, address);
   return (
     <div>
-      <p className="mb-1 text-xs text-muted-foreground">{label}</p>
+      {label && <p className="mb-1 text-xs text-muted-foreground">{label}</p>}
       {member ? (
         <>
           <p className="font-medium">{member.displayName}</p>

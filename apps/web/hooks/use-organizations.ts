@@ -20,6 +20,8 @@ export const membersQueryKey = (organizationId: string) =>
   ["organization-members", organizationId] as const;
 export const grantsQueryKey = (organizationId: string) =>
   ["organization-grants", organizationId] as const;
+export const grantContextQueryKey = (vaultAddress: string) =>
+  ["grant-context", 133, vaultAddress] as const;
 
 export function useOrganizations() {
   const { walletMatches } = useSession();
@@ -66,6 +68,19 @@ export function useOrganizationGrants(organizationId: string | undefined) {
     queryFn: async () =>
       (await organizationApi.getGrants(organizationId as string)).grants,
     enabled: Boolean(organizationId && walletMatches),
+    staleTime: 15_000,
+  });
+}
+
+export function useGrantContext(vaultAddress: string | undefined) {
+  return useQuery({
+    queryKey: vaultAddress
+      ? grantContextQueryKey(vaultAddress)
+      : ["grant-context", "missing"],
+    queryFn: async () =>
+      (await organizationApi.getGrantContext(vaultAddress as string)).context,
+    enabled: Boolean(vaultAddress),
+    retry: false,
     staleTime: 15_000,
   });
 }
