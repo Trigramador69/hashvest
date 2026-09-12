@@ -15,7 +15,10 @@ import {
 import { useSession } from "@/hooks/use-session";
 import { useGrant } from "@/hooks/use-grant";
 import { errorMessage, tokenAmount } from "@/lib/grants";
-import { findMemberByWallet } from "@/lib/organizations/permissions";
+import {
+  findMemberByWallet,
+  resolveProtocolRoles,
+} from "@/lib/organizations/permissions";
 import type {
   OrganizationGrant,
   OrganizationMember,
@@ -52,12 +55,11 @@ function ReviewQueueItem({
       <p className="text-sm text-muted-foreground">Reading review queue…</p>
     );
   if (!live.data) return null;
-  const isReviewer =
-    address?.toLowerCase() === live.data.reviewer.toLowerCase();
+  const roles = resolveProtocolRoles(address, live.data);
   const pending = live.data.milestones.filter(
     (milestone) => !milestone.approved,
   );
-  if (!isReviewer || !pending.length) return null;
+  if (!roles.isReviewer || !pending.length) return null;
   const reviewer = findMemberByWallet(members, live.data.reviewer);
   return (
     <Card>
@@ -95,12 +97,8 @@ function ClaimableQueueItem({
   const { address } = useAccount();
   const live = useGrant(grant.vaultAddress as Address);
   if (live.isPending || !live.data) return null;
-  if (
-    !address ||
-    live.data.beneficiary.toLowerCase() !== address.toLowerCase() ||
-    live.data.claimableAmount === 0n
-  )
-    return null;
+  const roles = resolveProtocolRoles(address, live.data);
+  if (!roles.isBeneficiary || live.data.claimableAmount === 0n) return null;
   const beneficiary = findMemberByWallet(members, live.data.beneficiary);
   return (
     <Card className="border-primary/30 bg-primary/5">

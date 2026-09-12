@@ -11,6 +11,7 @@ import { type Address } from "viem";
 import { grantVaultAbi } from "@hashvest/web3";
 
 import { organizationApi } from "@/lib/organizations/client";
+import { resolveProtocolRoles } from "@/lib/organizations/permissions";
 
 import { useSession } from "./use-session";
 
@@ -157,6 +158,7 @@ export function useLinkOrganizationGrant(organizationId: string) {
 
 type GrantSummary = {
   vaultAddress: Address;
+  issuer: Address;
   totalAllocation: bigint;
   claimedAmount: bigint;
   claimableAmount: bigint;
@@ -181,6 +183,7 @@ export function useOrganizationGrantStats(
         const blockNumber = await client.getBlockNumber();
         const contract = { address, abi: grantVaultAbi, blockNumber };
         const [
+          issuer,
           totalAllocation,
           claimedAmount,
           claimableAmount,
@@ -188,6 +191,7 @@ export function useOrganizationGrantStats(
           reviewer,
           milestones,
         ] = await Promise.all([
+          client.readContract({ ...contract, functionName: "issuer" }),
           client.readContract({ ...contract, functionName: "totalAllocation" }),
           client.readContract({ ...contract, functionName: "claimedAmount" }),
           client.readContract({ ...contract, functionName: "claimableAmount" }),
@@ -197,6 +201,7 @@ export function useOrganizationGrantStats(
         ]);
         return {
           vaultAddress: address,
+          issuer,
           totalAllocation,
           claimedAmount,
           claimableAmount,
@@ -220,14 +225,12 @@ export function useOrganizationGrantStats(
     ).length,
     pendingReviews: summaries.filter(
       (summary) =>
-        wallet &&
-        summary.reviewer.toLowerCase() === wallet &&
+        resolveProtocolRoles(wallet, summary).isReviewer &&
         summary.milestones.some((milestone) => !milestone.approved),
     ).length,
     claimableGrants: summaries.filter(
       (summary) =>
-        wallet &&
-        summary.beneficiary.toLowerCase() === wallet &&
+        resolveProtocolRoles(wallet, summary).isBeneficiary &&
         summary.claimableAmount > 0n,
     ).length,
   };
