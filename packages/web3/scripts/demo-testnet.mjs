@@ -162,15 +162,27 @@ async function main() {
     // Resolve the vault from the factory's role index after confirmation. This
     // is resilient to an HSK RPC race where waitForTransactionReceipt can
     // briefly return logs from an adjacent transaction in the same block.
-    const indexedGrants = await client.readContract({
-      address: deployment.factory,
-      abi: factoryAbi,
-      functionName: "getGrantsByIssuer",
-      args: [issuer.account.address],
-    });
-    const vault = indexedGrants.at(-1);
+    let vault;
+    // HSK can expose the confirmed receipt before the factory's role-array
+    // read reflects the same block. Poll the index until this grant's title
+    // appears instead of assuming the previous last entry is the new vault.
+    for (let attempt = 0; attempt < 10 && !vault; attempt += 1) {
+      const indexedGrants = await client.readContract({
+        address: deployment.factory,
+        abi: factoryAbi,
+        functionName: "getGrantsByIssuer",
+        args: [issuer.account.address],
+      });
+      for (const candidate of [...indexedGrants].reverse()) {
+        if ((await vaultRead(candidate, "title")) === config.title) {
+          vault = candidate;
+          break;
+        }
+      }
+      if (!vault && attempt < 9)
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
     assert.ok(vault, "Factory did not index the created grant");
-    assert.equal(await vaultRead(vault, "title"), config.title);
     evidence.grants[name] = vault;
     assert.equal(await tokenRead("balanceOf", [vault]), allocation);
     assert.equal(await vaultRead(vault, "claimedAmount"), 0n);

@@ -295,25 +295,29 @@ export default function NewGrant() {
           (log) => log.address.toLowerCase() === factory.toLowerCase(),
         ),
       });
-      const indexedGrants = await client.readContract({
-        address: factory,
-        abi: hashVestFactoryAbi,
-        functionName: "getGrantsByIssuer",
-        args: [account],
-      });
       // The role index is the confirmed source of truth for the newly-created
       // vault. It also covers transient HSK receipt log ordering races.
       let indexedAddress: Address | undefined;
-      for (const candidate of [...indexedGrants].reverse()) {
-        const candidateTitle = await client.readContract({
-          address: candidate,
-          abi: grantVaultAbi,
-          functionName: "title",
+      for (let attempt = 0; attempt < 8 && !indexedAddress; attempt += 1) {
+        const indexedGrants = await client.readContract({
+          address: factory,
+          abi: hashVestFactoryAbi,
+          functionName: "getGrantsByIssuer",
+          args: [account],
         });
-        if (candidateTitle === config.title) {
-          indexedAddress = candidate;
-          break;
+        for (const candidate of [...indexedGrants].reverse()) {
+          const candidateTitle = await client.readContract({
+            address: candidate,
+            abi: grantVaultAbi,
+            functionName: "title",
+          });
+          if (candidateTitle === config.title) {
+            indexedAddress = candidate;
+            break;
+          }
         }
+        if (!indexedAddress && attempt < 7)
+          await new Promise((resolve) => setTimeout(resolve, 1000));
       }
       const created = indexedAddress ?? events[0]?.args.vault;
       if (created) setCreatedAddress(created);
