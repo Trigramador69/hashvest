@@ -32,7 +32,7 @@ export function WorkspaceAccessNotice() {
     return (
       <Notice title="Workspace authentication is not configured" error>
         <p>
-          Set <code>AUTH_SECRET</code> and the server-only Supabase service role
+          Set the server-only authentication secret and Supabase service role
           key, then restart the app.
         </p>
       </Notice>
