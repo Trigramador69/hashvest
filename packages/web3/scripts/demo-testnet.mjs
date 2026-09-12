@@ -37,6 +37,20 @@ async function main() {
   );
   const reviewer = wallet(privateKeyToAccount(generatePrivateKey()));
   const beneficiary = wallet(privateKeyToAccount(generatePrivateKey()));
+  const nonces = new Map();
+  async function nextNonce(signer) {
+    if (!nonces.has(signer.account.address))
+      nonces.set(
+        signer.account.address,
+        await client.getTransactionCount({ address: signer.account.address }),
+      );
+    return nonces.get(signer.account.address);
+  }
+  function consumeNonce(signer) {
+    const nonce = nonces.get(signer.account.address);
+    if (nonce == null) throw new Error("Missing locally tracked nonce");
+    nonces.set(signer.account.address, nonce + 1);
+  }
   const abi = async (name) =>
     JSON.parse(await readFile(artifactPath(name), "utf8")).abi;
   const factoryAbi = await abi("HashVestFactory");
@@ -78,7 +92,10 @@ async function main() {
       args,
       account: signer.account,
     });
-    return confirm(label, await signer.writeContract(request));
+    const nonce = await nextNonce(signer);
+    const hash = await signer.writeContract({ ...request, nonce });
+    consumeNonce(signer);
+    return confirm(label, hash);
   }
   const tokenRead = (functionName, args = []) =>
     client.readContract({
@@ -125,13 +142,16 @@ async function main() {
     ["reviewer", reviewer],
     ["beneficiary", beneficiary],
   ]) {
+    const nonce = await nextNonce(issuer);
     await confirm(
       `Fund demo ${role} gas`,
       await issuer.sendTransaction({
         to: signer.account.address,
         value: roleGas,
+        nonce,
       }),
     );
+    consumeNonce(issuer);
   }
   await write(
     issuer,
@@ -319,7 +339,8 @@ async function main() {
       const balance = await client.getBalance({
         address: signer.account.address,
       });
-      if (balance > gas * price)
+      if (balance > gas * price) {
+        const nonce = await nextNonce(signer);
         await confirm(
           `Return remaining ${role} gas`,
           await signer.sendTransaction({
@@ -328,8 +349,11 @@ async function main() {
             gas,
             gasPrice: price,
             type: "legacy",
+            nonce,
           }),
         );
+        consumeNonce(signer);
+      }
     } catch {
       // Returning tiny demo-wallet gas is best effort and must not invalidate
       // the already-verified grant lifecycle evidence.
