@@ -15,6 +15,7 @@
     "test": "pnpm contracts:test && node --test packages/web3/scripts/*.test.mjs scripts/*.test.mjs && pnpm --filter @hashvest/web test",
     "agents:sync": "node scripts/sync-agent-skills.mjs",
     "agents:check": "node scripts/check-agent-config.mjs",
+    "ci:check": "node scripts/ci-check.mjs",
     "boundary:check": "node scripts/check-boundary.mjs",
     "format": "prettier --write . && pnpm --dir packages/contracts exec forge fmt",
     "format:check": "prettier --check . && pnpm --dir packages/contracts exec forge fmt --check",
