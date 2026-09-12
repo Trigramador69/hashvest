@@ -50,6 +50,7 @@ async function main() {
     transactions: [],
     grants: {},
   };
+  const runId = Date.now();
 
   async function confirm(label, hash) {
     const receipt = await client.waitForTransactionReceipt({
@@ -145,7 +146,7 @@ async function main() {
   ]) {
     const now = (await client.getBlock()).timestamp;
     const config = {
-      title: `HashVest ${name} live verification`,
+      title: `HashVest ${name} live verification ${runId}`,
       token: deployment.demoToken,
       beneficiary: beneficiary.account.address,
       reviewer:

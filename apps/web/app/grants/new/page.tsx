@@ -270,7 +270,7 @@ export default function NewGrant() {
         );
       }
       assertTestnetWallet(account);
-      await client.simulateContract({
+      const simulation = await client.simulateContract({
         address: factory,
         abi: hashVestFactoryAbi,
         functionName: "createGrant",
@@ -298,6 +298,53 @@ export default function NewGrant() {
       // The role index is the confirmed source of truth for the newly-created
       // vault. It also covers transient HSK receipt log ordering races.
       let indexedAddress: Address | undefined;
+      const matchesConfiguration = async (candidate: Address) => {
+        try {
+          const [
+            candidateTitle,
+            candidateBeneficiary,
+            candidateToken,
+            candidateAllocation,
+            candidateStrategy,
+          ] = await Promise.all([
+            client.readContract({
+              address: candidate,
+              abi: grantVaultAbi,
+              functionName: "title",
+            }),
+            client.readContract({
+              address: candidate,
+              abi: grantVaultAbi,
+              functionName: "beneficiary",
+            }),
+            client.readContract({
+              address: candidate,
+              abi: grantVaultAbi,
+              functionName: "token",
+            }),
+            client.readContract({
+              address: candidate,
+              abi: grantVaultAbi,
+              functionName: "totalAllocation",
+            }),
+            client.readContract({
+              address: candidate,
+              abi: grantVaultAbi,
+              functionName: "strategy",
+            }),
+          ]);
+          return (
+            candidateTitle === config.title &&
+            candidateBeneficiary.toLowerCase() ===
+              config.beneficiary.toLowerCase() &&
+            candidateToken.toLowerCase() === config.token.toLowerCase() &&
+            candidateAllocation === config.totalAllocation &&
+            Number(candidateStrategy) === config.strategy
+          );
+        } catch {
+          return false;
+        }
+      };
       for (let attempt = 0; attempt < 8 && !indexedAddress; attempt += 1) {
         const indexedGrants = await client.readContract({
           address: factory,
@@ -306,12 +353,7 @@ export default function NewGrant() {
           args: [account],
         });
         for (const candidate of [...indexedGrants].reverse()) {
-          const candidateTitle = await client.readContract({
-            address: candidate,
-            abi: grantVaultAbi,
-            functionName: "title",
-          });
-          if (candidateTitle === config.title) {
+          if (await matchesConfiguration(candidate)) {
             indexedAddress = candidate;
             break;
           }
@@ -319,7 +361,14 @@ export default function NewGrant() {
         if (!indexedAddress && attempt < 7)
           await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-      const created = indexedAddress ?? events[0]?.args.vault;
+      const candidates = [simulation.result, events[0]?.args.vault].filter(
+        (candidate): candidate is Address => Boolean(candidate),
+      );
+      for (const candidate of candidates) {
+        if (!indexedAddress && (await matchesConfiguration(candidate)))
+          indexedAddress = candidate;
+      }
+      const created = indexedAddress;
       if (created) setCreatedAddress(created);
     });
   }
