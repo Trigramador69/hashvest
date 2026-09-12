@@ -50,7 +50,8 @@ export const es: TranslationDictionary = {
     "HashVest convierte asignaciones de tokens en subvenciones totalmente financiadas que se desbloquean por tiempo, por hitos o por ambos.",
   "home.cta.openApp": "Abrir aplicación",
   "home.cta.createGrant": "Crear una subvención",
-  "home.note": "En vivo en {network} · Tokens ERC20 · Sin revocación",
+  "home.note":
+    "En vivo en {network} · Tokens ERC20 · Revocación opcional del emisor · Valor ganado protegido",
 
   "home.steps.title": "Una asignación. Condiciones claras.",
   "home.steps.fund.title": "La tesorería financia un vault",
@@ -77,6 +78,77 @@ export const es: TranslationDictionary = {
   "home.strategies.hybrid.subtitle": "Mantén tiempo y entrega alineados.",
   "home.strategies.hybrid.body":
     "Desbloqueado = min(liberado por tiempo, monto de hitos aprobados). Ambas condiciones limitan cada reclamo.",
+
+  // Revocación (HAS-26), estados de transacción y validación de lib/protocol.
+  "ui.lifecycle.revoked": "Revocada",
+  "party.terms": "Términos",
+  "tx.stage.confirm": "{label}: confirma en tu wallet",
+  "tx.stage.waiting": "{label}: esperando confirmación",
+  "tx.stage.confirmed": "Transacción confirmada. El estado onchain está al día.",
+  "tx.stage.reverted":
+    "{label} revirtió onchain. No se aplicó ningún cambio de esta transacción.",
+  "grants.error.decimals":
+    "Este token admite como máximo {decimals} decimales.",
+  "wizard.error.amountFormat":
+    "Introduce una cantidad de tokens decimal y positiva.",
+  "wizard.error.amountRange":
+    "La cantidad de tokens está fuera del rango admitido.",
+  "wizard.error.milestoneTitle": "El hito {index} necesita un título.",
+  "wizard.error.insufficientBalance":
+    "No hay suficiente {symbol}. La asignación completa debe financiarse al crearla.",
+  "wizard.error.memberMismatch.beneficiary":
+    "Elige un beneficiario del directorio de la organización o usa una wallet externa.",
+  "wizard.error.memberMismatch.reviewer":
+    "Elige un revisor del directorio de la organización o usa una wallet externa.",
+  "wizard.field.revocable.label": "Subvención revocable",
+  "wizard.field.revocable.hint":
+    "Permite al emisor recuperar los tokens no ganados. Los tokens ya ganados o reclamados por el beneficiario quedan estrictamente preservados y protegidos.",
+  "wizard.review.revocable.title": "Términos de subvención revocable",
+  "wizard.review.revocable.body":
+    "Esta subvención es revocable por el emisor. La revocación devuelve a tu wallet los fondos no ganados, preservando estrictamente todo el valor que el beneficiario ya haya ganado o reclamado.",
+  "detail.terms.revocable": "Revocable",
+  "detail.terms.revocableRevoked": "Revocable (revocada)",
+  "detail.terms.nonRevocable": "No revocable (inmutable)",
+  "detail.terms.revocableNote":
+    "El emisor puede revocar esta subvención sobre los tokens no ganados.",
+  "detail.terms.revokedNote":
+    "Subvención revocable: revocada el {date}. El derecho ganado por el beneficiario se preserva estrictamente.",
+  "detail.badge.revocable": "Revocable",
+  "detail.badge.nonRevocable": "No revocable",
+  "detail.claimReason.revokedAllClaimed":
+    "La subvención fue revocada. Todos los tokens ganados ya se han reclamado.",
+  "detail.claimReason.revokedClaimable":
+    "El emisor revocó la subvención. Puedes reclamar todos los tokens ganados que queden.",
+  "detail.milestone.lockedByRevocation":
+    "Subvención revocada; hitos bloqueados.",
+  "detail.revoked.title": "Subvención revocada el {date}",
+  "detail.revoked.body.before":
+    "El emisor revocó esta subvención. El derecho ganado por el beneficiario quedó fijado en ",
+  "detail.revoked.body.middle":
+    " en el momento de la revocación. Los tokens no ganados ({recovered}) fueron recuperados por el emisor.",
+  "detail.revoked.body.claimable":
+    " El beneficiario conserva los {amount} restantes de valor ganado y puede reclamarlos abajo.",
+  "detail.revoked.body.allClaimed":
+    " Todos los tokens ganados ya se han reclamado.",
+  "detail.revoke.action": "Revocar subvención",
+  "detail.revoke.tx": "Revocar la subvención y recuperar los tokens no ganados",
+  "detail.revoke.modal.title": "Confirmar la revocación",
+  "detail.revoke.modal.lede":
+    "Revisa lo que se recupera y lo que se preserva antes de confirmar.",
+  "detail.revoke.modal.totalAllocation": "Asignación total:",
+  "detail.revoke.modal.alreadyClaimed": "Ya reclamado por el beneficiario:",
+  "detail.revoke.modal.earnedEntitlement":
+    "Derecho ganado por el beneficiario:",
+  "detail.revoke.modal.earnedUnclaimed": "Ganado pero sin reclamar:",
+  "detail.revoke.modal.clawback": "Recuperación para la tesorería del emisor:",
+  "detail.revoke.modal.warningLabel": "Acción irreversible:",
+  "detail.revoke.modal.warningBody":
+    "Revocar detiene permanentemente todo el vesting y las aprobaciones de hitos futuras. Los tokens ya ganados o reclamados por el beneficiario siguen estrictamente en su custodia o disponibles para reclamar. Los tokens no ganados ({recovered}) volverán de inmediato a tu wallet conectada.",
+  "detail.revoke.modal.cancel": "Cancelar",
+  "detail.revoke.modal.confirm": "Confirmar recuperación",
+  "detail.revoke.modal.pending": "Recuperando…",
+  "card.revocable": "Revocable",
+  "card.nonRevocable": "No revocable",
 
   // Resumen de organización: métricas en vivo, colas de revisión y reclamo, vinculación.
   "overview.loading.title": "Cargando el resumen de la organización",

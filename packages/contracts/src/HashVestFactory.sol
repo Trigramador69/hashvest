@@ -23,7 +23,8 @@ contract HashVestFactory is ReentrancyGuard {
         address indexed beneficiary,
         address reviewer,
         string title,
-        UnlockStrategy strategy
+        UnlockStrategy strategy,
+        bool revocable
     );
 
     function createGrant(GrantConfig memory config, MilestoneInput[] memory milestones)
@@ -43,7 +44,9 @@ contract HashVestFactory is ReentrancyGuard {
         grantsByIssuer[msg.sender].push(vault);
         grantsByBeneficiary[config.beneficiary].push(vault);
         if (config.reviewer != address(0)) grantsByReviewer[config.reviewer].push(vault);
-        emit GrantCreated(vault, msg.sender, config.beneficiary, config.reviewer, config.title, config.strategy);
+        emit GrantCreated(
+            vault, msg.sender, config.beneficiary, config.reviewer, config.title, config.strategy, config.revocable
+        );
     }
 
     function getGrantsByIssuer(address account) external view returns (address[] memory) {

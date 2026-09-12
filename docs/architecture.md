@@ -1,6 +1,6 @@
 # HashVest architecture: Protocol and Cloud
 
-This document defines the boundary between the two product layers in this monorepo, the integration path between them, and the scope rules for the hackathon. It is a **scope gate**, not a feature: it introduces no protocol functionality and no contract change.
+This document defines the boundary between the two product layers in this monorepo, the integration path between them, and the scope rules for the hackathon. Protocol revocation semantics are defined by HAS-25/HAS-26; this document records how that functionality crosses the boundary without moving authority into Cloud.
 
 It exists because the repository holds two layers that are easy to confuse. Without an explicit boundary, later work can reimplement protocol behavior in the application, push product metadata onchain, or attempt a repository split under time pressure. Each of those is a demo-breaking mistake.
 
@@ -15,7 +15,7 @@ The Protocol is the trust boundary. It holds funds, enforces unlock math, and de
 | Path                                                 | Role                                                                        |
 | ---------------------------------------------------- | --------------------------------------------------------------------------- |
 | `packages/contracts/src/HashVestFactory.sol`         | Creates vaults; keeps role discovery arrays                                 |
-| `packages/contracts/src/GrantVault.sol`              | Immutable grant terms, milestone approval, claims                           |
+| `packages/contracts/src/GrantVault.sol`              | Immutable terms, milestone approval, claims, optional issuer revocation     |
 | `packages/contracts/src/GrantTypes.sol`              | Shared strategy and schedule types                                          |
 | `packages/contracts/src/IEligibilityProvider.sol`    | Optional eligibility adapter interface                                      |
 | `packages/contracts/src/DemoToken.sol`               | Faucet-mintable demo ERC20 (`hvUSD`); demo only                             |
@@ -57,7 +57,7 @@ HashVest Cloud
         v
 HashVest Protocol
   HashVestFactory   role discovery arrays
-  GrantVault        immutable terms, milestone approval, claims
+  GrantVault        immutable terms, approvals, claims, optional revocation
   GrantTypes, IEligibilityProvider
         |
         v
@@ -74,14 +74,15 @@ Localization is presentation state, so it lives in `lib/shared/i18n/**` and impo
 
 ## Authority: which layer owns which field
 
-| Owned by HSK (authoritative)                 | Owned by Supabase (product context)             |
-| -------------------------------------------- | ----------------------------------------------- |
-| Issuer, beneficiary, reviewer                | Organization name and description               |
-| Token, allocation, strategy                  | Membership and workspace ownership (`is_owner`) |
-| Vesting start, cliff, duration               | Display names and presentation role labels      |
-| Milestone titles, amounts, approval state    | Organization ↔ GrantVault associations          |
-| Vested, unlocked, claimable, claimed amounts | Grant descriptions, template metadata           |
-| Eligibility, balances, funds                 | —                                               |
+| Owned by HSK (authoritative)                   | Owned by Supabase (product context)             |
+| ---------------------------------------------- | ----------------------------------------------- |
+| Issuer, beneficiary, reviewer                  | Organization name and description               |
+| Token, allocation, strategy                    | Membership and workspace ownership (`is_owner`) |
+| Vesting start, cliff, duration                 | Display names and presentation role labels      |
+| Milestone titles, amounts, approval state      | Organization ↔ GrantVault associations          |
+| Revocable mode, revoked state, revocation time | Grant descriptions, template metadata           |
+| Vested, unlocked, claimable, claimed amounts   | —                                               |
+| Eligibility, balances, funds                   | —                                               |
 
 Two consequences that have already shaped the code:
 
@@ -135,7 +136,7 @@ P0 work only. Everything else is post-hackathon.
 | --------------------------------------- | -------------------------------------------- | ------ |
 | M0 — Protocol/Cloud boundary & baseline | HAS-5                                        | 1      |
 | M1 — Global grant templates             | HAS-8, HAS-11                                | 8      |
-| M2 — Revocation & protocol safety       | HAS-25, HAS-26 _(blocked)_                   | 13     |
+| M2 — Revocation & protocol safety       | HAS-25, HAS-26                               | 13     |
 | M3 — Lifecycle & funding health         | HAS-6                                        | 3      |
 | M4 — i18n, browser E2E & submission     | HAS-7, HAS-9, HAS-10, HAS-20, HAS-21, HAS-22 | 15     |
 | **Total**                               |                                              | **40** |
@@ -167,6 +168,6 @@ In force from the moment this document merges until submission:
 
 ## Security boundary
 
-HashVest MVP is unaudited, targets HSK Testnet only, and uses a faucet-mintable demo token. It is not production custody software. The contracts have no revocation or emergency issuer withdrawal path by design; adding revocation is the explicit subject of HAS-25 and HAS-26 and must preserve earned-entitlement invariants.
+HashVest MVP is unaudited, targets HSK Testnet only, and uses a faucet-mintable demo token. It is not production custody software. Explicitly revocable new vaults permit only issuer-triggered, one-way recovery of unearned allocation; earned and claimed beneficiary value is preserved. Non-revocable and previously deployed vaults retain their permanent terms.
 
 Compromising the Cloud layer must not put funds at risk. That property follows from this boundary: Supabase holds no key material, no signing authority, and no amount that any claim depends on.

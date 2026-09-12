@@ -7,6 +7,7 @@ import { getAccount } from "wagmi/actions";
 import type { Address, Hash } from "viem";
 import { wagmiConfig } from "@/lib/protocol/wagmi";
 import { errorMessage } from "@/lib/protocol/grants";
+import { useTranslations } from "@/lib/shared/i18n/provider";
 
 export type TransactionRecord = {
   label: string;
@@ -31,6 +32,7 @@ export function assertTestnetWallet(expectedAddress?: Address) {
 }
 
 export function useTransaction() {
+  const t = useTranslations();
   const client = usePublicClient({ chainId: 133 });
   const queryClient = useQueryClient();
   const [pending, setPending] = useState(false);
@@ -41,15 +43,13 @@ export function useTransaction() {
   async function confirm(label: string, send: () => Promise<Hash>) {
     if (!client) throw new Error("HSK Testnet RPC is unavailable.");
     assertTestnetWallet();
-    setStage(`${label}: confirm in your wallet`);
+    setStage(t("tx.stage.confirm", { label }));
     const hash = await send();
     setTransactions((items) => [...items, { label, hash, confirmed: false }]);
-    setStage(`${label}: waiting for confirmation`);
+    setStage(t("tx.stage.waiting", { label }));
     const receipt = await client.waitForTransactionReceipt({ hash });
     if (receipt.status !== "success")
-      throw new Error(
-        `${label} reverted onchain. No changes from this transaction were applied.`,
-      );
+      throw new Error(t("tx.stage.reverted", { label }));
     setTransactions((items) =>
       items.map((item) =>
         item.hash === hash ? { ...item, confirmed: true } : item,
@@ -68,7 +68,7 @@ export function useTransaction() {
     try {
       assertTestnetWallet();
       await work();
-      setStage("Transaction confirmed. Onchain state is up to date.");
+      setStage(t("tx.stage.confirmed"));
     } catch (cause) {
       setError(errorMessage(cause));
       setStage("");

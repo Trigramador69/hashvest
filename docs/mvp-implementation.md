@@ -6,18 +6,19 @@ The supplied hackathon specification is the implementation scope. This document 
 
 ## Product behavior
 
-An issuer creates and atomically funds an immutable ERC20 grant vault. Its beneficiary claims unlocked tokens. A fixed reviewer approves fixed milestones when applicable. Wallet dashboards discover grants from role arrays on the factory. No database, indexer, native-token grants, revocation, or production deployment is part of this change.
+An issuer creates and atomically funds an ERC20 grant vault with immutable terms. Its beneficiary claims unlocked tokens. A fixed reviewer approves fixed milestones when applicable. Explicitly revocable vaults support one-way issuer recovery of unearned allocation while preserving earned and claimed beneficiary value; non-revocable and previously deployed vaults remain permanent. Wallet dashboards discover grants from role arrays on the factory. No database, indexer, native-token grants, or production deployment is part of this change.
 
 - TIME unlocks the linear amount vested from the start; the cliff delays access without restarting the curve.
 - MILESTONE unlocks the sum of approved milestone allocations.
 - HYBRID unlocks `min(time vested, approved milestone amount)`.
 - Claims are beneficiary-only, eligibility-gated when configured, and cannot exceed allocation.
+- Revocation is issuer-only, one-way, and freezes earned entitlement; pending milestone approvals and future vesting stop after revocation.
 - Creation transfers the full allocation atomically. Transfer-tax underfunding reverts the whole transaction.
 - The demo token uses 18 decimals. Its public faucet is explicitly testnet/demo functionality.
 
 ## Delivery and dependency order
 
-1. Funded grant lifecycle through public Solidity APIs, including all three strategies, discovery, demo adapters, and Foundry tests.
+1. Funded grant lifecycle through public Solidity APIs, including all three strategies, optional revocation, discovery, demo adapters, and Foundry tests.
 2. Browser lifecycle through those same APIs: create/approve/fund, role discovery, review, and claim. The ABI interface is fixed before independent contract and browser work begins.
 3. Integrated Testnet delivery: deterministic artifact exports, confirmed deployment metadata, chain guard, browser routes, real transaction smoke, documentation, independent review, and final checks. Depends on 1 and 2.
 
@@ -25,6 +26,6 @@ The first two areas use isolated Git worktrees with separate file ownership. The
 
 ## Verification boundaries
 
-Foundry tests exercise the public factory/vault/provider API, balances, roles, timestamps, immutable economics, fee-on-transfer rejection, and reentrancy. Pipeline tests reject wrong-chain, partial, reverted, or ambiguous broadcast metadata. Browser checks exercise real routes, network states, creation inputs, and contract reads. Testnet scripts check chain 133, bytecode, receipts, metadata, and discovery. Actual wallet transactions are reported separately from automated browser inspection.
+Foundry tests exercise the public factory/vault/provider API, balances, roles, timestamps, immutable economics, revocation accounting, fee-on-transfer rejection, and reentrancy. Pipeline tests reject wrong-chain, partial, reverted, or ambiguous broadcast metadata. Browser checks exercise real routes, network states, creation inputs, and contract reads. Testnet scripts check chain 133, bytecode, receipts, metadata, discovery, and the live revocable lifecycle. Actual wallet transactions are reported separately from automated browser inspection.
 
-CI requires no private keys or writable RPC. Deployment is explicitly authorized only on chain 133 after contract build and tests pass. Secrets stay in ignored environment files. Supabase stays unused.
+CI requires no private keys or writable RPC. Deployment is explicitly authorized only on chain 133 after contract build and tests pass. Secrets stay in ignored environment files. The historical baseline kept Supabase unused; current workspace metadata remains optional and is never authoritative for protocol state.

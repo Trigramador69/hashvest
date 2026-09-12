@@ -5,6 +5,8 @@ import { usePublicClient } from "wagmi";
 import { erc20Abi, zeroAddress, type Address } from "viem";
 import { grantVaultAbi, eligibilityProviderAbi } from "@hashvest/web3";
 
+import { readRevocationState } from "@/lib/protocol/revocation";
+
 export function useToken(address: Address | undefined) {
   const client = usePublicClient({ chainId: 133 });
   return useQuery({
@@ -55,6 +57,7 @@ export function useGrant(address: Address) {
         unlockedAmount,
         claimableAmount,
         milestones,
+        revocationState,
       ] = await Promise.all([
         client.readContract({ ...contract, functionName: "title" }),
         client.readContract({ ...contract, functionName: "issuer" }),
@@ -79,6 +82,19 @@ export function useGrant(address: Address) {
         client.readContract({ ...contract, functionName: "unlockedAmount" }),
         client.readContract({ ...contract, functionName: "claimableAmount" }),
         client.readContract({ ...contract, functionName: "getMilestones" }),
+        readRevocationState({
+          revocable: () =>
+            client.readContract({ ...contract, functionName: "revocable" }),
+          revoked: () =>
+            client.readContract({ ...contract, functionName: "revoked" }),
+          revokedAt: () =>
+            client.readContract({ ...contract, functionName: "revokedAt" }),
+          revocationEarnedAmount: () =>
+            client.readContract({
+              ...contract,
+              functionName: "revocationEarnedAmount",
+            }),
+        }),
       ]);
       const tokenContract = { address: token, abi: erc20Abi, blockNumber };
       const [decimals, symbol, balance, beneficiaryBalance, eligibility] =
@@ -128,6 +144,10 @@ export function useGrant(address: Address) {
         unlockedAmount,
         claimableAmount,
         milestones,
+        revocable: revocationState.revocable,
+        revoked: revocationState.revoked,
+        revokedAt: revocationState.revokedAt,
+        revocationEarnedAmount: revocationState.revocationEarnedAmount,
         decimals,
         symbol,
         balance,

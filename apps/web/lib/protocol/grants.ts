@@ -84,13 +84,35 @@ export function normalizeAddress(value: string): Address | undefined {
   }
 }
 
-export function parseAllocation(value: string, decimals: number): bigint {
+/**
+ * Messages for the three ways an allocation can be rejected.
+ *
+ * Passed in rather than imported so this stays a pure protocol helper with
+ * no dependency on the i18n layer; callers supply already-translated text.
+ * The English defaults keep non-UI callers working unchanged.
+ */
+export type AllocationErrors = {
+  format: string;
+  decimals: string;
+  range: string;
+};
+
+export function parseAllocation(
+  value: string,
+  decimals: number,
+  errors?: Partial<AllocationErrors>,
+): bigint {
   if (!/^\d+(\.\d+)?$/.test(value))
-    throw new Error("Enter a positive decimal token amount.");
+    throw new Error(errors?.format ?? "Enter a positive decimal token amount.");
   if ((value.split(".")[1]?.length ?? 0) > decimals)
-    throw new Error(`This token supports at most ${decimals} decimal places.`);
+    throw new Error(
+      errors?.decimals ??
+        `This token supports at most ${decimals} decimal places.`,
+    );
   const amount = parseUnits(value, decimals);
   if (amount <= 0n || amount > 2n ** 256n - 1n)
-    throw new Error("Token amount is outside the supported range.");
+    throw new Error(
+      errors?.range ?? "Token amount is outside the supported range.",
+    );
   return amount;
 }

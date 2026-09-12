@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { getAddress, zeroAddress, type Address } from "viem";
@@ -31,6 +32,7 @@ import {
 import { strategyKey } from "@/lib/shared/i18n/keys";
 import { useTranslations } from "@/lib/shared/i18n/provider";
 import { deriveGrantState } from "@/lib/protocol/grant-state";
+import { deriveRevocationPreview } from "@/lib/protocol/revocation";
 import { ParticipantIdentity } from "./grant-card";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
 
@@ -41,6 +43,7 @@ const REFRESH_SECONDS = 7;
 
 export function GrantDetail({ address }: { address: Address }) {
   const t = useTranslations();
+  const [showRevokeModal, setShowRevokeModal] = useState(false);
   const grant = useGrant(address);
   const grantContext = useGrantContext(address);
   const organizationMembers = useOrganizationMembers(
@@ -102,27 +105,44 @@ export function GrantDetail({ address }: { address: Address }) {
       </div>
     );
   const g = grant.data;
+  const revocationPreview = deriveRevocationPreview({
+    totalAllocation: g.totalAllocation,
+    claimedAmount: g.claimedAmount,
+    earnedAmount: g.revoked ? g.revocationEarnedAmount : g.unlockedAmount,
+  });
   const state = deriveGrantState({
     totalAllocation: g.totalAllocation,
     claimedAmount: g.claimedAmount,
     vaultBalance: g.balance,
+    revoked: g.revoked,
   });
   const roles = resolveProtocolRoles(wallet.address, g);
   const isBeneficiary = roles.isBeneficiary;
   const isReviewer = roles.isReviewer;
+  const isIssuer = roles.isIssuer;
   const canWrite =
     wallet.isConnected &&
     wallet.chainId === 133 &&
     !tx.pending &&
     !grant.isRefetchError;
+  const canRevoke = isIssuer && g.revocable && !g.revoked && canWrite;
   const showTime = g.strategy !== 1;
   const showMilestones = g.strategy !== 0;
   const amount = (value: bigint) =>
     `${tokenAmount(value, g.decimals)} ${g.symbol}`;
+  /** The Terms row is a value, not an address, so it is resolved up front. */
+  const termsValue = g.revocable
+    ? g.revoked
+      ? t("detail.terms.revocableRevoked")
+      : t("detail.terms.revocable")
+    : t("detail.terms.nonRevocable");
 
   let claimReason = t("detail.claimReason.connect");
   if (isBeneficiary) {
-    if (g.eligibility.error)
+    if (g.revoked && g.claimableAmount === 0n)
+      claimReason = t("detail.claimReason.revokedAllClaimed");
+    else if (g.revoked) claimReason = t("detail.claimReason.revokedClaimable");
+    else if (g.eligibility.error)
       claimReason = t("detail.claimReason.providerError");
     else if (!g.eligibility.eligible)
       claimReason = t("detail.claimReason.notEligible");
@@ -139,6 +159,29 @@ export function GrantDetail({ address }: { address: Address }) {
     else if (g.claimableAmount === 0n)
       claimReason = t("detail.claimReason.allClaimed");
     else claimReason = t("detail.claimReason.ready");
+  }
+
+  async function handleRevoke() {
+    await tx.run(async () => {
+      if (!client) throw new Error("HSK Testnet RPC is unavailable.");
+      const account = assertTestnetWallet(g.issuer);
+      await client.simulateContract({
+        address,
+        abi: grantVaultAbi,
+        functionName: "revoke",
+        account,
+      });
+      await tx.confirm(t("detail.revoke.tx"), () =>
+        writeContractAsync({
+          address,
+          abi: grantVaultAbi,
+          functionName: "revoke",
+          chainId: 133,
+          account: assertTestnetWallet(g.issuer),
+        }),
+      );
+      setShowRevokeModal(false);
+    });
   }
 
   async function claim() {
@@ -213,11 +256,26 @@ export function GrantDetail({ address }: { address: Address }) {
         eyebrow={t("detail.eyebrow", NETWORK)}
         title={g.title}
         action={
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <GrantLifecycleBadge lifecycle={state.lifecycle} />
             <span className="rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary">
               {t(strategyKey(g.strategy, "name"))}
             </span>
+            <span className="rounded-full border border-primary/20 bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
+              {g.revocable
+                ? t("detail.badge.revocable")
+                : t("detail.badge.nonRevocable")}
+            </span>
+            {canRevoke && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-destructive/40 text-destructive hover:bg-destructive/10"
+                onClick={() => setShowRevokeModal(true)}
+              >
+                {t("detail.revoke.action")}
+              </Button>
+            )}
           </div>
         }
       >
@@ -239,6 +297,24 @@ export function GrantDetail({ address }: { address: Address }) {
         </div>
       </PageHeading>
       <NetworkNotice />
+      {g.revoked && (
+        <Notice
+          title={t("detail.revoked.title", { date: dateLabel(g.revokedAt) })}
+        >
+          <p>
+            {t("detail.revoked.body.before")}
+            <strong>{amount(revocationPreview.earnedAmount)}</strong>
+            {t("detail.revoked.body.middle", {
+              recovered: amount(revocationPreview.recoveredAmount),
+            })}
+            {g.claimableAmount > 0n
+              ? t("detail.revoked.body.claimable", {
+                  amount: amount(g.claimableAmount),
+                })
+              : t("detail.revoked.body.allClaimed")}
+          </p>
+        </Notice>
+      )}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           ["totalAllocated", g.totalAllocation],
@@ -383,16 +459,22 @@ export function GrantDetail({ address }: { address: Address }) {
                             ? t("detail.milestone.approved")
                             : t("detail.milestone.pending")}
                         </span>
-                        {isReviewer && !milestone.approved && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={!canWrite}
-                            onClick={() => void approve(index)}
-                          >
-                            {t("detail.milestone.approveAction")}
-                          </Button>
-                        )}
+                        {isReviewer &&
+                          !milestone.approved &&
+                          (g.revoked ? (
+                            <span className="text-xs text-muted-foreground">
+                              {t("detail.milestone.lockedByRevocation")}
+                            </span>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={!canWrite}
+                              onClick={() => void approve(index)}
+                            >
+                              {t("detail.milestone.approveAction")}
+                            </Button>
+                          ))}
                       </div>
                     </li>
                   ))}
@@ -409,10 +491,17 @@ export function GrantDetail({ address }: { address: Address }) {
             <CardContent className="space-y-5 text-sm">
               <p className="leading-7 text-muted-foreground">
                 {t(strategyKey(g.strategy, "description"))}{" "}
-                {t("detail.terms.fixed")}
+                {g.revocable
+                  ? g.revoked
+                    ? t("detail.terms.revokedNote", {
+                        date: dateLabel(g.revokedAt),
+                      })
+                    : t("detail.terms.revocableNote")
+                  : t("detail.terms.fixed")}
               </p>
               <dl className="space-y-4">
                 {[
+                  ["terms", termsValue],
                   ["issuer", g.issuer],
                   ["beneficiary", g.beneficiary],
                   ...(g.reviewer !== zeroAddress
@@ -430,7 +519,11 @@ export function GrantDetail({ address }: { address: Address }) {
                       )}
                     </dt>
                     <dd>
-                      {field === "token" ? (
+                      {field === "terms" ? (
+                        <span className="font-medium text-foreground">
+                          {party}
+                        </span>
+                      ) : field === "token" ? (
                         <AddressDisplay address={getAddress(party)} />
                       ) : (
                         <ParticipantIdentity
@@ -528,6 +621,89 @@ export function GrantDetail({ address }: { address: Address }) {
           </p>
         </aside>
       </div>
+      {showRevokeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <Card className="w-full max-w-lg border-destructive/30 shadow-2xl">
+            <CardHeader>
+              <CardTitle className="text-xl text-destructive">
+                {t("detail.revoke.modal.title")}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {t("detail.revoke.modal.lede")}
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="divide-y rounded-lg border text-sm">
+                <div className="flex justify-between p-3">
+                  <span className="text-muted-foreground">
+                    {t("detail.revoke.modal.totalAllocation")}
+                  </span>
+                  <span className="font-semibold">
+                    {amount(g.totalAllocation)}
+                  </span>
+                </div>
+                <div className="flex justify-between p-3">
+                  <span className="text-muted-foreground">
+                    {t("detail.revoke.modal.alreadyClaimed")}
+                  </span>
+                  <span className="font-semibold">
+                    {amount(g.claimedAmount)}
+                  </span>
+                </div>
+                <div className="flex justify-between p-3">
+                  <span className="text-muted-foreground">
+                    {t("detail.revoke.modal.earnedEntitlement")}
+                  </span>
+                  <span className="font-semibold text-primary">
+                    {amount(revocationPreview.earnedAmount)}
+                  </span>
+                </div>
+                <div className="flex justify-between p-3">
+                  <span className="text-muted-foreground">
+                    {t("detail.revoke.modal.earnedUnclaimed")}
+                  </span>
+                  <span className="font-semibold">
+                    {amount(revocationPreview.earnedUnclaimedAmount)}
+                  </span>
+                </div>
+                <div className="flex justify-between bg-secondary/50 p-3">
+                  <span className="font-medium">
+                    {t("detail.revoke.modal.clawback")}
+                  </span>
+                  <span className="font-bold text-destructive">
+                    {amount(revocationPreview.recoveredAmount)}
+                  </span>
+                </div>
+              </div>
+              <div className="rounded-lg bg-destructive/10 p-3 text-xs leading-5 text-destructive">
+                <strong>{t("detail.revoke.modal.warningLabel")}</strong>{" "}
+                {t("detail.revoke.modal.warningBody", {
+                  recovered: amount(revocationPreview.recoveredAmount),
+                })}
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  disabled={tx.pending}
+                  onClick={() => setShowRevokeModal(false)}
+                >
+                  {t("detail.revoke.modal.cancel")}
+                </Button>
+                <Button
+                  variant="default"
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={!canWrite || tx.pending}
+                  onClick={() => void handleRevoke()}
+                >
+                  {tx.pending
+                    ? t("detail.revoke.modal.pending")
+                    : t("detail.revoke.modal.confirm")}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

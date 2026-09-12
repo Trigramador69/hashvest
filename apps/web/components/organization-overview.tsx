@@ -73,12 +73,13 @@ function ReviewQueueItem({
     totalAllocation: live.data.totalAllocation,
     claimedAmount: live.data.claimedAmount,
     vaultBalance: live.data.balance,
+    revoked: live.data.revoked,
   });
   const roles = resolveProtocolRoles(address, live.data);
   const pending = live.data.milestones.filter(
     (milestone) => !milestone.approved,
   );
-  if (!roles.isReviewer || !pending.length) return null;
+  if (live.data.revoked || !roles.isReviewer || !pending.length) return null;
   const reviewer = findMemberByWallet(members, live.data.reviewer);
   return (
     <Card>
@@ -161,6 +162,7 @@ function ClaimableQueueItem({
     totalAllocation: live.data.totalAllocation,
     claimedAmount: live.data.claimedAmount,
     vaultBalance: live.data.balance,
+    revoked: live.data.revoked,
   });
   const roles = resolveProtocolRoles(address, live.data);
   if (!roles.isBeneficiary || live.data.claimableAmount === 0n) return null;

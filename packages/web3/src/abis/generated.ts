@@ -27,6 +27,7 @@ export const hashVestFactoryAbi = [
             type: "address",
             internalType: "address",
           },
+          { name: "revocable", type: "bool", internalType: "bool" },
         ],
       },
       {
@@ -98,6 +99,7 @@ export const hashVestFactoryAbi = [
         indexed: false,
         internalType: "enum UnlockStrategy",
       },
+      { name: "revocable", type: "bool", indexed: false, internalType: "bool" },
     ],
     anonymous: false,
   },
@@ -138,6 +140,7 @@ export const grantVaultAbi = [
             type: "address",
             internalType: "address",
           },
+          { name: "revocable", type: "bool", internalType: "bool" },
         ],
       },
       {
@@ -256,6 +259,41 @@ export const grantVaultAbi = [
   },
   {
     type: "function",
+    name: "revocable",
+    inputs: [],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "revocationEarnedAmount",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "revoke",
+    inputs: [],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "revoked",
+    inputs: [],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "revokedAt",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "start",
     inputs: [],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
@@ -302,6 +340,31 @@ export const grantVaultAbi = [
     inputs: [],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
+  },
+  {
+    type: "event",
+    name: "GrantRevoked",
+    inputs: [
+      {
+        name: "issuer",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "recoveredAmount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "earnedAmount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
   },
   {
     type: "event",
@@ -359,7 +422,9 @@ export const grantVaultAbi = [
     ],
     anonymous: false,
   },
+  { type: "error", name: "AlreadyRevoked", inputs: [] },
   { type: "error", name: "BeneficiaryNotEligible", inputs: [] },
+  { type: "error", name: "GrantNotRevocable", inputs: [] },
   { type: "error", name: "InvalidAddress", inputs: [] },
   { type: "error", name: "InvalidAllocation", inputs: [] },
   { type: "error", name: "InvalidMilestoneIndex", inputs: [] },
@@ -374,6 +439,7 @@ export const grantVaultAbi = [
     inputs: [{ name: "token", type: "address", internalType: "address" }],
   },
   { type: "error", name: "UnauthorizedBeneficiary", inputs: [] },
+  { type: "error", name: "UnauthorizedIssuer", inputs: [] },
   { type: "error", name: "UnauthorizedReviewer", inputs: [] },
 ] as const;
 

@@ -294,11 +294,19 @@ export function GrantLifecycleBadge({
   const t = useTranslations();
   return (
     <span
-      className={`rounded-full px-2.5 py-1 text-xs font-medium ${lifecycle === "COMPLETED" ? "bg-secondary text-muted-foreground" : "bg-primary/10 text-primary"}`}
+      className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+        lifecycle === "REVOKED"
+          ? "bg-destructive/10 text-destructive font-semibold"
+          : lifecycle === "COMPLETED"
+            ? "bg-secondary text-muted-foreground"
+            : "bg-primary/10 text-primary"
+      }`}
     >
-      {lifecycle === "COMPLETED"
-        ? t("ui.lifecycle.completed")
-        : t("ui.lifecycle.active")}
+      {lifecycle === "REVOKED"
+        ? t("ui.lifecycle.revoked")
+        : lifecycle === "COMPLETED"
+          ? t("ui.lifecycle.completed")
+          : t("ui.lifecycle.active")}
     </span>
   );
 }

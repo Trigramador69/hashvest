@@ -46,7 +46,8 @@ export const zhCN: TranslationDictionary = {
     "HashVest 将代币分配转化为全额注资的资助，按时间、里程碑或两者共同解锁。",
   "home.cta.openApp": "打开应用",
   "home.cta.createGrant": "创建资助",
-  "home.note": "已在 {network} 上线 · ERC20 代币 · 不可撤销",
+  "home.note":
+    "已在 {network} 上线 · ERC20 代币 · 可选发行方撤销 · 已获得价值受保护",
 
   "home.steps.title": "一次分配，条件清晰。",
   "home.steps.fund.title": "国库为金库注资",
@@ -70,6 +71,68 @@ export const zhCN: TranslationDictionary = {
   "home.strategies.hybrid.subtitle": "让时间与交付保持一致。",
   "home.strategies.hybrid.body":
     "已解锁 = min(按时间归属的数量, 已批准的里程碑金额)。两个条件共同约束每一次领取。",
+
+  // 撤销功能（HAS-26）、交易阶段，以及来自 lib/protocol 的校验提示。
+  "ui.lifecycle.revoked": "已撤销",
+  "party.terms": "条款",
+  "tx.stage.confirm": "{label}：请在钱包中确认",
+  "tx.stage.waiting": "{label}：等待确认中",
+  "tx.stage.confirmed": "交易已确认。链上状态已是最新。",
+  "tx.stage.reverted": "{label} 在链上已回滚。本次交易的任何更改都未生效。",
+  "grants.error.decimals": "此代币最多支持 {decimals} 位小数。",
+  "wizard.error.amountFormat": "请输入一个正的十进制代币数量。",
+  "wizard.error.amountRange": "代币数量超出了支持的范围。",
+  "wizard.error.milestoneTitle": "里程碑 {index} 需要填写标题。",
+  "wizard.error.insufficientBalance":
+    "{symbol} 余额不足。创建时必须一次性注入全额分配。",
+  "wizard.error.memberMismatch.beneficiary":
+    "请从组织通讯录中选择一位受益人，或使用外部钱包。",
+  "wizard.error.memberMismatch.reviewer":
+    "请从组织通讯录中选择一位审核人，或使用外部钱包。",
+  "wizard.field.revocable.label": "可撤销的资助",
+  "wizard.field.revocable.hint":
+    "允许发起方收回尚未赚取的代币。受益人已经赚取或已领取的代币将被严格保留和保护。",
+  "wizard.review.revocable.title": "可撤销的资助条款",
+  "wizard.review.revocable.body":
+    "本资助可由发起方撤销。撤销会将尚未赚取的资金收回到你的钱包，同时严格保留受益人已经赚取或已领取的全部价值。",
+  "detail.terms.revocable": "可撤销",
+  "detail.terms.revocableRevoked": "可撤销（已撤销）",
+  "detail.terms.nonRevocable": "不可撤销（不可变更）",
+  "detail.terms.revocableNote": "本资助中尚未赚取的代币可由发起方撤销。",
+  "detail.terms.revokedNote":
+    "可撤销的资助：已于 {date} 撤销。受益人已赚取的权益受到严格保留。",
+  "detail.badge.revocable": "可撤销",
+  "detail.badge.nonRevocable": "不可撤销",
+  "detail.claimReason.revokedAllClaimed":
+    "该资助已被撤销。已赚取的代币都已领取完毕。",
+  "detail.claimReason.revokedClaimable":
+    "该资助已被发起方撤销。你仍可领取剩余的全部已赚取代币。",
+  "detail.milestone.lockedByRevocation": "资助已撤销；里程碑已锁定。",
+  "detail.revoked.title": "资助已于 {date} 撤销",
+  "detail.revoked.body.before":
+    "该资助已被发起方撤销。撤销时，受益人已赚取的权益被锁定为 ",
+  "detail.revoked.body.middle":
+    "。尚未赚取的代币（{recovered}）已被发起方收回。",
+  "detail.revoked.body.claimable":
+    " 受益人仍保有剩余 {amount} 的已赚取价值，可在下方领取。",
+  "detail.revoked.body.allClaimed": " 已赚取的代币都已领取完毕。",
+  "detail.revoke.action": "撤销资助",
+  "detail.revoke.tx": "撤销资助并收回未赚取的代币",
+  "detail.revoke.modal.title": "确认撤销资助",
+  "detail.revoke.modal.lede": "确认前，请先预览将被收回的金额和受保留的权益。",
+  "detail.revoke.modal.totalAllocation": "分配总额：",
+  "detail.revoke.modal.alreadyClaimed": "受益人已领取：",
+  "detail.revoke.modal.earnedEntitlement": "受益人已赚取的权益：",
+  "detail.revoke.modal.earnedUnclaimed": "已赚取但未领取：",
+  "detail.revoke.modal.clawback": "发起方可收回：",
+  "detail.revoke.modal.warningLabel": "不可逆操作：",
+  "detail.revoke.modal.warningBody":
+    "撤销将永久停止未来的所有归属和里程碑批准。受益人已经赚取或已领取的代币仍严格由其保管或可供领取。尚未赚取的代币（{recovered}）将立即返回到你已连接的钱包。",
+  "detail.revoke.modal.cancel": "取消",
+  "detail.revoke.modal.confirm": "确认收回",
+  "detail.revoke.modal.pending": "正在收回…",
+  "card.revocable": "可撤销",
+  "card.nonRevocable": "不可撤销",
 
   // 组织概览：实时指标、审核与可领取队列、资助关联。
   "overview.loading.title": "正在加载组织概览",

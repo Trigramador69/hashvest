@@ -38,6 +38,7 @@ import {
 } from "@/hooks/use-organizations";
 import { useSession } from "@/hooks/use-session";
 import { assertTestnetWallet, useTransaction } from "@/hooks/use-transaction";
+import { readRevocationState } from "@/lib/protocol/revocation";
 import {
   dateLabel,
   errorMessage,
@@ -72,6 +73,7 @@ type GrantConfiguration = {
   cliff: bigint;
   duration: bigint;
   eligibilityProvider: Address;
+  revocable: boolean;
 };
 type PreparedGrant = {
   config: GrantConfiguration;
@@ -207,6 +209,12 @@ export type NewGrantProps = {
 export function NewGrant({ organizationId }: NewGrantProps) {
   const t = useTranslations();
   const { preset: localizedPreset } = useGrantPresets();
+  /** Translated rejection messages for the pure parseAllocation helper. */
+  const allocationErrors = (decimals: number) => ({
+    format: t("wizard.error.amountFormat"),
+    decimals: t("grants.error.decimals", { decimals }),
+    range: t("wizard.error.amountRange"),
+  });
   const { address, chainId } = useAccount();
   const client = usePublicClient({ chainId: 133 });
   const { writeContractAsync } = useWriteContract();
@@ -236,6 +244,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
     { title: "", amount: "" },
   ]);
   const [provider, setProvider] = useState("");
+  const [revocable, setRevocable] = useState(false);
   const [presetKey, setPresetKey] = useState<GrantPresetKey | null>(null);
   const [appliedPreset, setAppliedPreset] = useState<AppliedPresetDraft>();
   const [validationError, setValidationError] = useState("");
@@ -346,7 +355,9 @@ export function NewGrant({ organizationId }: NewGrantProps) {
     memberId: string,
     selectedAddress: string,
     external: boolean,
-    label: string,
+    // The message arrives translated: "Choose a ${label}" only builds a
+    // grammatical sentence in English.
+    mismatchMessage: string,
   ) {
     if (!organizationId || external) return;
     const member = organizationMembers.data?.find(
@@ -356,9 +367,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
       !member ||
       member.walletAddress.toLowerCase() !== selectedAddress.toLowerCase()
     )
-      throw new Error(
-        `Choose a ${label} from the organization directory or use an external wallet.`,
-      );
+      throw new Error(mismatchMessage);
   }
 
   function validateGrant() {
@@ -369,14 +378,18 @@ export function NewGrant({ organizationId }: NewGrantProps) {
       beneficiaryMemberId,
       beneficiary,
       beneficiaryExternal,
-      "beneficiary",
+      t("wizard.error.memberMismatch.beneficiary"),
     );
     if (!validParty(beneficiary))
       throw new Error(t("wizard.error.beneficiaryAddress"));
     if (!validParty(token)) throw new Error(t("wizard.error.token"));
     if (!tokenMetadata.data || tokenMetadata.isError)
       throw new Error(t("wizard.error.tokenMetadata", NETWORK));
-    return parseAllocation(allocation, tokenMetadata.data.decimals);
+    return parseAllocation(
+      allocation,
+      tokenMetadata.data.decimals,
+      allocationErrors(tokenMetadata.data.decimals),
+    );
   }
 
   function prepare(): PreparedGrant {
@@ -410,10 +423,16 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         ? []
         : milestones.map((item, index) => {
             if (!item.title.trim())
-              throw new Error(`Milestone ${index + 1} needs a title.`);
+              throw new Error(
+                t("wizard.error.milestoneTitle", { index: index + 1 }),
+              );
             return {
               title: item.title.trim(),
-              amount: parseAllocation(item.amount, tokenMetadata.data.decimals),
+              amount: parseAllocation(
+                item.amount,
+                tokenMetadata.data.decimals,
+                allocationErrors(tokenMetadata.data.decimals),
+              ),
             };
           });
     if (strategy !== 0) {
@@ -423,7 +442,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         reviewerMemberId,
         reviewer,
         reviewerExternal,
-        "reviewer",
+        t("wizard.error.memberMismatch.reviewer"),
       );
       if (!validParty(reviewer))
         throw new Error(t("wizard.error.reviewerRequired"));
@@ -446,6 +465,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         cliff: cliffSeconds,
         duration: durationSeconds,
         eligibilityProvider: provider ? getAddress(provider) : zeroAddress,
+        revocable,
       },
       milestones: items,
       symbol: tokenMetadata.data.symbol,
@@ -479,7 +499,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
       });
       if (balance < config.totalAllocation)
         throw new Error(
-          `Insufficient ${prepared.symbol}. The full allocation must be funded at creation.`,
+          t("wizard.error.insufficientBalance", { symbol: prepared.symbol }),
         );
       if (config.eligibilityProvider !== zeroAddress) {
         const code = await client.getCode({
@@ -504,6 +524,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
               args: [factory, 0n],
               chainId: 133,
               account: assertTestnetWallet(account),
+              gas: 60_000n,
             }),
           );
         }
@@ -515,6 +536,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             args: [factory, config.totalAllocation],
             chainId: 133,
             account: assertTestnetWallet(account),
+            gas: 80_000n,
           }),
         );
       }
@@ -534,6 +556,9 @@ export function NewGrant({ organizationId }: NewGrantProps) {
           args: [config, items],
           chainId: 133,
           account: assertTestnetWallet(account),
+          gas: simulation.request.gas
+            ? (simulation.request.gas * 130n) / 100n
+            : undefined,
         }),
       );
       const events = parseEventLogs({
@@ -566,6 +591,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             candidateDuration,
             candidateProvider,
             candidateMilestones,
+            candidateRevocation,
           ] = await Promise.all([
             client.readContract({
               address: candidate,
@@ -627,6 +653,32 @@ export function NewGrant({ organizationId }: NewGrantProps) {
               abi: grantVaultAbi,
               functionName: "getMilestones",
             }),
+            readRevocationState({
+              revocable: () =>
+                client.readContract({
+                  address: candidate,
+                  abi: grantVaultAbi,
+                  functionName: "revocable",
+                }),
+              revoked: () =>
+                client.readContract({
+                  address: candidate,
+                  abi: grantVaultAbi,
+                  functionName: "revoked",
+                }),
+              revokedAt: () =>
+                client.readContract({
+                  address: candidate,
+                  abi: grantVaultAbi,
+                  functionName: "revokedAt",
+                }),
+              revocationEarnedAmount: () =>
+                client.readContract({
+                  address: candidate,
+                  abi: grantVaultAbi,
+                  functionName: "revocationEarnedAmount",
+                }),
+            }),
           ]);
           return (
             candidateTitle === config.title &&
@@ -642,6 +694,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             candidateDuration === config.duration &&
             candidateProvider.toLowerCase() ===
               config.eligibilityProvider.toLowerCase() &&
+            candidateRevocation.revocable === config.revocable &&
             candidateMilestones.length === items.length &&
             candidateMilestones.every(
               (milestone, index) =>
@@ -1238,6 +1291,26 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                           </Field>
                         </div>
                       </details>
+                      <div className="rounded-xl border p-4">
+                        <label className="flex items-start gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            className="mt-1 size-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            checked={revocable}
+                            onChange={(event) =>
+                              setRevocable(event.target.checked)
+                            }
+                          />
+                          <div>
+                            <span className="text-sm font-medium">
+                              {t("wizard.field.revocable.label")}
+                            </span>
+                            <span className="block text-xs leading-5 text-muted-foreground mt-0.5">
+                              {t("wizard.field.revocable.hint")}
+                            </span>
+                          </div>
+                        </label>
+                      </div>
                     </>
                   )}
                   {step === 3 && prepared && (
@@ -1363,8 +1436,18 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                           ))}
                         </div>
                       )}
-                      <Notice title={t("wizard.review.permanent.title")}>
-                        <p>{t("wizard.review.permanent.body")}</p>
+                      <Notice
+                        title={
+                          prepared.config.revocable
+                            ? t("wizard.review.revocable.title")
+                            : t("wizard.review.permanent.title")
+                        }
+                      >
+                        <p>
+                          {prepared.config.revocable
+                            ? t("wizard.review.revocable.body")
+                            : t("wizard.review.permanent.body")}
+                        </p>
                       </Notice>
                     </>
                   )}

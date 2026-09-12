@@ -53,7 +53,8 @@ export const en = {
     "HashVest turns token allocations into fully funded grants that unlock with time, milestones, or both.",
   "home.cta.openApp": "Open application",
   "home.cta.createGrant": "Create a grant",
-  "home.note": "Live on {network} · ERC20 tokens · No revocation",
+  "home.note":
+    "Live on {network} · ERC20 tokens · Optional issuer revocation · Earned value protected",
 
   "home.steps.title": "One allocation. Clear conditions.",
   "home.steps.fund.title": "Treasury funds a vault",
@@ -78,6 +79,72 @@ export const en = {
   "home.strategies.hybrid.subtitle": "Keep time and delivery aligned.",
   "home.strategies.hybrid.body":
     "Unlocked = min(time vested, approved milestone amount). Both conditions constrain every claim.",
+
+  // Revocation (HAS-26), transaction stages, and validation raised from lib/protocol.
+  "ui.lifecycle.revoked": "Revoked",
+  "party.terms": "Terms",
+  "tx.stage.confirm": "{label}: confirm in your wallet",
+  "tx.stage.waiting": "{label}: waiting for confirmation",
+  "tx.stage.confirmed": "Transaction confirmed. Onchain state is up to date.",
+  "tx.stage.reverted":
+    "{label} reverted onchain. No changes from this transaction were applied.",
+  "grants.error.decimals":
+    "This token supports at most {decimals} decimal places.",
+  "wizard.error.amountFormat": "Enter a positive decimal token amount.",
+  "wizard.error.amountRange": "Token amount is outside the supported range.",
+  "wizard.error.milestoneTitle": "Milestone {index} needs a title.",
+  "wizard.error.insufficientBalance":
+    "Insufficient {symbol}. The full allocation must be funded at creation.",
+  "wizard.error.memberMismatch.beneficiary":
+    "Choose a beneficiary from the organization directory or use an external wallet.",
+  "wizard.error.memberMismatch.reviewer":
+    "Choose a reviewer from the organization directory or use an external wallet.",
+  "wizard.field.revocable.label": "Revocable grant",
+  "wizard.field.revocable.hint":
+    "Enables issuer clawback of unearned tokens. Tokens already earned or claimed by the beneficiary remain strictly preserved and protected.",
+  "wizard.review.revocable.title": "Revocable grant terms",
+  "wizard.review.revocable.body":
+    "This grant is revocable by the issuer. Revocation claws back unearned funds to your wallet while strictly preserving any value already earned or claimed by the beneficiary.",
+  "detail.terms.revocable": "Revocable",
+  "detail.terms.revocableRevoked": "Revocable (Revoked)",
+  "detail.terms.nonRevocable": "Non-revocable (Immutable)",
+  "detail.terms.revocableNote":
+    "This grant is revocable by the issuer for unearned tokens.",
+  "detail.terms.revokedNote":
+    "Revocable grant: revoked on {date}. Beneficiary earned entitlement is strictly preserved.",
+  "detail.badge.revocable": "Revocable",
+  "detail.badge.nonRevocable": "Non-revocable",
+  "detail.claimReason.revokedAllClaimed":
+    "The grant was revoked. All earned tokens have already been claimed.",
+  "detail.claimReason.revokedClaimable":
+    "The grant was revoked by the issuer. You can claim all remaining earned tokens.",
+  "detail.milestone.lockedByRevocation": "Grant revoked; milestones locked.",
+  "detail.revoked.title": "Grant Revoked on {date}",
+  "detail.revoked.body.before":
+    "This grant was revoked by the issuer. The beneficiary's earned entitlement was locked at ",
+  "detail.revoked.body.middle":
+    " at the time of revocation. Unearned tokens ({recovered}) were recovered by the issuer.",
+  "detail.revoked.body.claimable":
+    " The beneficiary preserves the remaining {amount} of earned value and can claim it below.",
+  "detail.revoked.body.allClaimed": " All earned tokens have been claimed.",
+  "detail.revoke.action": "Revoke grant",
+  "detail.revoke.tx": "Revoke grant and recover unearned tokens",
+  "detail.revoke.modal.title": "Confirm Grant Revocation",
+  "detail.revoke.modal.lede":
+    "Preview the clawback and preserved entitlements before confirming.",
+  "detail.revoke.modal.totalAllocation": "Total Allocation:",
+  "detail.revoke.modal.alreadyClaimed": "Already Claimed by Beneficiary:",
+  "detail.revoke.modal.earnedEntitlement": "Beneficiary Earned Entitlement:",
+  "detail.revoke.modal.earnedUnclaimed": "Earned but Unclaimed:",
+  "detail.revoke.modal.clawback": "Issuer Treasury Clawback:",
+  "detail.revoke.modal.warningLabel": "Irreversible Action:",
+  "detail.revoke.modal.warningBody":
+    "Revoking stops all future vesting and milestone approvals permanently. Tokens already earned or claimed by the beneficiary remain strictly in their custody or claimable. Unearned tokens ({recovered}) will return immediately to your connected wallet.",
+  "detail.revoke.modal.cancel": "Cancel",
+  "detail.revoke.modal.confirm": "Confirm Clawback",
+  "detail.revoke.modal.pending": "Clawing back…",
+  "card.revocable": "Revocable",
+  "card.nonRevocable": "Non-revocable",
 
   // Organization overview: live metrics, review and claimable queues, grant linking.
   "overview.loading.title": "Loading organization overview",

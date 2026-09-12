@@ -17,14 +17,16 @@ function run(command, args, cwd = root) {
 
 async function main() {
   // A key is inherited through the environment, never placed in CLI arguments.
-  const key = process.env.DEPLOYER_PRIVATE_KEY;
-  if (!key || !/^(0x)?[a-fA-F0-9]{64}$/.test(key))
+  const rawKey = process.env.DEPLOYER_PRIVATE_KEY?.trim();
+  if (!rawKey || !/^(0x)?[a-fA-F0-9]{64}$/.test(rawKey))
     throw new Error(
       "Configure a valid DEPLOYER_PRIVATE_KEY in packages/contracts/.env.",
     );
+  const normalizedKey = rawKey.startsWith("0x") ? rawKey : `0x${rawKey}`;
+  process.env.DEPLOYER_PRIVATE_KEY = normalizedKey;
   let account;
   try {
-    account = privateKeyToAccount(key.startsWith("0x") ? key : `0x${key}`);
+    account = privateKeyToAccount(normalizedKey);
   } catch {
     throw new Error("DEPLOYER_PRIVATE_KEY is invalid.");
   }

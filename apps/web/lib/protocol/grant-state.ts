@@ -1,4 +1,4 @@
-export type GrantLifecycle = "ACTIVE" | "COMPLETED";
+export type GrantLifecycle = "ACTIVE" | "COMPLETED" | "REVOKED";
 
 export type GrantFundingHealth = {
   coveredAmount: bigint;
@@ -16,7 +16,9 @@ export type GrantState = {
 export function deriveGrantLifecycle(input: {
   totalAllocation: bigint;
   claimedAmount: bigint;
+  revoked?: boolean;
 }): GrantLifecycle {
+  if (input.revoked) return "REVOKED";
   return input.claimedAmount >= input.totalAllocation ? "COMPLETED" : "ACTIVE";
 }
 
@@ -29,8 +31,9 @@ export function deriveGrantState(input: {
   totalAllocation: bigint;
   claimedAmount: bigint;
   vaultBalance: bigint;
+  revoked?: boolean;
 }): GrantState {
-  const { totalAllocation, claimedAmount, vaultBalance } = input;
+  const { totalAllocation, claimedAmount, vaultBalance, revoked } = input;
   const requiredVaultBalance =
     totalAllocation > claimedAmount ? totalAllocation - claimedAmount : 0n;
   const coveredAmount =
@@ -49,7 +52,11 @@ export function deriveGrantState(input: {
       : Number((coveredAmount * 10000n) / totalAllocation) / 100;
 
   return {
-    lifecycle: deriveGrantLifecycle({ totalAllocation, claimedAmount }),
+    lifecycle: deriveGrantLifecycle({
+      totalAllocation,
+      claimedAmount,
+      revoked,
+    }),
     funding: {
       coveredAmount,
       requiredVaultBalance,

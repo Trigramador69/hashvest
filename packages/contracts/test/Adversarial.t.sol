@@ -69,6 +69,7 @@ struct MalformedGrantConfig {
     uint256 cliff;
     uint256 duration;
     address eligibilityProvider;
+    bool revocable;
 }
 
 contract AdversarialTest is HashVestTestBase {
@@ -230,6 +231,34 @@ contract AdversarialTest is HashVestTestBase {
         assertEq(callbackToken.balanceOf(address(vault)), 0);
     }
 
+    function test_revokeRejectsReentrancyAndUpdatesStateBeforeTransfer() public {
+        CallbackToken callbackToken = new CallbackToken();
+        callbackToken.mint(issuer, ALLOCATION);
+        vm.prank(issuer);
+        callbackToken.approve(address(factory), ALLOCATION);
+        GrantConfig memory grant = revocableConfig(UnlockStrategy.TIME);
+        grant.token = address(callbackToken);
+        vm.prank(issuer);
+        GrantVault vault = GrantVault(factory.createGrant(grant, new MilestoneInput[](0)));
+        callbackToken.configure(address(vault), abi.encodeCall(vault.revoke, ()), false);
+        vm.warp(START + DURATION / 2);
+
+        uint256 issuerBalanceBefore = callbackToken.balanceOf(issuer);
+        vm.prank(issuer);
+        vault.revoke();
+
+        assertTrue(callbackToken.callbackAttempted());
+        assertFalse(callbackToken.callbackSucceeded());
+        assertEq(
+            callbackToken.callbackResult(),
+            abi.encodeWithSelector(ReentrancyGuard.ReentrancyGuardReentrantCall.selector)
+        );
+        assertTrue(vault.revoked());
+        assertEq(vault.revocationEarnedAmount(), ALLOCATION / 2);
+        assertEq(callbackToken.balanceOf(issuer) - issuerBalanceBefore, ALLOCATION / 2);
+        assertEq(callbackToken.balanceOf(address(vault)), ALLOCATION / 2);
+    }
+
     function test_failedTokenTransferRollsBackClaimedState() public {
         FailingTransferToken badToken = new FailingTransferToken();
         badToken.mint(issuer, ALLOCATION);
@@ -279,7 +308,8 @@ contract AdversarialTest is HashVestTestBase {
             start: START,
             cliff: 0,
             duration: DURATION,
-            eligibilityProvider: address(0)
+            eligibilityProvider: address(0),
+            revocable: false
         });
         vm.prank(issuer);
         (bool success,) =
