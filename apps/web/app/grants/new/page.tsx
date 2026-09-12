@@ -12,7 +12,11 @@ import {
   zeroAddress,
   type Address,
 } from "viem";
-import { hashVestFactoryAbi, testnetDeployment } from "@hashvest/web3";
+import {
+  grantVaultAbi,
+  hashVestFactoryAbi,
+  testnetDeployment,
+} from "@hashvest/web3";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -291,7 +295,28 @@ export default function NewGrant() {
           (log) => log.address.toLowerCase() === factory.toLowerCase(),
         ),
       });
-      if (events[0]) setCreatedAddress(events[0].args.vault);
+      const indexedGrants = await client.readContract({
+        address: factory,
+        abi: hashVestFactoryAbi,
+        functionName: "getGrantsByIssuer",
+        args: [account],
+      });
+      // The role index is the confirmed source of truth for the newly-created
+      // vault. It also covers transient HSK receipt log ordering races.
+      let indexedAddress: Address | undefined;
+      for (const candidate of [...indexedGrants].reverse()) {
+        const candidateTitle = await client.readContract({
+          address: candidate,
+          abi: grantVaultAbi,
+          functionName: "title",
+        });
+        if (candidateTitle === config.title) {
+          indexedAddress = candidate;
+          break;
+        }
+      }
+      const created = indexedAddress ?? events[0]?.args.vault;
+      if (created) setCreatedAddress(created);
     });
   }
 

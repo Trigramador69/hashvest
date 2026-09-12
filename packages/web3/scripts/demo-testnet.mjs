@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { createWalletClient, decodeEventLog, http, parseEther } from "viem";
+import { createWalletClient, http, parseEther } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { artifactPath, deploymentPath, root } from "./paths.mjs";
 import {
@@ -151,7 +151,7 @@ async function main() {
             { title: "Prototype accepted", amount: parseEther("40") },
             { title: "Delivery accepted", amount: parseEther("60") },
           ];
-    const receipt = await write(
+    await write(
       issuer,
       `Create fully funded ${name} grant`,
       deployment.factory,
@@ -159,19 +159,18 @@ async function main() {
       "createGrant",
       [config, milestones],
     );
-    let vault;
-    for (const log of receipt.logs.filter(
-      (entry) =>
-        entry.address.toLowerCase() === deployment.factory.toLowerCase(),
-    )) {
-      const decoded = decodeEventLog({
-        abi: factoryAbi,
-        data: log.data,
-        topics: log.topics,
-      });
-      if (decoded.eventName === "GrantCreated") vault = decoded.args.vault;
-    }
-    assert.ok(vault, "Factory did not emit GrantCreated");
+    // Resolve the vault from the factory's role index after confirmation. This
+    // is resilient to an HSK RPC race where waitForTransactionReceipt can
+    // briefly return logs from an adjacent transaction in the same block.
+    const indexedGrants = await client.readContract({
+      address: deployment.factory,
+      abi: factoryAbi,
+      functionName: "getGrantsByIssuer",
+      args: [issuer.account.address],
+    });
+    const vault = indexedGrants.at(-1);
+    assert.ok(vault, "Factory did not index the created grant");
+    assert.equal(await vaultRead(vault, "title"), config.title);
     evidence.grants[name] = vault;
     assert.equal(await tokenRead("balanceOf", [vault]), allocation);
     assert.equal(await vaultRead(vault, "claimedAmount"), 0n);
