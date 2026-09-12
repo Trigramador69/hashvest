@@ -27,6 +27,7 @@ export const hashVestFactoryAbi = [
             type: "address",
             internalType: "address",
           },
+          { name: "initialUnlock", type: "uint256", internalType: "uint256" },
         ],
       },
       {
@@ -138,6 +139,7 @@ export const grantVaultAbi = [
             type: "address",
             internalType: "address",
           },
+          { name: "initialUnlock", type: "uint256", internalType: "uint256" },
         ],
       },
       {
@@ -231,6 +233,13 @@ export const grantVaultAbi = [
         ],
       },
     ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "initialUnlock",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
@@ -362,6 +371,7 @@ export const grantVaultAbi = [
   { type: "error", name: "BeneficiaryNotEligible", inputs: [] },
   { type: "error", name: "InvalidAddress", inputs: [] },
   { type: "error", name: "InvalidAllocation", inputs: [] },
+  { type: "error", name: "InvalidInitialUnlock", inputs: [] },
   { type: "error", name: "InvalidMilestoneIndex", inputs: [] },
   { type: "error", name: "InvalidMilestones", inputs: [] },
   { type: "error", name: "InvalidSchedule", inputs: [] },

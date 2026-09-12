@@ -55,6 +55,7 @@ export function useGrant(address: Address) {
         unlockedAmount,
         claimableAmount,
         milestones,
+        initialUnlock,
       ] = await Promise.all([
         client.readContract({ ...contract, functionName: "title" }),
         client.readContract({ ...contract, functionName: "issuer" }),
@@ -79,6 +80,7 @@ export function useGrant(address: Address) {
         client.readContract({ ...contract, functionName: "unlockedAmount" }),
         client.readContract({ ...contract, functionName: "claimableAmount" }),
         client.readContract({ ...contract, functionName: "getMilestones" }),
+        client.readContract({ ...contract, functionName: "initialUnlock" }),
       ]);
       const tokenContract = { address: token, abi: erc20Abi, blockNumber };
       const [decimals, symbol, balance, beneficiaryBalance, eligibility] =
@@ -128,6 +130,7 @@ export function useGrant(address: Address) {
         unlockedAmount,
         claimableAmount,
         milestones,
+        initialUnlock,
         decimals,
         symbol,
         balance,

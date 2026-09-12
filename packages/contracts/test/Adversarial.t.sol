@@ -69,6 +69,7 @@ struct MalformedGrantConfig {
     uint256 cliff;
     uint256 duration;
     address eligibilityProvider;
+    uint256 initialUnlock;
 }
 
 contract AdversarialTest is HashVestTestBase {
@@ -279,7 +280,8 @@ contract AdversarialTest is HashVestTestBase {
             start: START,
             cliff: 0,
             duration: DURATION,
-            eligibilityProvider: address(0)
+            eligibilityProvider: address(0),
+            initialUnlock: 0
         });
         vm.prank(issuer);
         (bool success,) =

@@ -311,12 +311,33 @@ export function GrantDetail({ address }: { address: Address }) {
                     </div>
                   ))}
                 </dl>
+                {g.initialUnlock > 0n && (
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm leading-6">
+                    <p className="font-medium text-primary">
+                      Initial unlock (TGE): {amount(g.initialUnlock)} (
+                      {percent(g.initialUnlock, g.totalAllocation)}%)
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Available immediately at start. The remaining{" "}
+                      {amount(g.totalAllocation - g.initialUnlock)} follows the
+                      schedule below.
+                    </p>
+                  </div>
+                )}
                 {g.strategy === 2 && (
                   <div className="rounded-lg bg-secondary/70 p-4 text-sm leading-6">
                     <p className="font-medium">
-                      Hybrid = min(time vested, approved milestones)
+                      {g.initialUnlock > 0n
+                        ? "Hybrid = initial unlock + min(time vesting remaining, approved milestones)"
+                        : "Hybrid = min(time vested, approved milestones)"}
                     </p>
                     <p className="mt-2 text-muted-foreground">
+                      {g.initialUnlock > 0n && (
+                        <>
+                          Initial unlock: {amount(g.initialUnlock)}
+                          <br />
+                        </>
+                      )}
                       Time vested: {amount(g.vestedByTime)}
                       <br />
                       Milestones approved: {amount(g.milestoneUnlockedAmount)}

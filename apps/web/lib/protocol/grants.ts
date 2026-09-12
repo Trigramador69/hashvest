@@ -94,3 +94,69 @@ export function parseAllocation(value: string, decimals: number): bigint {
     throw new Error("Token amount is outside the supported range.");
   return amount;
 }
+
+export function calculateVestedByTime(params: {
+  start: bigint;
+  cliff: bigint;
+  duration: bigint;
+  totalAllocation: bigint;
+  initialUnlock: bigint;
+  timestamp: bigint;
+}): bigint {
+  const { start, cliff, duration, totalAllocation, initialUnlock, timestamp } =
+    params;
+  if (timestamp < start) return 0n;
+  if (timestamp < start + cliff) return initialUnlock;
+  if (timestamp >= start + duration) return totalAllocation;
+  return (
+    initialUnlock +
+    ((totalAllocation - initialUnlock) * (timestamp - start)) / duration
+  );
+}
+
+export function calculateUnlockedAmount(params: {
+  strategy: 0 | 1 | 2;
+  start: bigint;
+  cliff: bigint;
+  duration: bigint;
+  totalAllocation: bigint;
+  initialUnlock: bigint;
+  milestoneUnlockedAmount: bigint;
+  timestamp: bigint;
+}): bigint {
+  const {
+    strategy,
+    start,
+    cliff,
+    duration,
+    totalAllocation,
+    initialUnlock,
+    milestoneUnlockedAmount,
+    timestamp,
+  } = params;
+
+  if (strategy === 1) {
+    return milestoneUnlockedAmount;
+  }
+
+  const timeVested = calculateVestedByTime({
+    start,
+    cliff,
+    duration,
+    totalAllocation,
+    initialUnlock,
+    timestamp,
+  });
+
+  if (strategy === 0) {
+    return timeVested;
+  }
+
+  if (timestamp < start) return 0n;
+  const vestingTimeUnlocked = timeVested - initialUnlock;
+  const cappedMilestone =
+    milestoneUnlockedAmount < vestingTimeUnlocked
+      ? milestoneUnlockedAmount
+      : vestingTimeUnlocked;
+  return initialUnlock + cappedMilestone;
+}

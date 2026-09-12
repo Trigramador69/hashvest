@@ -38,10 +38,12 @@ import {
 import { useSession } from "@/hooks/use-session";
 import { assertTestnetWallet, useTransaction } from "@/hooks/use-transaction";
 import {
+  calculateVestedByTime,
   dateLabel,
   errorMessage,
   normalizeAddress,
   parseAllocation,
+  percent,
   strategies,
   strategyDescriptions,
   validParty,
@@ -70,6 +72,7 @@ type GrantConfiguration = {
   cliff: bigint;
   duration: bigint;
   eligibilityProvider: Address;
+  initialUnlock: bigint;
 };
 type PreparedGrant = {
   config: GrantConfiguration;
@@ -218,6 +221,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   const [cliff, setCliff] = useState("0");
   const [duration, setDuration] = useState("5");
   const [unit, setUnit] = useState("60");
+  const [initialUnlock, setInitialUnlock] = useState("");
   const [reviewer, setReviewer] = useState("");
   const [reviewerMemberId, setReviewerMemberId] = useState("");
   const [reviewerExternal, setReviewerExternal] = useState(!organizationId);
@@ -296,6 +300,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
       if (unit === draft.unit) setUnit("60");
       if (cliff === draft.cliff) setCliff("0");
       if (duration === draft.duration) setDuration("5");
+      setInitialUnlock("");
       if (sameMilestones(milestones, draft.milestones))
         setMilestones([{ title: "", amount: "" }]);
     }
@@ -380,6 +385,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
     let startTimestamp = 0n;
     let cliffSeconds = 0n;
     let durationSeconds = 0n;
+    let initialUnlockAmount = 0n;
     if (strategy !== 1) {
       if (!/^\d+$/.test(duration) || BigInt(duration) === 0n)
         throw new Error("Duration must be a positive whole number.");
@@ -396,6 +402,25 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         if (!Number.isFinite(parsed) || parsed < 0)
           throw new Error("Enter a valid start date.");
         startTimestamp = BigInt(Math.floor(parsed / 1000));
+      }
+      if (initialUnlock.trim()) {
+        initialUnlockAmount = parseAllocation(
+          initialUnlock,
+          tokenMetadata.data.decimals,
+        );
+        if (initialUnlockAmount > totalAllocation)
+          throw new Error(
+            "Initial unlock cannot exceed the total grant allocation.",
+          );
+      }
+    } else {
+      if (
+        initialUnlock.trim() &&
+        parseAllocation(initialUnlock, tokenMetadata.data.decimals) > 0n
+      ) {
+        throw new Error(
+          "Milestone-only grants cannot have an initial unlock. Use Time or Hybrid strategy.",
+        );
       }
     }
     if (provider && !validParty(provider))
@@ -428,12 +453,28 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         );
       if (!items.length || items.length > 20)
         throw new Error("Add between 1 and 20 milestones.");
+      if (strategy === 2 && initialUnlockAmount === totalAllocation) {
+        throw new Error(
+          "In Hybrid grants, initial unlock cannot equal the entire allocation because milestones must cover the remainder.",
+        );
+      }
+      const expectedMilestoneSum =
+        strategy === 2
+          ? totalAllocation - initialUnlockAmount
+          : totalAllocation;
       if (
-        items.reduce((sum, item) => sum + item.amount, 0n) !== totalAllocation
-      )
+        items.reduce((sum, item) => sum + item.amount, 0n) !==
+        expectedMilestoneSum
+      ) {
+        if (strategy === 2 && initialUnlockAmount > 0n) {
+          throw new Error(
+            "Milestone amounts must add up exactly to the remaining allocation (total allocation minus initial unlock).",
+          );
+        }
         throw new Error(
           "Milestone amounts must add up exactly to the total allocation.",
         );
+      }
     }
     return {
       config: {
@@ -447,6 +488,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         cliff: cliffSeconds,
         duration: durationSeconds,
         eligibilityProvider: provider ? getAddress(provider) : zeroAddress,
+        initialUnlock: initialUnlockAmount,
       },
       milestones: items,
       symbol: tokenMetadata.data.symbol,
@@ -571,6 +613,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             candidateDuration,
             candidateProvider,
             candidateMilestones,
+            candidateInitialUnlock,
           ] = await Promise.all([
             client.readContract({
               address: candidate,
@@ -632,6 +675,11 @@ export function NewGrant({ organizationId }: NewGrantProps) {
               abi: grantVaultAbi,
               functionName: "getMilestones",
             }),
+            client.readContract({
+              address: candidate,
+              abi: grantVaultAbi,
+              functionName: "initialUnlock",
+            }),
           ]);
           return (
             candidateTitle === config.title &&
@@ -647,6 +695,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             candidateDuration === config.duration &&
             candidateProvider.toLowerCase() ===
               config.eligibilityProvider.toLowerCase() &&
+            candidateInitialUnlock === config.initialUnlock &&
             candidateMilestones.length === items.length &&
             candidateMilestones.every(
               (milestone, index) =>
@@ -1044,6 +1093,26 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                               onChange={(event) => setStart(event.target.value)}
                             />
                           </Field>
+                          <Field
+                            label="Initial unlock / TGE (optional)"
+                            hint="Token amount unlocked immediately at start (before cliff). The remainder vests linearly. Leave empty or 0 for standard cliff vesting."
+                          >
+                            <div className="relative">
+                              <input
+                                className="field pr-16"
+                                placeholder="0.0"
+                                value={initialUnlock}
+                                onChange={(event) =>
+                                  setInitialUnlock(event.target.value)
+                                }
+                              />
+                              {tokenMetadata.data && (
+                                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground">
+                                  {tokenMetadata.data.symbol}
+                                </span>
+                              )}
+                            </div>
+                          </Field>
                           <div className="grid gap-4 sm:grid-cols-3">
                             <Field label="Schedule unit">
                               <select
@@ -1294,6 +1363,16 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             </div>
                             <div className="flex justify-between gap-4">
                               <dt className="text-muted-foreground">
+                                Initial unlock (TGE)
+                              </dt>
+                              <dd>
+                                {prepared.config.initialUnlock > 0n
+                                  ? `${formatUnits(prepared.config.initialUnlock, prepared.decimals)} ${prepared.symbol} (${percent(prepared.config.initialUnlock, prepared.config.totalAllocation)}%)`
+                                  : "None (0%)"}
+                              </dd>
+                            </div>
+                            <div className="flex justify-between gap-4">
+                              <dt className="text-muted-foreground">
                                 Cliff / total duration
                               </dt>
                               <dd>
@@ -1301,6 +1380,53 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                                 {prepared.config.duration.toString()}s
                               </dd>
                             </div>
+                            {prepared.config.initialUnlock > 0n && (
+                              <div className="rounded-lg bg-secondary/50 p-3 text-xs leading-5">
+                                <p className="font-semibold text-foreground">
+                                  Schedule preview:
+                                </p>
+                                <p className="mt-1 text-muted-foreground">
+                                  • At start:{" "}
+                                  <strong>
+                                    {formatUnits(
+                                      prepared.config.initialUnlock,
+                                      prepared.decimals,
+                                    )}{" "}
+                                    {prepared.symbol}
+                                  </strong>{" "}
+                                  unlocked immediately
+                                  <br />• At cliff end:{" "}
+                                  <strong>
+                                    {formatUnits(
+                                      calculateVestedByTime({
+                                        start: prepared.config.start,
+                                        cliff: prepared.config.cliff,
+                                        duration: prepared.config.duration,
+                                        totalAllocation:
+                                          prepared.config.totalAllocation,
+                                        initialUnlock:
+                                          prepared.config.initialUnlock,
+                                        timestamp:
+                                          prepared.config.start +
+                                          prepared.config.cliff,
+                                      }),
+                                      prepared.decimals,
+                                    )}{" "}
+                                    {prepared.symbol}
+                                  </strong>{" "}
+                                  cumulative time vested
+                                  <br />• At completion:{" "}
+                                  <strong>
+                                    {formatUnits(
+                                      prepared.config.totalAllocation,
+                                      prepared.decimals,
+                                    )}{" "}
+                                    {prepared.symbol}
+                                  </strong>{" "}
+                                  (100%)
+                                </p>
+                              </div>
+                            )}
                           </>
                         )}
                         <div className="flex flex-wrap justify-between gap-2">
