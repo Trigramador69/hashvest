@@ -1,10 +1,49 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { SessionControl } from "@/components/session-control";
+import { useOrganizations } from "@/hooks/use-organizations";
+import { useSession } from "@/hooks/use-session";
+
+function OrganizationSwitcher() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const session = useSession();
+  const organizations = useOrganizations();
+  if (!session.walletMatches || !organizations.data?.length) return null;
+  const activeId = pathname.match(/^\/app\/organizations\/([^/]+)/)?.[1] ?? "";
+  const value = organizations.data.some((item) => item.id === activeId)
+    ? activeId
+    : "";
+  return (
+    <label className="flex items-center gap-2 text-xs text-muted-foreground">
+      <span className="hidden sm:inline">Workspace</span>
+      <select
+        className="field h-9 min-w-36 py-1 text-xs sm:min-w-48"
+        value={value}
+        aria-label="Choose workspace"
+        onChange={(event) => {
+          if (event.target.value === "create")
+            router.push("/app/organizations/new");
+          else if (event.target.value)
+            router.push(`/app/organizations/${event.target.value}`);
+        }}
+      >
+        <option value="">Your organizations</option>
+        {organizations.data.map((organization) => (
+          <option key={organization.id} value={organization.id}>
+            {organization.name}
+          </option>
+        ))}
+        <option value="create">+ Create organization</option>
+      </select>
+    </label>
+  );
+}
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -28,9 +67,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             <Link
               href="/app"
-              className={cn("nav-link", pathname === "/app" && "text-primary")}
+              className={cn(
+                "nav-link",
+                (pathname === "/app" ||
+                  pathname.startsWith("/app/organizations")) &&
+                  "text-primary",
+              )}
             >
-              My grants
+              Organizations / grants
             </Link>
             <Link
               href="/grants/new"
@@ -42,10 +86,12 @@ export function AppShell({ children }: { children: ReactNode }) {
               Create grant
             </Link>
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex max-w-full flex-wrap items-center justify-end gap-3">
+            <OrganizationSwitcher />
             <span className="hidden rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary lg:block">
               HSK Testnet · 133
             </span>
+            <SessionControl compact />
             <ConnectButton
               accountStatus="address"
               chainStatus="icon"

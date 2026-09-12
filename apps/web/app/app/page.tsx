@@ -3,20 +3,15 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useAccount, useReadContract } from "wagmi";
-import type { Address } from "viem";
 import { hashVestFactoryAbi, testnetDeployment } from "@hashvest/web3";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import {
-  AddressDisplay,
-  NetworkNotice,
-  Notice,
-  PageHeading,
-  Progress,
-} from "@/components/grant-ui";
+import { NetworkNotice, Notice, PageHeading } from "@/components/grant-ui";
 import { DemoFaucet } from "@/components/demo-faucet";
-import { useGrant } from "@/hooks/use-grant";
-import { errorMessage, percent, strategies, tokenAmount } from "@/lib/grants";
+import { GrantCard } from "@/components/grant-card";
+import { SessionControl } from "@/components/session-control";
+import { useOrganizations } from "@/hooks/use-organizations";
+import { useSession } from "@/hooks/use-session";
+import { errorMessage } from "@/lib/grants";
 
 const tabs = ["Issued", "Received", "Review"] as const;
 const methods = [
@@ -25,96 +20,110 @@ const methods = [
   "getGrantsByReviewer",
 ] as const;
 
-function GrantCard({
-  address,
-  received,
-}: {
-  address: Address;
-  received: boolean;
-}) {
-  const grant = useGrant(address);
-  if (grant.isPending)
+function OrganizationsSection({ isConnected }: { isConnected: boolean }) {
+  const session = useSession();
+  const organizations = useOrganizations();
+  if (!isConnected) return null;
+  if (session.isError)
     return (
-      <Card>
-        <CardContent className="p-6 text-sm text-muted-foreground">
-          Loading grant {address.slice(0, 8)}…
-        </CardContent>
-      </Card>
+      <Notice title="Workspace context is not configured" error>
+        <p>
+          Direct onchain grants remain available. Set the server-only auth and
+          Supabase variables to enable organizations.
+        </p>
+      </Notice>
     );
-  if (!grant.data)
+  if (!session.walletMatches)
     return (
-      <Notice title="Grant could not be loaded" error>
-        <AddressDisplay address={address} />
-        <p>{errorMessage(grant.error)}</p>
+      <Notice title="Sign in to manage organizations">
+        <p>
+          Organization context is separate from wallet connection and needs one
+          explicit signature.
+        </p>
+        <div className="mt-4">
+          <SessionControl />
+        </div>
+      </Notice>
+    );
+  if (organizations.isPending)
+    return (
+      <Notice title="Loading your organizations">
+        <p>Reading workspace memberships…</p>
+      </Notice>
+    );
+  if (organizations.isError)
+    return (
+      <Notice title="Organizations could not be loaded" error>
+        <p>{errorMessage(organizations.error)}</p>
         <Button
-          variant="outline"
           className="mt-3"
-          onClick={() => void grant.refetch()}
+          variant="outline"
+          onClick={() => void organizations.refetch()}
         >
           Retry
         </Button>
       </Notice>
     );
-  const g = grant.data;
   return (
-    <Card className="flex flex-col transition-shadow hover:shadow-md">
-      <CardHeader>
-        <div className="flex items-start justify-between gap-3">
-          <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-primary">
-            {strategies[g.strategy]}
-          </span>
-          <span className="text-xs text-muted-foreground">
-            {g.claimedAmount === g.totalAllocation ? "Completed" : "Active"}
-          </span>
+    <section className="space-y-4" aria-labelledby="organizations-heading">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[.18em] text-primary">
+            Your workspaces
+          </p>
+          <h2
+            id="organizations-heading"
+            className="mt-2 text-2xl font-semibold tracking-tight"
+          >
+            Organizations provide context.
+          </h2>
         </div>
         <Link
-          href={`/grants/${address}`}
-          className="pt-3 text-xl font-semibold leading-7 tracking-tight hover:text-primary"
+          className={buttonVariants({ variant: "outline" })}
+          href="/app/organizations/new"
         >
-          {g.title} <span aria-hidden>↗</span>
+          + Create organization
         </Link>
-      </CardHeader>
-      <CardContent className="flex grow flex-col gap-5">
-        <div>
-          <p className="text-xs text-muted-foreground">Total allocation</p>
-          <p className="mt-1 text-2xl font-semibold">
-            {tokenAmount(g.totalAllocation, g.decimals)}{" "}
-            <span className="text-sm font-normal text-muted-foreground">
-              {g.symbol}
-            </span>
+      </div>
+      {!organizations.data?.length ? (
+        <div className="rounded-xl border border-dashed p-8">
+          <p className="font-semibold">Create your first organization</p>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+            Set up a workspace for your team, ecosystem, or treasury. You become
+            the owner automatically.
           </p>
+          <Link
+            className={`${buttonVariants()} mt-4`}
+            href="/app/organizations/new"
+          >
+            Set up workspace →
+          </Link>
         </div>
-        <div>
-          <div className="mb-2 flex justify-between text-xs">
-            <span>Unlocked</span>
-            <span>{percent(g.unlockedAmount, g.totalAllocation)}%</span>
-          </div>
-          <Progress
-            value={percent(g.unlockedAmount, g.totalAllocation)}
-            label="Grant unlocked"
-          />
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          {organizations.data.map((organization) => (
+            <Link
+              key={organization.id}
+              href={`/app/organizations/${organization.id}`}
+              className="rounded-xl border bg-card p-5 transition-shadow hover:shadow-md"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="font-semibold">{organization.name}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {organization.memberCount} members ·{" "}
+                    {organization.grantCount} grants
+                  </p>
+                </div>
+                <span className="text-primary" aria-hidden>
+                  ↗
+                </span>
+              </div>
+            </Link>
+          ))}
         </div>
-        <div className="mt-auto flex flex-wrap justify-between gap-4 border-t pt-4">
-          <div>
-            <p className="mb-1 text-xs text-muted-foreground">Beneficiary</p>
-            <AddressDisplay address={g.beneficiary} />
-          </div>
-          <div className="text-right">
-            <p className="text-xs text-muted-foreground">
-              {received ? "Available to claim" : "Claimable"}
-            </p>
-            <p className="mt-1 text-sm font-semibold text-primary">
-              {tokenAmount(g.claimableAmount, g.decimals)} {g.symbol}
-            </p>
-          </div>
-        </div>
-        {grant.isRefetchError && (
-          <p className="text-xs text-destructive">
-            Refresh failed. Values may be stale.
-          </p>
-        )}
-      </CardContent>
-    </Card>
+      )}
+    </section>
   );
 }
 
@@ -144,6 +153,7 @@ export default function Dashboard() {
         <p>Manage allocations, track unlocks, and move good work forward.</p>
       </PageHeading>
       <NetworkNotice />
+      <OrganizationsSection isConnected={isConnected} />
       {!factory && (
         <Notice title="Testnet deployment is not configured">
           <p>
