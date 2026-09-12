@@ -3,9 +3,14 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useSwitchChain } from "wagmi";
-import { addressExplorerUrl, transactionExplorerUrl } from "@hashvest/web3";
+import {
+  addressExplorerUrl,
+  hskTestnet,
+  transactionExplorerUrl,
+} from "@hashvest/web3";
 import type { Address } from "viem";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "@/lib/shared/i18n/provider";
 import { errorMessage, shortAddress, tokenAmount } from "@/lib/protocol/grants";
 import type {
   GrantFundingHealth,
@@ -19,6 +24,10 @@ import {
   probeWalletRpc,
 } from "@/lib/protocol/network";
 
+/** Protocol literals: never translated, only interpolated into messages. */
+const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
+const CANONICAL_RPC_URL = hskTestnet.rpcUrls.default.http[0];
+
 export function NetworkNotice() {
   const { isConnected, chainId, connector } = useAccount();
   const { switchChain, switchChainAsync, isPending, error } = useSwitchChain();
@@ -29,6 +38,7 @@ export function NetworkNotice() {
   }>({ key: "", status: "checking" });
   const [repairState, setRepairState] = useState({ key: "", error: "" });
   const [repairPending, setRepairPending] = useState(false);
+  const t = useTranslations();
   const rpcHealth =
     rpcProbe.key === connectionKey ? rpcProbe.status : "checking";
   const repairError =
@@ -45,6 +55,8 @@ export function NetworkNotice() {
       try {
         const provider = await connector.getProvider();
         if (!isBrowserProvider(provider))
+          // Swallowed by the catch below; it only flips the probe to
+          // "unavailable" and is never rendered, so it stays untranslated.
           throw new Error("Wallet provider unavailable.");
         await probeWalletRpc(provider);
         if (!cancelled) setRpcProbe({ key: connectionKey, status: "healthy" });
@@ -65,7 +77,7 @@ export function NetworkNotice() {
     try {
       const provider = await connector.getProvider();
       if (!isBrowserProvider(provider))
-        throw new Error("Your wallet provider is unavailable.");
+        throw new Error(t("ui.wallet.providerUnavailableRepair"));
       await provider.request({
         method: "wallet_addEthereumChain",
         params: [hskTestnetAddChainParameter],
@@ -86,11 +98,8 @@ export function NetworkNotice() {
 
   if (!isConnected)
     return (
-      <Notice title="Connect a wallet to get started">
-        <p>
-          Connect your issuer, beneficiary, or reviewer wallet. All grants live
-          on HSK Testnet.
-        </p>
+      <Notice title={t("ui.connect.title")}>
+        <p>{t("ui.connect.body", NETWORK)}</p>
         <div className="mt-4">
           <ConnectButton showBalance={false} />
         </div>
@@ -98,11 +107,8 @@ export function NetworkNotice() {
     );
   if (chainId !== 133)
     return (
-      <Notice title="Switch to HSK Testnet">
-        <p>
-          Your wallet is on another network. Transactions are enabled only on
-          chain 133.
-        </p>
+      <Notice title={t("ui.switch.title", NETWORK)}>
+        <p>{t("ui.switch.body", NETWORK)}</p>
         <Button
           className="mt-4"
           onClick={() =>
@@ -113,7 +119,9 @@ export function NetworkNotice() {
           }
           disabled={isPending}
         >
-          {isPending ? "Switching…" : "Switch to HSK Testnet"}
+          {isPending
+            ? t("ui.switch.switching")
+            : t("ui.switch.action", NETWORK)}
         </Button>
         {error && (
           <p role="alert" className="mt-2 text-destructive">
@@ -124,23 +132,25 @@ export function NetworkNotice() {
     );
   if (rpcHealth !== "unavailable") return null;
   return (
-    <Notice title="Your HSK Testnet wallet RPC is unavailable" error>
+    <Notice title={t("ui.rpc.title", NETWORK)} error>
       <p>
-        The wallet reports chain 133, but its RPC cannot read the latest block.
-        HashVest uses the canonical HSK endpoint at{" "}
-        <code>https://testnet.hsk.xyz</code>. A stale third-party RPC can make a
-        valid token approval look like a contract revert.
+        {t("ui.rpc.body.before", NETWORK)}
+        <code>{CANONICAL_RPC_URL}</code>
+        {t("ui.rpc.body.after")}
       </p>
       <Button
         className="mt-4"
         onClick={() => void repairRpc()}
         disabled={repairPending}
       >
-        {repairPending ? "Updating wallet RPC…" : "Use canonical HSK RPC"}
+        {repairPending ? t("ui.rpc.updating") : t("ui.rpc.action")}
       </Button>
       <p className="mt-3 text-xs">
-        If your wallet rejects the update, edit HSK Testnet manually: RPC URL{" "}
-        <code>https://testnet.hsk.xyz</code>, chain ID <code>133</code>.
+        {t("ui.rpc.manual.before", NETWORK)}
+        <code>{CANONICAL_RPC_URL}</code>
+        {t("ui.rpc.manual.middle")}
+        <code>{hskTestnet.id}</code>
+        {t("ui.rpc.manual.after")}
       </p>
       {repairError && (
         <p role="alert" className="mt-3 break-words text-destructive">
@@ -180,6 +190,7 @@ export function AddressDisplay({
 }) {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState(false);
+  const t = useTranslations();
   async function copy() {
     try {
       await navigator.clipboard.writeText(address);
@@ -205,13 +216,13 @@ export function AddressDisplay({
         type="button"
         className="text-xs text-muted-foreground hover:text-primary"
         onClick={copy}
-        aria-label={`Copy ${address}`}
+        aria-label={t("ui.address.copy", { address })}
       >
-        {copied ? "Copied" : "Copy"}
+        {copied ? t("ui.address.copied") : t("ui.address.copyAction")}
       </button>
       {error && (
         <span role="alert" className="text-xs text-destructive">
-          Copy unavailable; select the address.
+          {t("ui.address.copyUnavailable")}
         </span>
       )}
     </span>
@@ -227,6 +238,7 @@ export function TransactionStatus({
   error: string;
   transactions: TransactionRecord[];
 }) {
+  const t = useTranslations();
   if (!stage && !error && !transactions.length) return null;
   return (
     <div
@@ -248,8 +260,8 @@ export function TransactionStatus({
           rel="noreferrer"
         >
           {transaction.label} ·{" "}
-          {transaction.confirmed ? "confirmed" : "submitted"} ·{" "}
-          {shortAddress(transaction.hash)} ↗
+          {transaction.confirmed ? t("ui.tx.confirmed") : t("ui.tx.submitted")}{" "}
+          · {shortAddress(transaction.hash)} ↗
         </a>
       ))}
     </div>
@@ -279,11 +291,14 @@ export function GrantLifecycleBadge({
 }: {
   lifecycle: GrantLifecycle;
 }) {
+  const t = useTranslations();
   return (
     <span
       className={`rounded-full px-2.5 py-1 text-xs font-medium ${lifecycle === "COMPLETED" ? "bg-secondary text-muted-foreground" : "bg-primary/10 text-primary"}`}
     >
-      {lifecycle === "COMPLETED" ? "Completed" : "Active"}
+      {lifecycle === "COMPLETED"
+        ? t("ui.lifecycle.completed")
+        : t("ui.lifecycle.active")}
     </span>
   );
 }
@@ -303,6 +318,7 @@ export function FundingHealthSummary({
   symbol: string;
   compact?: boolean;
 }) {
+  const t = useTranslations();
   const shortfall =
     funding.requiredVaultBalance > vaultBalance
       ? funding.requiredVaultBalance - vaultBalance
@@ -314,38 +330,47 @@ export function FundingHealthSummary({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-medium text-muted-foreground">
-            Funding health
+            {t("ui.funding.title")}
           </p>
           <p className="mt-1 text-lg font-semibold">
-            {funding.isFullyFunded
-              ? "100% funded"
-              : `${funding.percent}% funded`}
+            {t("ui.funding.percent", {
+              percent: funding.isFullyFunded ? 100 : funding.percent,
+            })}
           </p>
         </div>
         <span
           className={`rounded-full px-2.5 py-1 text-xs font-medium ${funding.isFullyFunded ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"}`}
         >
-          {funding.isFullyFunded ? "Healthy" : "Underfunded"}
+          {funding.isFullyFunded
+            ? t("ui.funding.healthy")
+            : t("ui.funding.underfunded")}
         </span>
       </div>
       <div className="mt-3">
-        <Progress value={funding.percent} label="Grant funding health" />
+        <Progress
+          value={funding.percent}
+          label={t("ui.funding.progressLabel")}
+        />
       </div>
       <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
         <div>
-          <dt className="text-muted-foreground">Allocation</dt>
+          <dt className="text-muted-foreground">
+            {t("ui.funding.allocation")}
+          </dt>
           <dd className="mt-1 break-all font-medium">
             {tokenAmount(totalAllocation, decimals)} {symbol}
           </dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Vault balance</dt>
+          <dt className="text-muted-foreground">
+            {t("ui.funding.vaultBalance")}
+          </dt>
           <dd className="mt-1 break-all font-medium">
             {tokenAmount(vaultBalance, decimals)} {symbol}
           </dd>
         </div>
         <div>
-          <dt className="text-muted-foreground">Required after claims</dt>
+          <dt className="text-muted-foreground">{t("ui.funding.required")}</dt>
           <dd className="mt-1 break-all font-medium">
             {tokenAmount(funding.requiredVaultBalance, decimals)} {symbol}
           </dd>
@@ -353,13 +378,16 @@ export function FundingHealthSummary({
       </dl>
       {shortfall > 0n && (
         <p className="mt-3 text-xs font-medium text-destructive">
-          Shortfall: {tokenAmount(shortfall, decimals)} {symbol}
+          {t("ui.funding.shortfall", {
+            amount: `${tokenAmount(shortfall, decimals)} ${symbol}`,
+          })}
         </p>
       )}
       {funding.surplusAmount > 0n && (
         <p className="mt-3 text-xs text-muted-foreground">
-          Extra vault balance: {tokenAmount(funding.surplusAmount, decimals)}{" "}
-          {symbol}. This is outside the fixed allocation.
+          {t("ui.funding.surplus", {
+            amount: `${tokenAmount(funding.surplusAmount, decimals)} ${symbol}`,
+          })}
         </p>
       )}
     </div>

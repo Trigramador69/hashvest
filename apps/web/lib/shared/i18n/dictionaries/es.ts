@@ -78,6 +78,140 @@ export const es: TranslationDictionary = {
   "home.strategies.hybrid.body":
     "Desbloqueado = min(liberado por tiempo, monto de hitos aprobados). Ambas condiciones limitan cada reclamo.",
 
+  // Superficies de subvención: UI compartida, tarjetas y la página de detalle. Direcciones, hashes, números de bloque, símbolos y URLs de RPC llegan como valores.
+  "role.Issuer": "Emisor",
+  "role.Beneficiary": "Beneficiario",
+  "role.Reviewer": "Revisor",
+  "party.issuer": "Emisor",
+  "party.beneficiary": "Beneficiario",
+  "party.reviewer": "Revisor",
+  "party.token": "Token",
+  "ui.wallet.providerUnavailableRepair":
+    "Tu proveedor de wallet no está disponible.",
+  "ui.connect.title": "Conecta una wallet para empezar",
+  "ui.connect.body":
+    "Conecta tu wallet de emisor, beneficiario o revisor. Todas las subvenciones viven en {network}.",
+  "ui.switch.title": "Cambia a {network}",
+  "ui.switch.body":
+    "Tu wallet está en otra red. Las transacciones solo funcionan en la chain {chainId}.",
+  "ui.switch.switching": "Cambiando…",
+  "ui.switch.action": "Cambiar a {network}",
+  "ui.rpc.title": "El RPC de tu wallet en {network} no está disponible",
+  "ui.rpc.body.before":
+    "La wallet informa de la chain {chainId}, pero su RPC no puede leer el último bloque. HashVest usa el endpoint canónico de HSK en ",
+  "ui.rpc.body.after":
+    ". Un RPC de terceros desactualizado puede hacer que una aprobación de token válida parezca un revert del contrato.",
+  "ui.rpc.updating": "Actualizando el RPC de la wallet…",
+  "ui.rpc.action": "Usar el RPC canónico de HSK",
+  "ui.rpc.manual.before":
+    "Si tu wallet rechaza la actualización, edita {network} a mano: RPC URL ",
+  "ui.rpc.manual.middle": ", chain ID ",
+  "ui.rpc.manual.after": ".",
+  "ui.address.copy": "Copiar {address}",
+  "ui.address.copied": "Copiada",
+  "ui.address.copyAction": "Copiar",
+  "ui.address.copyUnavailable": "No se puede copiar; selecciona la dirección.",
+  "ui.tx.confirmed": "confirmada",
+  "ui.tx.submitted": "enviada",
+  "ui.lifecycle.completed": "Completada",
+  "ui.lifecycle.active": "Activa",
+  "ui.funding.title": "Salud de la financiación",
+  "ui.funding.percent": "{percent}% financiado",
+  "ui.funding.healthy": "Saludable",
+  "ui.funding.underfunded": "Infrafinanciada",
+  "ui.funding.progressLabel": "Salud de la financiación de la subvención",
+  "ui.funding.allocation": "Asignación",
+  "ui.funding.vaultBalance": "Saldo del vault",
+  "ui.funding.required": "Necesario tras los reclamos",
+  "ui.funding.shortfall": "Déficit: {amount}",
+  "ui.funding.surplus":
+    "Saldo extra en el vault: {amount}. Queda fuera de la asignación fija.",
+  "card.loading": "Cargando la subvención {address}…",
+  "card.error.title": "No se pudo cargar la subvención",
+  "card.stale.title": "El estado en vivo de la subvención no está disponible",
+  "card.stale.body":
+    "No se pudo refrescar la última lectura de HSK, así que los valores actuales están ocultos.",
+  "card.retry": "Reintentar",
+  "card.totalAllocation": "Asignación total",
+  "card.unlocked": "Desbloqueado",
+  "card.unlockedProgress": "Desbloqueo de la subvención",
+  "card.milestonesToReview.one": "{count} hito por revisar",
+  "card.milestonesToReview.other": "{count} hitos por revisar",
+  "card.availableToClaim": "Disponible para reclamar",
+  "card.claimable": "Reclamable",
+  "detail.loading.title": "Cargando la subvención",
+  "detail.loading.body": "Leyendo el vault y el token en {network}…",
+  "detail.back": "Mis subvenciones",
+  "detail.error.title": "No se puede leer esta subvención",
+  "detail.error.body":
+    "Comprueba que sea un GrantVault de HashVest en {network}. El RPC también puede estar temporalmente caído.",
+  "detail.stale.title": "El estado en vivo de la subvención no está disponible",
+  "detail.stale.body":
+    "No se pudo refrescar la última lectura de HSK, así que los valores actuales quedan ocultos hasta que el estado en vivo vuelva a estar disponible.",
+  "detail.retry": "Reintentar",
+  "detail.eyebrow": "Vault de subvención · {network}",
+  "detail.youAre.Issuer": "Eres el emisor",
+  "detail.youAre.Beneficiary": "Eres el beneficiario",
+  "detail.youAre.Reviewer": "Eres el revisor",
+  "detail.stat.totalAllocated": "Asignado en total",
+  "detail.stat.unlocked": "Desbloqueado",
+  "detail.stat.claimable": "Reclamable",
+  "detail.stat.claimed": "Reclamado",
+  "detail.schedule.title": "Calendario de vesting",
+  "detail.schedule.lede":
+    "Lineal desde el inicio. El cliff retrasa el reclamo sin reiniciar la curva.",
+  "detail.schedule.vestedByTime": "{amount} liberado por tiempo",
+  "detail.schedule.progressLabel": "Liberado por tiempo",
+  "detail.schedule.start": "Inicio",
+  "detail.schedule.cliffReached": "Cliff alcanzado",
+  "detail.schedule.fullyVested": "Totalmente liberado",
+  "detail.hybrid.formula":
+    "Híbrida = min(liberado por tiempo, hitos aprobados)",
+  "detail.hybrid.timeVested": "Liberado por tiempo: {amount}",
+  "detail.hybrid.milestonesApproved": "Hitos aprobados: {amount}",
+  "detail.hybrid.unlocked": "Desbloqueado: {amount}",
+  "detail.milestones.title": "Hitos",
+  "detail.milestones.summary": "{approved} de {total} aprobados · {amount}",
+  "detail.milestone.approved": "Aprobado",
+  "detail.milestone.pending": "Pendiente",
+  "detail.milestone.approveAction": "Aprobar hito",
+  "detail.terms.title": "Términos de la subvención",
+  "detail.terms.fixed":
+    "Los términos y la asignación son fijos. Esta subvención no se puede revocar.",
+  "detail.claim.title": "Listo para reclamar",
+  "detail.claim.pending": "Transacción en curso…",
+  "detail.claim.action": "Reclamar {amount}",
+  "detail.claim.beneficiaryBalance": "Saldo de tokens del beneficiario",
+  "detail.eligibility.title": "Elegibilidad",
+  "detail.eligibility.none":
+    "No hay proveedor configurado. Los reclamos no requieren comprobación de elegibilidad.",
+  "detail.eligibility.unavailable": "Proveedor no disponible",
+  "detail.eligibility.eligible": "El beneficiario es elegible",
+  "detail.eligibility.notEligible": "El beneficiario no es elegible",
+  "detail.eligibility.note":
+    "El proveedor controla la elegibilidad del beneficiario. El adaptador de demo no es KYC ni cumplimiento real.",
+  "detail.footer.block": "Lecturas en vivo del contrato · Bloque {block}",
+  "detail.footer.refresh":
+    "Se refresca cada {seconds} segundos y después de cada transacción.",
+  "detail.tx.claim": "Reclamar tokens",
+  "detail.tx.approveMilestone": "Aprobar el hito {index}",
+  "detail.rpcUnavailable": "El RPC de {network} no está disponible.",
+  "detail.claimReason.connect":
+    "Conecta la wallet del beneficiario para reclamar tokens.",
+  "detail.claimReason.providerError":
+    "No se pudo leer el proveedor de elegibilidad. Los reclamos seguirán bloqueados hasta que vuelva a estar disponible.",
+  "detail.claimReason.notEligible":
+    "El proveedor configurado no ha marcado al beneficiario como elegible.",
+  "detail.claimReason.completed": "Ya se ha reclamado la asignación completa.",
+  "detail.claimReason.awaitingMilestone":
+    "Esperando a que el revisor apruebe un hito.",
+  "detail.claimReason.awaitingCliff":
+    "Los tokens esperan al inicio del vesting o al cliff.",
+  "detail.claimReason.allClaimed":
+    "Ya se han reclamado todos los tokens desbloqueados. Hace falta más tiempo o más avance en los hitos.",
+  "detail.claimReason.ready":
+    "Reclama la cantidad desbloqueada directamente a tu wallet de beneficiario.",
+
   // Asistente de subvención (/grants/new). Símbolos de token, decimales, chain ids, direcciones y la firma isEligible(address) son literales que llegan como valores.
   "wizard.eyebrow": "Nueva asignación",
   "wizard.title.create": "Crea una subvención.",

@@ -7,16 +7,13 @@ import { useAccount } from "wagmi";
 import { useGrant } from "@/hooks/use-grant";
 import { findMemberByWallet } from "@/lib/cloud/members";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
+import { strategyKey } from "@/lib/shared/i18n/keys";
+import { useTranslations } from "@/lib/shared/i18n/provider";
 import type {
   OrganizationGrant,
   OrganizationMember,
 } from "@/lib/cloud/organizations/types";
-import {
-  errorMessage,
-  percent,
-  strategies,
-  tokenAmount,
-} from "@/lib/protocol/grants";
+import { errorMessage, percent, tokenAmount } from "@/lib/protocol/grants";
 
 import {
   AddressDisplay,
@@ -75,19 +72,20 @@ export function GrantCard({
   metadata,
   members,
 }: GrantCardProps) {
+  const t = useTranslations();
   const { address: walletAddress } = useAccount();
   const grant = useGrant(address);
   if (grant.isPending)
     return (
       <Card>
         <CardContent className="p-6 text-sm text-muted-foreground">
-          Loading grant {address.slice(0, 8)}…
+          {t("card.loading", { address: address.slice(0, 8) })}
         </CardContent>
       </Card>
     );
   if (!grant.data)
     return (
-      <Notice title="Grant could not be loaded" error>
+      <Notice title={t("card.error.title")} error>
         <AddressDisplay address={address} />
         <p>{errorMessage(grant.error)}</p>
         <Button
@@ -101,12 +99,9 @@ export function GrantCard({
     );
   if (grant.isRefetchError)
     return (
-      <Notice title="Live grant state is unavailable" error>
+      <Notice title={t("card.stale.title")} error>
         <AddressDisplay address={address} />
-        <p>
-          The last HSK read could not be refreshed, so current values are
-          hidden.
-        </p>
+        <p>{t("card.stale.body")}</p>
         <p className="mt-2 break-words">{errorMessage(grant.error)}</p>
         <Button
           variant="outline"
@@ -132,7 +127,7 @@ export function GrantCard({
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-primary">
-            {strategies[g.strategy]}
+            {t(strategyKey(g.strategy, "name"))}
           </span>
           <GrantLifecycleBadge lifecycle={state.lifecycle} />
         </div>
@@ -162,7 +157,7 @@ export function GrantCard({
                 key={role}
                 className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
               >
-                {role}
+                {t(`role.${role}`)}
               </span>
             ))}
           </div>
@@ -170,7 +165,9 @@ export function GrantCard({
       </CardHeader>
       <CardContent className="flex grow flex-col gap-5">
         <div>
-          <p className="text-xs text-muted-foreground">Total allocation</p>
+          <p className="text-xs text-muted-foreground">
+            {t("card.totalAllocation")}
+          </p>
           <p className="mt-1 text-2xl font-semibold">
             {tokenAmount(g.totalAllocation, g.decimals)}{" "}
             <span className="text-sm font-normal text-muted-foreground">
@@ -188,23 +185,23 @@ export function GrantCard({
         />
         <div>
           <div className="mb-2 flex justify-between text-xs">
-            <span>Unlocked</span>
+            <span>{t("card.unlocked")}</span>
             <span>{percent(g.unlockedAmount, g.totalAllocation)}%</span>
           </div>
           <Progress
             value={percent(g.unlockedAmount, g.totalAllocation)}
-            label="Grant unlocked"
+            label={t("card.unlockedProgress")}
           />
         </div>
         <div className="grid gap-4 border-t pt-4 sm:grid-cols-2">
           <ParticipantIdentity
-            label="Beneficiary"
+            label={t("party.beneficiary")}
             address={g.beneficiary}
             members={members}
           />
           {g.reviewer !== zeroAddress && (
             <ParticipantIdentity
-              label="Reviewer"
+              label={t("party.reviewer")}
               address={g.reviewer}
               members={members}
             />
@@ -214,14 +211,18 @@ export function GrantCard({
           <div className="text-xs text-muted-foreground">
             {pendingMilestones > 0 && roles.isReviewer && (
               <span className="font-medium text-primary">
-                {pendingMilestones} milestone
-                {pendingMilestones === 1 ? "" : "s"} to review
+                {t(
+                  pendingMilestones === 1
+                    ? "card.milestonesToReview.one"
+                    : "card.milestonesToReview.other",
+                  { count: pendingMilestones },
+                )}
               </span>
             )}
           </div>
           <div className="text-right">
             <p className="text-xs text-muted-foreground">
-              {received ? "Available to claim" : "Claimable"}
+              {received ? t("card.availableToClaim") : t("card.claimable")}
             </p>
             <p className="mt-1 text-sm font-semibold text-primary">
               {tokenAmount(g.claimableAmount, g.decimals)} {g.symbol}

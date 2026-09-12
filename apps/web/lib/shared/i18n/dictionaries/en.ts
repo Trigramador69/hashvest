@@ -79,6 +79,138 @@ export const en = {
   "home.strategies.hybrid.body":
     "Unlocked = min(time vested, approved milestone amount). Both conditions constrain every claim.",
 
+  // Grant surfaces: shared UI (grant-ui), cards, and the grant detail page. Addresses, hashes, block numbers, token symbols and RPC URLs arrive as values.
+  "role.Issuer": "Issuer",
+  "role.Beneficiary": "Beneficiary",
+  "role.Reviewer": "Reviewer",
+  "party.issuer": "Issuer",
+  "party.beneficiary": "Beneficiary",
+  "party.reviewer": "Reviewer",
+  "party.token": "Token",
+  "ui.wallet.providerUnavailableRepair": "Your wallet provider is unavailable.",
+  "ui.connect.title": "Connect a wallet to get started",
+  "ui.connect.body":
+    "Connect your issuer, beneficiary, or reviewer wallet. All grants live on {network}.",
+  "ui.switch.title": "Switch to {network}",
+  "ui.switch.body":
+    "Your wallet is on another network. Transactions are enabled only on chain {chainId}.",
+  "ui.switch.switching": "Switching…",
+  "ui.switch.action": "Switch to {network}",
+  "ui.rpc.title": "Your {network} wallet RPC is unavailable",
+  "ui.rpc.body.before":
+    "The wallet reports chain {chainId}, but its RPC cannot read the latest block. HashVest uses the canonical HSK endpoint at ",
+  "ui.rpc.body.after":
+    ". A stale third-party RPC can make a valid token approval look like a contract revert.",
+  "ui.rpc.updating": "Updating wallet RPC…",
+  "ui.rpc.action": "Use canonical HSK RPC",
+  "ui.rpc.manual.before":
+    "If your wallet rejects the update, edit {network} manually: RPC URL ",
+  "ui.rpc.manual.middle": ", chain ID ",
+  "ui.rpc.manual.after": ".",
+  "ui.address.copy": "Copy {address}",
+  "ui.address.copied": "Copied",
+  "ui.address.copyAction": "Copy",
+  "ui.address.copyUnavailable": "Copy unavailable; select the address.",
+  "ui.tx.confirmed": "confirmed",
+  "ui.tx.submitted": "submitted",
+  "ui.lifecycle.completed": "Completed",
+  "ui.lifecycle.active": "Active",
+  "ui.funding.title": "Funding health",
+  "ui.funding.percent": "{percent}% funded",
+  "ui.funding.healthy": "Healthy",
+  "ui.funding.underfunded": "Underfunded",
+  "ui.funding.progressLabel": "Grant funding health",
+  "ui.funding.allocation": "Allocation",
+  "ui.funding.vaultBalance": "Vault balance",
+  "ui.funding.required": "Required after claims",
+  "ui.funding.shortfall": "Shortfall: {amount}",
+  "ui.funding.surplus":
+    "Extra vault balance: {amount}. This is outside the fixed allocation.",
+  "card.loading": "Loading grant {address}…",
+  "card.error.title": "Grant could not be loaded",
+  "card.stale.title": "Live grant state is unavailable",
+  "card.stale.body":
+    "The last HSK read could not be refreshed, so current values are hidden.",
+  "card.retry": "Retry",
+  "card.totalAllocation": "Total allocation",
+  "card.unlocked": "Unlocked",
+  "card.unlockedProgress": "Grant unlocked",
+  "card.milestonesToReview.one": "{count} milestone to review",
+  "card.milestonesToReview.other": "{count} milestones to review",
+  "card.availableToClaim": "Available to claim",
+  "card.claimable": "Claimable",
+  "detail.loading.title": "Loading grant",
+  "detail.loading.body": "Reading the vault and token on {network}…",
+  "detail.back": "My grants",
+  "detail.error.title": "Unable to read this grant",
+  "detail.error.body":
+    "Check that this is a HashVest GrantVault on {network}. The RPC may also be temporarily unavailable.",
+  "detail.stale.title": "Live grant state is unavailable",
+  "detail.stale.body":
+    "The last HSK read could not be refreshed, so current grant values are hidden until the live state is available again.",
+  "detail.retry": "Retry",
+  "detail.eyebrow": "Grant vault · {network}",
+  "detail.youAre.Issuer": "You are the issuer",
+  "detail.youAre.Beneficiary": "You are the beneficiary",
+  "detail.youAre.Reviewer": "You are the reviewer",
+  "detail.stat.totalAllocated": "Total allocated",
+  "detail.stat.unlocked": "Unlocked",
+  "detail.stat.claimable": "Claimable",
+  "detail.stat.claimed": "Claimed",
+  "detail.schedule.title": "Vesting schedule",
+  "detail.schedule.lede":
+    "Linear from the start. The cliff delays claiming without restarting the curve.",
+  "detail.schedule.vestedByTime": "{amount} vested by time",
+  "detail.schedule.progressLabel": "Time vested",
+  "detail.schedule.start": "Start",
+  "detail.schedule.cliffReached": "Cliff reached",
+  "detail.schedule.fullyVested": "Fully vested",
+  "detail.hybrid.formula": "Hybrid = min(time vested, approved milestones)",
+  "detail.hybrid.timeVested": "Time vested: {amount}",
+  "detail.hybrid.milestonesApproved": "Milestones approved: {amount}",
+  "detail.hybrid.unlocked": "Unlocked: {amount}",
+  "detail.milestones.title": "Milestones",
+  "detail.milestones.summary": "{approved} of {total} approved · {amount}",
+  "detail.milestone.approved": "Approved",
+  "detail.milestone.pending": "Pending",
+  "detail.milestone.approveAction": "Approve milestone",
+  "detail.terms.title": "Grant terms",
+  "detail.terms.fixed":
+    "Terms and allocation are fixed. This grant cannot be revoked.",
+  "detail.claim.title": "Ready to claim",
+  "detail.claim.pending": "Transaction in progress…",
+  "detail.claim.action": "Claim {amount}",
+  "detail.claim.beneficiaryBalance": "Beneficiary token balance",
+  "detail.eligibility.title": "Eligibility",
+  "detail.eligibility.none":
+    "No provider configured. Claims do not require an eligibility check.",
+  "detail.eligibility.unavailable": "Provider unavailable",
+  "detail.eligibility.eligible": "Beneficiary is eligible",
+  "detail.eligibility.notEligible": "Beneficiary is not eligible",
+  "detail.eligibility.note":
+    "The provider controls beneficiary eligibility. The demo adapter is not real KYC or compliance.",
+  "detail.footer.block": "Live contract reads · Block {block}",
+  "detail.footer.refresh":
+    "Refreshes every {seconds} seconds and after transactions.",
+  "detail.tx.claim": "Claim tokens",
+  "detail.tx.approveMilestone": "Approve milestone {index}",
+  "detail.rpcUnavailable": "{network} RPC is unavailable.",
+  "detail.claimReason.connect":
+    "Connect the beneficiary wallet to claim tokens.",
+  "detail.claimReason.providerError":
+    "The eligibility provider could not be read. Claims remain blocked until it is available.",
+  "detail.claimReason.notEligible":
+    "The configured provider has not marked the beneficiary eligible.",
+  "detail.claimReason.completed": "The full allocation has been claimed.",
+  "detail.claimReason.awaitingMilestone":
+    "Waiting for the reviewer to approve a milestone.",
+  "detail.claimReason.awaitingCliff":
+    "Tokens are waiting for the vesting start or cliff.",
+  "detail.claimReason.allClaimed":
+    "All currently unlocked tokens have been claimed. More time or milestone progress is needed.",
+  "detail.claimReason.ready":
+    "Claim the currently unlocked amount directly to your beneficiary wallet.",
+
   // Grant wizard (/grants/new). Token symbols, decimals, chain ids, addresses and the isEligible(address) signature are literals passed in as values.
   "wizard.eyebrow": "New allocation",
   "wizard.title.create": "Create a grant.",
