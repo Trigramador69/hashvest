@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { hskTestnet } from "@hashvest/web3";
 
 import {
   useOrganization,
@@ -15,6 +16,8 @@ import type { OrganizationMember } from "@/lib/cloud/organizations/types";
 import { Notice, PageHeading } from "./grant-ui";
 import { Button } from "./ui/button";
 import { WorkspaceAccessNotice } from "./workspace-access";
+
+const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
 export function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -172,7 +175,12 @@ export function OrganizationHeader({
   if (organization.isError || !organization.data)
     return (
       <Notice title={t("workspace.error.title")} error>
-        <p>{errorMessage(organization.error)}</p>
+        <p>
+          {errorMessage(organization.error, {
+            fallback: t("ui.error.requestFailed"),
+            rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+          })}
+        </p>
         <Button
           className="mt-3"
           variant="outline"

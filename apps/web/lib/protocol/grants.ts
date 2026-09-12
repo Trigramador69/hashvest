@@ -49,7 +49,19 @@ export function dateLabel(timestamp: bigint) {
   });
 }
 
-export function errorMessage(error: unknown) {
+export type ErrorMessageOptions = {
+  /** Localized fallback for an error with no safe user-facing message. */
+  fallback?: string;
+  /** Localized replacement for the known wallet-RPC diagnostic. */
+  rpcUnavailable?: string;
+  /** Messages already translated by the caller and therefore worth keeping. */
+  preserve?: readonly string[];
+};
+
+export function errorMessage(
+  error: unknown,
+  options: ErrorMessageOptions = {},
+) {
   const message =
     error instanceof BaseError
       ? [error.shortMessage, error.details, error.message]
@@ -67,8 +79,12 @@ export function errorMessage(error: unknown) {
   if (
     /eth_getBlockByNumber|thirdweb support|custom eth_getblock/i.test(message)
   )
-    return "Your wallet's HSK Testnet RPC could not read a block. The token contract did not reject this request. Set the wallet RPC to https://testnet.hsk.xyz on chain 133, or use the canonical RPC repair button, then retry.";
-  return fallback;
+    return (
+      options.rpcUnavailable ??
+      "Your wallet's HSK Testnet RPC could not read a block. The token contract did not reject this request. Set the wallet RPC to https://testnet.hsk.xyz on chain 133, or use the canonical RPC repair button, then retry."
+    );
+  if (options.preserve?.includes(fallback)) return fallback;
+  return options.fallback ?? fallback;
 }
 
 export function validParty(value: string) {

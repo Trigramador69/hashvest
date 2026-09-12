@@ -97,6 +97,39 @@ describe("switching presets", () => {
     expect(second.applied.userOwned).toContain("title");
   });
 
+  it("carries edits to description, schedule, and milestones across a switch", () => {
+    const first = apply("builder-grant");
+    const edited = {
+      fields: {
+        ...first.fields,
+        description: "Hand-written workspace context.",
+        unit: "3600",
+        cliff: "2",
+        duration: "12",
+        milestones: first.fields.milestones.map((milestone, index) =>
+          index === 0 ? { ...milestone, title: "Custom kickoff" } : milestone,
+        ),
+      },
+      applied: first.applied,
+    };
+
+    const second = apply("employee-vesting", edited);
+
+    expect(second.fields.description).toBe("Hand-written workspace context.");
+    expect(second.fields.unit).toBe("3600");
+    expect(second.fields.cliff).toBe("2");
+    expect(second.fields.duration).toBe("12");
+    expect(second.fields.milestones[0]?.title).toBe("Custom kickoff");
+    expect(second.fields.strategy).toBe(employee.strategy);
+    expect(second.applied.userOwned).toEqual([
+      "description",
+      "unit",
+      "cliff",
+      "duration",
+      "milestones",
+    ]);
+  });
+
   it("re-splits the milestone amounts against the carried allocation", () => {
     const typed = {
       fields: { ...BLANK_PRESET_FIELDS, allocation: "500" },

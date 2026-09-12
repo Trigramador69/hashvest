@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { zeroAddress, type Address } from "viem";
 import { useAccount } from "wagmi";
+import { hskTestnet } from "@hashvest/web3";
 
 import { useGrant } from "@/hooks/use-grant";
 import { findMemberByWallet } from "@/lib/cloud/members";
@@ -26,6 +27,8 @@ import {
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { deriveGrantState } from "@/lib/protocol/grant-state";
+
+const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
 export type GrantCardProps = {
   address: Address;
@@ -89,7 +92,12 @@ export function GrantCard({
     return (
       <Notice title={t("card.error.title")} error>
         <AddressDisplay address={address} />
-        <p>{errorMessage(grant.error)}</p>
+        <p>
+          {errorMessage(grant.error, {
+            fallback: t("ui.error.requestFailed"),
+            rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+          })}
+        </p>
         <Button
           variant="outline"
           className="mt-3"
@@ -104,7 +112,12 @@ export function GrantCard({
       <Notice title={t("card.stale.title")} error>
         <AddressDisplay address={address} />
         <p>{t("card.stale.body")}</p>
-        <p className="mt-2 break-words">{errorMessage(grant.error)}</p>
+        <p className="mt-2 break-words">
+          {errorMessage(grant.error, {
+            fallback: t("ui.error.requestFailed"),
+            rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+          })}
+        </p>
         <Button
           variant="outline"
           className="mt-3"

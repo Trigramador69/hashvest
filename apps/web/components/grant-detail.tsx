@@ -75,7 +75,12 @@ export function GrantDetail({ address }: { address: Address }) {
         </Link>
         <Notice title={t("detail.error.title")} error>
           <p>{t("detail.error.body", NETWORK)}</p>
-          <p className="mt-2 break-words">{errorMessage(grant.error)}</p>
+          <p className="mt-2 break-words">
+            {errorMessage(grant.error, {
+              fallback: t("ui.error.requestFailed"),
+              rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+            })}
+          </p>
           <div className="mt-3">
             <AddressDisplay address={address} full />
           </div>
@@ -97,7 +102,12 @@ export function GrantDetail({ address }: { address: Address }) {
         </Link>
         <Notice title={t("detail.stale.title")} error>
           <p>{t("detail.stale.body")}</p>
-          <p className="mt-2 break-words">{errorMessage(grant.error)}</p>
+          <p className="mt-2 break-words">
+            {errorMessage(grant.error, {
+              fallback: t("ui.error.requestFailed"),
+              rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+            })}
+          </p>
           <div className="mt-3">
             <AddressDisplay address={address} full />
           </div>

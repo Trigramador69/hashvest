@@ -797,7 +797,12 @@ export function NewGrant({ organizationId }: NewGrantProps) {
       setMetadataSync("saved");
     } catch (error) {
       setMetadataSync("failed");
-      setMetadataError(errorMessage(error));
+      setMetadataError(
+        errorMessage(error, {
+          fallback: t("ui.error.requestFailed"),
+          rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+        }),
+      );
     }
   }
 

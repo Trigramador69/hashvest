@@ -17,7 +17,7 @@ This file is the shared project contract for Codex, Claude Code, and Agy. Keep i
 - Do not reset databases, Docker volumes, Foundry state, or testnet state without explicit authorization.
 - Do not broadcast, redeploy, resend funds, force-push, merge, or deploy to production without explicit authorization.
 - Preserve generated files that are owned by tooling. In particular, do not remove the Next.js block in `apps/web/AGENTS.md`.
-- The shared grant wizard is a localized five-step flow (Template, Grant, Strategy, Conditions, Review); preset labels and editable suggestions must use the active locale while template keys and onchain values remain technical metadata.
+- The shared grant wizard is a localized five-step flow (Template, Grant, Strategy, Conditions, Review); preset labels and editable suggestions must use the active locale while template keys and onchain values remain technical metadata. User-visible unknown errors use localized `errorMessage` fallbacks, while already-translated validation and wallet-guard errors are preserved.
 - Prefer small, reversible changes and existing dependencies/tooling. Do not hide failed checks or weaken types.
 
 ## Delivery contract

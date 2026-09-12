@@ -96,7 +96,13 @@ export function useTransaction() {
       await work();
       setStage(t("tx.stage.confirmed"));
     } catch (cause) {
-      setError(errorMessage(cause));
+      setError(
+        errorMessage(cause, {
+          // Workflows throw translated validation/wallet messages already;
+          // only replace the known raw RPC diagnostic here.
+          rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+        }),
+      );
       setStage("");
     } finally {
       setPending(false);

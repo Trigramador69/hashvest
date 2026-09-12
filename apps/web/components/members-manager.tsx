@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { getAddress } from "viem";
+import { hskTestnet } from "@hashvest/web3";
 
 import {
   useOrganization,
@@ -18,6 +19,8 @@ import { AddressDisplay, Notice } from "./grant-ui";
 import { MemberIdentity } from "./organization-ui";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+
+const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
 export function MembersManager({ organizationId }: { organizationId: string }) {
   const t = useTranslations();
@@ -165,7 +168,10 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
                   role="alert"
                   className="text-sm text-destructive md:col-span-2"
                 >
-                  {errorMessage(addMember.error)}
+                  {errorMessage(addMember.error, {
+                    fallback: t("ui.error.requestFailed"),
+                    rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+                  })}
                 </p>
               )}
             </form>
@@ -251,7 +257,13 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
                           role="alert"
                           className="text-sm text-destructive md:col-span-3"
                         >
-                          {errorMessage(updateMember.error)}
+                          {errorMessage(updateMember.error, {
+                            fallback: t("ui.error.requestFailed"),
+                            rpcUnavailable: t(
+                              "tx.error.rpcUnavailable",
+                              NETWORK,
+                            ),
+                          })}
                         </p>
                       )}
                     </form>
@@ -297,7 +309,10 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
           )}
           {removeMember.isError && (
             <p role="alert" className="mt-4 text-sm text-destructive">
-              {errorMessage(removeMember.error)}
+              {errorMessage(removeMember.error, {
+                fallback: t("ui.error.requestFailed"),
+                rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+              })}
             </p>
           )}
         </CardContent>

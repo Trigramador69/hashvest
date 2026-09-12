@@ -83,6 +83,7 @@ export const zhCN: TranslationDictionary = {
   "tx.error.wrongNetwork": "请将钱包切换到 {network}（链 {chainId}）后继续。",
   "tx.error.walletChanged": "钱包已更换。请重新检查资助后再继续。",
   "tx.error.rpcUnavailable": "{network} RPC 当前不可用。",
+  "ui.error.requestFailed": "请求失败，请重试。",
   "tx.error.tokenAddressRequired": "必须提供代币地址。",
   "grants.error.decimals": "此代币最多支持 {decimals} 位小数。",
   "wizard.error.amountFormat": "请输入一个正的十进制代币数量。",

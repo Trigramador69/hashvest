@@ -94,6 +94,7 @@ export const es: TranslationDictionary = {
   "tx.error.walletChanged":
     "Tu wallet cambió. Revisa de nuevo la subvención antes de continuar.",
   "tx.error.rpcUnavailable": "El RPC de {network} no está disponible.",
+  "ui.error.requestFailed": "La solicitud falló. Inténtalo de nuevo.",
   "tx.error.tokenAddressRequired": "La dirección del token es obligatoria.",
   "grants.error.decimals":
     "Este token admite como máximo {decimals} decimales.",

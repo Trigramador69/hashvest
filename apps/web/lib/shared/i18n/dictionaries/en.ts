@@ -94,6 +94,7 @@ export const en = {
   "tx.error.walletChanged":
     "Your wallet changed. Review the grant again before continuing.",
   "tx.error.rpcUnavailable": "{network} RPC is unavailable.",
+  "ui.error.requestFailed": "The request failed. Please try again.",
   "tx.error.tokenAddressRequired": "Token address is required.",
   "grants.error.decimals":
     "This token supports at most {decimals} decimal places.",

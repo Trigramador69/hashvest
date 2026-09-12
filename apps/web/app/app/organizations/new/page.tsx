@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
+import { hskTestnet } from "@hashvest/web3";
 
 import { WorkspaceAccessNotice } from "@/components/workspace-access";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,8 @@ import { useCreateOrganization } from "@/hooks/use-organizations";
 import { useSession } from "@/hooks/use-session";
 import { errorMessage } from "@/lib/protocol/grants";
 import { useTranslations } from "@/lib/shared/i18n/provider";
+
+const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
 export default function NewOrganizationPage() {
   const t = useTranslations();
@@ -107,7 +110,10 @@ export default function NewOrganizationPage() {
               </div>
               {createOrganization.isError && (
                 <p role="alert" className="text-sm text-destructive">
-                  {errorMessage(createOrganization.error)}
+                  {errorMessage(createOrganization.error, {
+                    fallback: t("ui.error.requestFailed"),
+                    rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+                  })}
                 </p>
               )}
               <Button type="submit" disabled={createOrganization.isPending}>

@@ -56,8 +56,8 @@ export function NetworkNotice() {
         const provider = await connector.getProvider();
         if (!isBrowserProvider(provider))
           // Swallowed by the catch below; it only flips the probe to
-          // "unavailable" and is never rendered, so it stays untranslated.
-          throw new Error("Wallet provider unavailable.");
+          // "unavailable" and is never rendered.
+          throw new Error(t("ui.wallet.providerUnavailableRepair"));
         await probeWalletRpc(provider);
         if (!cancelled) setRpcProbe({ key: connectionKey, status: "healthy" });
       } catch {
@@ -68,7 +68,7 @@ export function NetworkNotice() {
     return () => {
       cancelled = true;
     };
-  }, [chainId, connectionKey, connector, isConnected]);
+  }, [chainId, connectionKey, connector, isConnected, t]);
 
   async function repairRpc() {
     if (!connector) return;
@@ -90,7 +90,14 @@ export function NetworkNotice() {
       setRpcProbe({ key: connectionKey, status: "healthy" });
     } catch (cause) {
       setRpcProbe({ key: connectionKey, status: "unavailable" });
-      setRepairState({ key: connectionKey, error: errorMessage(cause) });
+      setRepairState({
+        key: connectionKey,
+        error: errorMessage(cause, {
+          fallback: t("ui.error.requestFailed"),
+          rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+          preserve: [t("ui.wallet.providerUnavailableRepair")],
+        }),
+      });
     } finally {
       setRepairPending(false);
     }
@@ -125,7 +132,10 @@ export function NetworkNotice() {
         </Button>
         {error && (
           <p role="alert" className="mt-2 text-destructive">
-            {errorMessage(error)}
+            {errorMessage(error, {
+              fallback: t("ui.error.requestFailed"),
+              rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+            })}
           </p>
         )}
       </Notice>

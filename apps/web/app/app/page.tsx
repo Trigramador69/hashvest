@@ -57,7 +57,12 @@ function OrganizationsSection({ isConnected }: { isConnected: boolean }) {
   if (organizations.isError)
     return (
       <Notice title={t("orgs.error.title")} error>
-        <p>{errorMessage(organizations.error)}</p>
+        <p>
+          {errorMessage(organizations.error, {
+            fallback: t("ui.error.requestFailed"),
+            rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+          })}
+        </p>
         <Button
           className="mt-3"
           variant="outline"
@@ -192,7 +197,12 @@ export default function Dashboard() {
               </Notice>
             ) : grants.isError ? (
               <Notice title={t("dashboard.grants.error.title")} error>
-                <p>{errorMessage(grants.error)}</p>
+                <p>
+                  {errorMessage(grants.error, {
+                    fallback: t("ui.error.requestFailed"),
+                    rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+                  })}
+                </p>
                 <Button
                   className="mt-3"
                   variant="outline"

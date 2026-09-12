@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { useAccount } from "wagmi";
 import type { Address } from "viem";
+import { hskTestnet } from "@hashvest/web3";
 
 import {
   useLinkOrganizationGrant,
@@ -29,6 +30,8 @@ import { Button, buttonVariants } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { FundingHealthSummary, GrantLifecycleBadge, Notice } from "./grant-ui";
 import { deriveGrantState } from "@/lib/protocol/grant-state";
+
+const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
 function LiveMetric({ label, value }: { label: string; value: string }) {
   return (
@@ -66,7 +69,10 @@ function ReviewQueueItem({
   if (!live.data)
     return (
       <p role="alert" className="text-sm text-destructive">
-        {errorMessage(live.error)}
+        {errorMessage(live.error, {
+          fallback: t("ui.error.requestFailed"),
+          rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+        })}
       </p>
     );
   const state = deriveGrantState({
@@ -155,7 +161,10 @@ function ClaimableQueueItem({
   if (!live.data)
     return (
       <p role="alert" className="text-sm text-destructive">
-        {errorMessage(live.error)}
+        {errorMessage(live.error, {
+          fallback: t("ui.error.requestFailed"),
+          rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+        })}
       </p>
     );
   const state = deriveGrantState({
@@ -259,7 +268,10 @@ function LinkExistingGrant({ organizationId }: { organizationId: string }) {
         </Button>
         {linkGrant.isError && (
           <p role="alert" className="text-sm text-destructive">
-            {errorMessage(linkGrant.error)}
+            {errorMessage(linkGrant.error, {
+              fallback: t("ui.error.requestFailed"),
+              rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+            })}
           </p>
         )}
         {linkGrant.isSuccess && (
