@@ -430,8 +430,9 @@ export function GrantDetail({ address }: { address: Address }) {
                         >
                           {milestone.approved ? "Approved" : "Pending"}
                         </span>
-                        {isReviewer && !milestone.approved && (
-                          g.revoked ? (
+                        {isReviewer &&
+                          !milestone.approved &&
+                          (g.revoked ? (
                             <span className="text-xs text-muted-foreground">
                               Locked (Revoked)
                             </span>
@@ -444,8 +445,7 @@ export function GrantDetail({ address }: { address: Address }) {
                             >
                               Approve milestone
                             </Button>
-                          )
-                        )}
+                          ))}
                       </div>
                     </li>
                   ))}
@@ -595,20 +595,27 @@ export function GrantDetail({ address }: { address: Address }) {
                 Confirm Grant Revocation
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Preview the clawback and preserved entitlements before confirming.
+                Preview the clawback and preserved entitlements before
+                confirming.
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="divide-y rounded-lg border text-sm">
                 <div className="flex justify-between p-3">
-                  <span className="text-muted-foreground">Total Allocation:</span>
-                  <span className="font-semibold">{amount(g.totalAllocation)}</span>
+                  <span className="text-muted-foreground">
+                    Total Allocation:
+                  </span>
+                  <span className="font-semibold">
+                    {amount(g.totalAllocation)}
+                  </span>
                 </div>
                 <div className="flex justify-between p-3">
                   <span className="text-muted-foreground">
                     Already Claimed by Beneficiary:
                   </span>
-                  <span className="font-semibold">{amount(g.claimedAmount)}</span>
+                  <span className="font-semibold">
+                    {amount(g.claimedAmount)}
+                  </span>
                 </div>
                 <div className="flex justify-between p-3">
                   <span className="text-muted-foreground">
@@ -622,7 +629,9 @@ export function GrantDetail({ address }: { address: Address }) {
                   <span className="text-muted-foreground">
                     Earned but Unclaimed:
                   </span>
-                  <span className="font-semibold">{amount(g.claimableAmount)}</span>
+                  <span className="font-semibold">
+                    {amount(g.claimableAmount)}
+                  </span>
                 </div>
                 <div className="flex justify-between bg-secondary/50 p-3">
                   <span className="font-medium">Issuer Treasury Clawback:</span>

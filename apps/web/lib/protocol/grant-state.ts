@@ -52,7 +52,11 @@ export function deriveGrantState(input: {
       : Number((coveredAmount * 10000n) / totalAllocation) / 100;
 
   return {
-    lifecycle: deriveGrantLifecycle({ totalAllocation, claimedAmount, revoked }),
+    lifecycle: deriveGrantLifecycle({
+      totalAllocation,
+      claimedAmount,
+      revoked,
+    }),
     funding: {
       coveredAmount,
       requiredVaultBalance,

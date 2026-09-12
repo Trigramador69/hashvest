@@ -5,6 +5,7 @@
 Issuers need a controlled clawback mechanism to recover unearned capital in situations such as project cancellation, breach of milestones, or premature departure. However, decentralized trust requires that **revocation must never erase value already earned or claimed by the beneficiary**.
 
 The previously deployed `GrantVault` implementation is non-revocable and immutable. The protocol must:
+
 1. Support an explicit `revocable` flag on newly instantiated grants.
 2. Ensure non-revocable grants are permanently immutable and impossible to revoke.
 3. Enforce a one-way state transition upon revocation.
@@ -17,12 +18,15 @@ The previously deployed `GrantVault` implementation is non-revocable and immutab
 ## 2. Mandatory Semantic Example & Accounting Model
 
 ### Semantic Baseline Example
+
 Given:
+
 - `totalAllocation`: 100,000 tokens
 - `unlockedAmount()` (vested/earned at time of revocation): 40,000 tokens
 - `claimedAmount`: 20,000 tokens
 
 Upon `revoke()` by the issuer:
+
 1. **Already claimed preservation**: 20,000 tokens already transferred to the beneficiary remain entirely in beneficiary's custody.
 2. **Earned unclaimed entitlement**: 20,000 tokens (`40,000 earned - 20,000 claimed`) remain claimable by the beneficiary at any subsequent time via `claim()`.
 3. **Issuer recovery**: 60,000 unearned tokens (`100,000 allocation - 40,000 earned`) are transferred atomically back to the issuer's wallet.
@@ -33,6 +37,7 @@ Upon `revoke()` by the issuer:
 ### Strategy-Specific Accounting Rules
 
 #### A. TIME Vesting Strategy
+
 - **Calculation at Revocation ($t_{\text{rev}}$)**:
   - If $t_{\text{rev}} < \text{start} + \text{cliff}$: $\text{earned} = 0$. Issuer recovers $100\%$; beneficiary entitlement is $0$.
   - If $t_{\text{rev}} \ge \text{start} + \text{duration}$: $\text{earned} = \text{totalAllocation}$. Issuer recovers $0$; beneficiary preserves $100\%$.
@@ -40,6 +45,7 @@ Upon `revoke()` by the issuer:
 - **Post-Revocation Time Behavior**: Time advancement ceases permanently for this grant. The linear curve is frozen at $t_{\text{rev}}$.
 
 #### B. MILESTONE Strategy
+
 - **Calculation at Revocation**:
   - $\text{earned} = \text{milestoneUnlockedAmount}$ (sum of all milestones approved by reviewer strictly prior to revocation).
 - **Pending / Unapproved Milestones**:
@@ -47,10 +53,11 @@ Upon `revoke()` by the issuer:
   - Reviewer calling `approveMilestone()` post-revocation reverts with `AlreadyRevoked()`. No new milestone approvals are permitted.
 
 #### C. HYBRID Strategy
+
 - **Calculation at Revocation**:
   - $\text{earned} = \min(\text{vestedByTime}(t_{\text{rev}}), \text{milestoneUnlockedAmount})$.
   - Both time and milestone criteria must be satisfied at or prior to $t_{\text{rev}}$.
-  - *Pending reviewer-approved unlocks*: If reviewer approved milestones totaling 50,000, but time vested is only 40,000, earned is $\min(40,000, 50,000) = 40,000$. The extra 10,000 unvested time capacity expires permanently because vesting terminates.
+  - _Pending reviewer-approved unlocks_: If reviewer approved milestones totaling 50,000, but time vested is only 40,000, earned is $\min(40,000, 50,000) = 40,000$. The extra 10,000 unvested time capacity expires permanently because vesting terminates.
   - If time vested is 60,000 but approved milestones total 40,000, earned is $\min(60,000, 40,000) = 40,000$. Unapproved milestones cannot be approved post-revocation.
 
 ---
@@ -59,12 +66,12 @@ Upon `revoke()` by the issuer:
 
 ### Role Matrix
 
-| Action | Allowed Role | Conditions / Pre-checks | Post-Condition / Failure |
-| :--- | :--- | :--- | :--- |
-| `revoke()` | `issuer` only | `revocable == true`, `revoked == false`, `msg.sender == issuer` | Transfers `unearned` to issuer; freezes `revocationEarnedAmount`; reverts on unauthorized caller or repeated call |
-| `claim()` | `beneficiary` only | `isEligible(beneficiary) == true`, `claimableAmount() > 0` | Transfers `claimableAmount` to beneficiary; callable both before and after revocation |
-| `approveMilestone()` | `reviewer` only | `revoked == false`, `msg.sender == reviewer`, milestone unapproved | Reverts with `AlreadyRevoked()` if grant has been revoked |
-| `createGrant()` | Any caller (as issuer) | Allocation funded atomically | Sets `revocable` flag in `GrantVault` |
+| Action               | Allowed Role           | Conditions / Pre-checks                                            | Post-Condition / Failure                                                                                          |
+| :------------------- | :--------------------- | :----------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------- |
+| `revoke()`           | `issuer` only          | `revocable == true`, `revoked == false`, `msg.sender == issuer`    | Transfers `unearned` to issuer; freezes `revocationEarnedAmount`; reverts on unauthorized caller or repeated call |
+| `claim()`            | `beneficiary` only     | `isEligible(beneficiary) == true`, `claimableAmount() > 0`         | Transfers `claimableAmount` to beneficiary; callable both before and after revocation                             |
+| `approveMilestone()` | `reviewer` only        | `revoked == false`, `msg.sender == reviewer`, milestone unapproved | Reverts with `AlreadyRevoked()` if grant has been revoked                                                         |
+| `createGrant()`      | Any caller (as issuer) | Allocation funded atomically                                       | Sets `revocable` flag in `GrantVault`                                                                             |
 
 ### State Transitions
 
@@ -130,6 +137,7 @@ Upon `revoke()` by the issuer:
 ## 6. UI Confirmation Preview Specification
 
 When an issuer views an active, revocable grant:
+
 - **Action**: "Revoke Grant" button displayed only when `wallet.address == issuer`, `revocable == true`, and `!revoked`.
 - **Preview Modal / Card**:
   - **Beneficiary Custody (Claimed)**: e.g. "20,000 hvUSD (Preserved in beneficiary wallet)"
@@ -146,23 +154,23 @@ When an issuer views an active, revocable grant:
 
 ## 7. Contract-Level Test Matrix
 
-| Category | Test Case | Target / Function | Expected Outcome |
-| :--- | :--- | :--- | :--- |
-| **Normal** | Revoke TIME grant midway | `revoke()` | Issuer receives `totalAllocation - earned`; beneficiary claims remainder |
-| **Normal** | Revoke MILESTONE grant after partial approval | `revoke()` | Issuer receives unapproved milestones; approved milestones claimable |
-| **Normal** | Revoke HYBRID grant midway | `revoke()` | Frozen at `min(time, approved)`; unearned returned to issuer |
-| **Boundary** | Revoke before start / cliff | `revoke()` | $100\%$ returned to issuer; $0$ to beneficiary |
-| **Boundary** | Revoke at $100\%$ vested / earned | `revoke()` | $0$ returned to issuer; $100\%$ remains with beneficiary |
-| **Boundary** | Revoke when all earned is already claimed | `revoke()` | Issuer receives unearned; claimable becomes $0$ |
-| **Repeated** | Call `revoke()` twice | `revoke()` | First succeeds; second reverts with `AlreadyRevoked()` |
-| **Authorization**| Beneficiary calls `revoke()` | `revoke()` | Reverts with `UnauthorizedIssuer()` |
-| **Authorization**| Reviewer calls `revoke()` | `revoke()` | Reverts with `UnauthorizedIssuer()` |
-| **Authorization**| Stranger calls `revoke()` | `revoke()` | Reverts with `UnauthorizedIssuer()` |
-| **Non-revocable**| Issuer calls `revoke()` on non-revocable grant | `revoke()` | Reverts with `GrantNotRevocable()` |
-| **Adversarial** | Reviewer approves milestone after revocation | `approveMilestone()` | Reverts with `AlreadyRevoked()` |
-| **Adversarial** | Reentrancy during token transfer in `revoke()` | `revoke()` | Blocked by `nonReentrant` |
-| **Edge Case** | Vault holds surplus donation tokens | `revoke()` | Only `totalAllocation - earned` returned; surplus left intact |
-| **Fuzz/Invariant**| Invariant: Entitlement conservation | Fuzz $(t_{\text{claim}}, t_{\text{rev}})$ | `claimed + claimable + recovered == totalAllocation` |
-| **Fuzz/Invariant**| Invariant: Claimed preservation | Fuzz $(t_{\text{claim}}, t_{\text{rev}})$ | Balance of beneficiary never decreases upon revocation |
-| **Fuzz/Invariant**| Invariant: One-way state transition | Fuzz timestamps | Once `revoked == true`, state is permanently immutable |
-| **Compatibility**| Old vault mock / non-revocable interface | Read getters | Readable, non-revocable, immutable |
+| Category           | Test Case                                      | Target / Function                         | Expected Outcome                                                         |
+| :----------------- | :--------------------------------------------- | :---------------------------------------- | :----------------------------------------------------------------------- |
+| **Normal**         | Revoke TIME grant midway                       | `revoke()`                                | Issuer receives `totalAllocation - earned`; beneficiary claims remainder |
+| **Normal**         | Revoke MILESTONE grant after partial approval  | `revoke()`                                | Issuer receives unapproved milestones; approved milestones claimable     |
+| **Normal**         | Revoke HYBRID grant midway                     | `revoke()`                                | Frozen at `min(time, approved)`; unearned returned to issuer             |
+| **Boundary**       | Revoke before start / cliff                    | `revoke()`                                | $100\%$ returned to issuer; $0$ to beneficiary                           |
+| **Boundary**       | Revoke at $100\%$ vested / earned              | `revoke()`                                | $0$ returned to issuer; $100\%$ remains with beneficiary                 |
+| **Boundary**       | Revoke when all earned is already claimed      | `revoke()`                                | Issuer receives unearned; claimable becomes $0$                          |
+| **Repeated**       | Call `revoke()` twice                          | `revoke()`                                | First succeeds; second reverts with `AlreadyRevoked()`                   |
+| **Authorization**  | Beneficiary calls `revoke()`                   | `revoke()`                                | Reverts with `UnauthorizedIssuer()`                                      |
+| **Authorization**  | Reviewer calls `revoke()`                      | `revoke()`                                | Reverts with `UnauthorizedIssuer()`                                      |
+| **Authorization**  | Stranger calls `revoke()`                      | `revoke()`                                | Reverts with `UnauthorizedIssuer()`                                      |
+| **Non-revocable**  | Issuer calls `revoke()` on non-revocable grant | `revoke()`                                | Reverts with `GrantNotRevocable()`                                       |
+| **Adversarial**    | Reviewer approves milestone after revocation   | `approveMilestone()`                      | Reverts with `AlreadyRevoked()`                                          |
+| **Adversarial**    | Reentrancy during token transfer in `revoke()` | `revoke()`                                | Blocked by `nonReentrant`                                                |
+| **Edge Case**      | Vault holds surplus donation tokens            | `revoke()`                                | Only `totalAllocation - earned` returned; surplus left intact            |
+| **Fuzz/Invariant** | Invariant: Entitlement conservation            | Fuzz $(t_{\text{claim}}, t_{\text{rev}})$ | `claimed + claimable + recovered == totalAllocation`                     |
+| **Fuzz/Invariant** | Invariant: Claimed preservation                | Fuzz $(t_{\text{claim}}, t_{\text{rev}})$ | Balance of beneficiary never decreases upon revocation                   |
+| **Fuzz/Invariant** | Invariant: One-way state transition            | Fuzz timestamps                           | Once `revoked == true`, state is permanently immutable                   |
+| **Compatibility**  | Old vault mock / non-revocable interface       | Read getters                              | Readable, non-revocable, immutable                                       |

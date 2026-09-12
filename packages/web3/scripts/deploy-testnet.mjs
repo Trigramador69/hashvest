@@ -22,7 +22,7 @@ async function main() {
     throw new Error(
       "Configure a valid DEPLOYER_PRIVATE_KEY in packages/contracts/.env.",
     );
-  const normalizedKey = (rawKey.startsWith("0x") ? rawKey : `0x${rawKey}`);
+  const normalizedKey = rawKey.startsWith("0x") ? rawKey : `0x${rawKey}`;
   process.env.DEPLOYER_PRIVATE_KEY = normalizedKey;
   let account;
   try {

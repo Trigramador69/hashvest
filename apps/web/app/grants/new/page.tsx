@@ -1244,12 +1244,18 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             type="checkbox"
                             className="mt-1 size-4 rounded border-gray-300 text-primary focus:ring-primary"
                             checked={revocable}
-                            onChange={(event) => setRevocable(event.target.checked)}
+                            onChange={(event) =>
+                              setRevocable(event.target.checked)
+                            }
                           />
                           <div>
-                            <span className="text-sm font-medium">Revocable grant</span>
+                            <span className="text-sm font-medium">
+                              Revocable grant
+                            </span>
                             <span className="block text-xs leading-5 text-muted-foreground mt-0.5">
-                              Enables issuer clawback of unearned tokens. Tokens already earned or claimed by the beneficiary remain strictly preserved and protected.
+                              Enables issuer clawback of unearned tokens. Tokens
+                              already earned or claimed by the beneficiary
+                              remain strictly preserved and protected.
                             </span>
                           </div>
                         </label>
