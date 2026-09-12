@@ -22,6 +22,22 @@ function broadcast() {
   };
 }
 
+function hskBroadcast() {
+  const input = broadcast();
+  input.returns = {
+    factory: { value: input.transactions[0].contractAddress },
+    demoToken: { value: input.transactions[1].contractAddress },
+    eligibilityProvider: { value: input.transactions[2].contractAddress },
+  };
+  // HSK may return receipt hashes in adjacent CREATE order. Contract address
+  // remains the confirmed identity of each deployment.
+  input.receipts = input.receipts.map((receipt, index) => ({
+    ...receipt,
+    transactionHash: input.receipts[2 - index].transactionHash,
+  }));
+  return input;
+}
+
 test("exports only confirmed contracts with deterministic public deployment data", () => {
   const output = deploymentFromBroadcast(broadcast());
   assert.equal(output.chainId, 133);
@@ -33,6 +49,15 @@ test("exports only confirmed contracts with deterministic public deployment data
   );
   assert.equal(output.blockNumbers.factory, 16);
   assert.deepEqual(output, deploymentFromBroadcast(broadcast()));
+});
+
+test("matches HSK receipts by confirmed contract address when broadcast hashes are rotated", () => {
+  const output = deploymentFromBroadcast(hskBroadcast());
+  assert.equal(output.factory, "0x0000000000000000000000000000000000000001");
+  assert.equal(
+    output.transactionHashes.factory,
+    "0x0000000000000000000000000000000000000000000000000000000000000003",
+  );
 });
 
 for (const [name, mutate] of [
@@ -89,6 +114,12 @@ for (const [name, mutate] of [
     (b) => {
       b.transactions[0].contractAddress = `0x${"0".repeat(40)}`;
       b.receipts[0].contractAddress = b.transactions[0].contractAddress;
+    },
+  ],
+  [
+    "returned address mismatch",
+    (b) => {
+      b.returns = { factory: { value: `0x${"b".repeat(40)}` } };
     },
   ],
 ]) {

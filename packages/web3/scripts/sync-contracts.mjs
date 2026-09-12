@@ -45,34 +45,44 @@ export function deploymentFromBroadcast(broadcast) {
     if (matches?.length !== 1)
       throw new Error(`Expected one ${name} deployment`);
     const tx = matches[0];
-    if (
-      !isHash(tx.hash) ||
-      !isAddress(tx.contractAddress) ||
-      tx.contractAddress === zeroAddress
-    )
+    if (!isHash(tx.hash) || !isAddress(tx.contractAddress))
       throw new Error(`Invalid ${name} deployment data`);
+    const returnedAddress = broadcast.returns?.[field]?.value;
+    const expectedAddress = returnedAddress ?? tx.contractAddress;
+    if (!isAddress(expectedAddress) || expectedAddress === zeroAddress)
+      throw new Error(`Invalid ${name} deployment data`);
+    if (tx.contractAddress.toLowerCase() !== expectedAddress.toLowerCase())
+      throw new Error(`Inconsistent ${name} deployment address`);
     if (
       tx.transaction?.chainId != null &&
       Number(tx.transaction.chainId) !== 133
     )
       throw new Error(`Wrong-chain transaction for ${name}`);
-    const receipt = broadcast.receipts?.find(
-      (entry) => entry.transactionHash?.toLowerCase() === tx.hash.toLowerCase(),
+    // Some HSK RPC responses preserve the right receipt data but associate the
+    // broadcast transaction hash with the adjacent CREATE. Match by the
+    // confirmed contract address and persist the receipt's real hash.
+    const receiptMatches = broadcast.receipts?.filter(
+      (entry) =>
+        entry.contractAddress?.toLowerCase() === expectedAddress.toLowerCase(),
     );
+    if (receiptMatches?.length !== 1)
+      throw new Error(`Expected one receipt for ${name}`);
+    const receipt = receiptMatches[0];
     if (
-      !receipt ||
       !(Number(receipt.status) === 1 || receipt.status === "success") ||
-      receipt.contractAddress?.toLowerCase() !==
-        tx.contractAddress.toLowerCase()
+      receipt.contractAddress?.toLowerCase() !== expectedAddress.toLowerCase()
     )
       throw new Error(`Missing successful ${name} receipt`);
-    if (!isAddress(tx.transaction.from)) throw new Error("Missing deployer");
-    const sender = getAddress(tx.transaction.from);
+    if (!isAddress(receipt.from ?? tx.transaction.from))
+      throw new Error("Missing deployer");
+    const sender = getAddress(receipt.from ?? tx.transaction.from);
     if (deployer && sender !== deployer)
       throw new Error("Inconsistent deployer");
     deployer = sender;
-    result[field] = getAddress(tx.contractAddress);
-    transactionHashes[field] = tx.hash;
+    result[field] = getAddress(expectedAddress);
+    if (!isHash(receipt.transactionHash))
+      throw new Error(`Invalid ${name} receipt hash`);
+    transactionHashes[field] = receipt.transactionHash;
     blockNumbers[field] = Number(BigInt(receipt.blockNumber));
   }
   return { ...result, deployer, transactionHashes, blockNumbers };
