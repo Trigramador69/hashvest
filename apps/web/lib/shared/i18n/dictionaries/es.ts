@@ -78,6 +78,166 @@ export const es: TranslationDictionary = {
   "home.strategies.hybrid.body":
     "Desbloqueado = min(liberado por tiempo, monto de hitos aprobados). Ambas condiciones limitan cada reclamo.",
 
+  // Asistente de subvención (/grants/new). Símbolos de token, decimales, chain ids, direcciones y la firma isEligible(address) son literales que llegan como valores.
+  "wizard.eyebrow": "Nueva asignación",
+  "wizard.title.create": "Crea una subvención.",
+  "wizard.title.created": "Tu subvención está activa.",
+  "wizard.lede.create":
+    "Define los términos una vez. Financia la asignación completa. Deja que las condiciones hagan el resto.",
+  "wizard.lede.created":
+    "La asignación completa de tokens está en su propio vault en {network}.",
+  "wizard.notice.organization.title": "Creando para {organization}",
+  "wizard.notice.organization.body":
+    "El título, la asignación, los participantes y los permisos onchain siguen en el GrantVault. La descripción opcional se guarda como metadatos del espacio de trabajo tras confirmarse la transacción.",
+  "wizard.notice.noDeployment.title":
+    "El despliegue de testnet no está configurado",
+  "wizard.notice.noDeployment.body":
+    "Podrás crear subvenciones cuando los contratos de HashVest estén desplegados y sincronizados.",
+  "wizard.sync.pending.title": "Guardando metadatos del espacio de trabajo",
+  "wizard.sync.pending.body":
+    "La transacción en HSK está confirmada. Vinculando esta subvención al espacio de trabajo…",
+  "wizard.sync.saved":
+    "Metadatos guardados. La subvención ya es visible en esta organización.",
+  "wizard.sync.failed.title": "La subvención se creó correctamente onchain",
+  "wizard.sync.failed.body":
+    "No se pudieron guardar los metadatos del espacio de trabajo. El GrantVault y sus fondos siguen activos; reintenta la sincronización sin crear otra subvención.",
+  "wizard.sync.retrying": "Reintentando sincronización…",
+  "wizard.sync.retry": "Reintentar sincronización",
+  "wizard.openGrant": "Abrir subvención",
+  "wizard.confirmed.before":
+    "La transacción se confirmó. Encuentra tu nueva subvención en el ",
+  "wizard.confirmed.link": "panel de emitidas",
+  "wizard.confirmed.after": ".",
+  "wizard.progress": "Progreso de creación",
+  "wizard.step.0": "Subvención",
+  "wizard.step.1": "Estrategia",
+  "wizard.step.2": "Condiciones",
+  "wizard.step.3": "Revisión",
+  "wizard.stepTitle.0": "¿Para quién es esta subvención?",
+  "wizard.stepTitle.1": "Elige cómo se desbloquean los tokens",
+  "wizard.stepTitle.2": "Define las condiciones",
+  "wizard.stepTitle.3": "Revisa antes de financiar",
+  "wizard.field.title.label": "Título de la subvención",
+  "wizard.field.title.hint":
+    "Por ejemplo: Subvención para builder del ecosistema, o Asignación para colaborador.",
+  "wizard.field.title.placeholder": "Subvención para builder del ecosistema",
+  "wizard.field.beneficiary.label": "Beneficiario",
+  "wizard.field.beneficiary.hint":
+    "La wallet exacta del miembro seleccionado pasa a ser el beneficiario onchain. Solo esa wallet puede reclamar.",
+  "wizard.field.beneficiaryWallet.label": "Wallet del beneficiario",
+  "wizard.field.beneficiaryWallet.hint":
+    "Solo esta dirección puede reclamar los tokens desbloqueados. Revísala bien.",
+  "wizard.members.unavailable":
+    "El directorio de miembros no está disponible. Puedes seguir usando una wallet externa mientras se recuperan los metadatos.",
+  "wizard.field.description.label": "Descripción del espacio de trabajo",
+  "wizard.field.description.hint":
+    "Contexto de producto opcional. No sustituye al título onchain.",
+  "wizard.field.description.placeholder":
+    "Apoyo al ecosistema de desarrolladores de HSK.",
+  "wizard.field.token.label": "Dirección del token ERC20",
+  "wizard.field.token.hint":
+    "Usa un ERC20 normal en {network}. No se admiten HSK nativo ni tokens con comisión por transferencia.",
+  "wizard.token.useDemo": "Usar {symbol} de demo",
+  "wizard.token.reading": "Leyendo metadatos del token en {network}…",
+  "wizard.token.error":
+    "No se pudo leer este token. Confirma la dirección y la red.",
+  "wizard.token.decimals": "{symbol} · {decimals} decimales",
+  "wizard.field.allocation.label": "Asignación total",
+  "wizard.field.allocation.hint":
+    "Introduce unidades de token, no unidades base. El importe completo se transfiere al vault.",
+  "wizard.schedule.title": "Calendario de vesting",
+  "wizard.schedule.lede":
+    "El vesting es lineal desde el inicio. Al llegar al cliff, la parte transcurrida queda disponible.",
+  "wizard.schedule.demoTip":
+    "Consejo para la demo: usa una duración de 5 minutos y un cliff de 0 minutos.",
+  "wizard.field.start.label": "Fecha de inicio (opcional)",
+  "wizard.field.start.hint":
+    "Tu zona horaria local. Déjalo vacío para empezar en el timestamp de la transacción de creación. Un inicio en el pasado libera de inmediato la parte transcurrida.",
+  "wizard.field.unit.label": "Unidad del calendario",
+  "wizard.unit.minutes": "Minutos",
+  "wizard.unit.hours": "Horas",
+  "wizard.unit.days": "Días",
+  "wizard.field.cliff.label": "Cliff",
+  "wizard.field.duration.label": "Duración total",
+  "wizard.field.reviewer.label": "Revisor",
+  "wizard.field.reviewer.hint":
+    "La wallet exacta del miembro seleccionado pasa a ser el revisor onchain para aprobar hitos.",
+  "wizard.field.reviewerWallet.label": "Wallet del revisor",
+  "wizard.field.reviewerWallet.hint":
+    "Esta wallet puede aprobar hitos. Los importes y los términos no se pueden editar.",
+  "wizard.milestones.title": "Hitos",
+  "wizard.milestones.lede":
+    "Los importes deben sumar exactamente {amount} {symbol}. Hasta {max} hitos.",
+  "wizard.milestones.theAllocation": "la asignación",
+  "wizard.milestones.add": "Añadir hito +",
+  "wizard.milestone.index": "Hito {index}",
+  "wizard.milestone.remove": "Eliminar",
+  "wizard.field.milestoneTitle.label": "Título",
+  "wizard.field.milestoneTitle.placeholder": "Entregar un prototipo funcional",
+  "wizard.field.milestoneAmount.label": "Importe ({symbol})",
+  "wizard.field.milestoneAmount.fallbackSymbol": "tokens",
+  "wizard.advanced.summary": "Avanzado · proveedor de elegibilidad opcional",
+  "wizard.field.eligibility.label": "Dirección del proveedor de elegibilidad",
+  "wizard.field.eligibility.hint":
+    "Déjalo vacío para no comprobar elegibilidad. El proveedor debe implementar isEligible(address). Este adaptador de demo no es KYC ni cumplimiento normativo.",
+  "wizard.field.eligibility.placeholder": "Ninguno",
+  "wizard.review.fromPreset":
+    "Partiste del preset {preset}. Eso son solo metadatos del espacio de trabajo — los términos de abajo son lo que va onchain.",
+  "wizard.review.issuer": "Emisor",
+  "wizard.review.beneficiary": "Beneficiario",
+  "wizard.review.token": "Token",
+  "wizard.review.reviewer": "Revisor",
+  "wizard.review.start": "Inicio",
+  "wizard.review.startCreation": "Timestamp de creación",
+  "wizard.review.cliffDuration": "Cliff / duración total",
+  "wizard.review.eligibility": "Proveedor de elegibilidad",
+  "wizard.review.eligibilityNone": "Ninguno — desactivado",
+  "wizard.review.permanent.title": "Estos términos son permanentes",
+  "wizard.review.permanent.body":
+    "Sin revocación, sin retiradas por parte del emisor y sin cambios en la economía de la subvención. Si hace falta, autorizarás el gasto del token y después crearás y financiarás el vault por completo en una sola transacción.",
+  "wizard.nav.back": "Atrás",
+  "wizard.nav.continue": "Continuar",
+  "wizard.nav.pending": "Transacción en curso…",
+  "wizard.nav.submit": "Autorizar y crear subvención",
+  "wizard.walletChanged":
+    "La wallet cambió. Vuelve atrás y revisa con el emisor actual.",
+  "wizard.tx.resetAllowance": "Restablecer el allowance del token",
+  "wizard.tx.approve": "Autorizar el gasto del token",
+  "wizard.tx.create": "Crear y financiar la subvención",
+  "wizard.error.title": "Ponle un título a tu subvención.",
+  "wizard.error.beneficiaryMember":
+    "Elige un miembro beneficiario o usa una wallet externa.",
+  "wizard.error.beneficiaryAddress":
+    "Introduce una dirección de beneficiario válida y distinta de cero.",
+  "wizard.error.token":
+    "Introduce una dirección de contrato ERC20 válida. HSK nativo no está soportado.",
+  "wizard.error.tokenMetadata":
+    "Espera a que carguen el símbolo y los decimales del ERC20. Comprueba que el token esté desplegado en {network}.",
+  "wizard.error.issuerWallet": "Conecta la wallet emisora antes de revisar.",
+  "wizard.error.duration": "La duración debe ser un número entero positivo.",
+  "wizard.error.cliff": "El cliff debe ser un número entero no negativo.",
+  "wizard.error.cliffTooLong":
+    "El cliff no puede ser más largo que la duración total.",
+  "wizard.error.durationTooLarge": "La duración es demasiado grande.",
+  "wizard.error.startDate": "Introduce una fecha de inicio válida.",
+  "wizard.error.eligibility":
+    "Introduce una dirección de proveedor de elegibilidad válida o déjala vacía.",
+  "wizard.error.reviewerMember":
+    "Elige un miembro revisor o usa una wallet externa.",
+  "wizard.error.reviewerRequired":
+    "Las subvenciones por hitos e híbridas necesitan una dirección de revisor.",
+  "wizard.error.milestoneCount": "Añade entre 1 y {max} hitos.",
+  "wizard.error.milestoneSum":
+    "Los importes de los hitos deben sumar exactamente la asignación total.",
+  "wizard.error.reviewFirst":
+    "Revisa la subvención y comprueba el despliegue de testnet antes de continuar.",
+  "wizard.error.eligibilityNoCode":
+    "El proveedor de elegibilidad no tiene código de contrato en {network}.",
+  "wizard.error.reviewAgain":
+    "Revisa la subvención otra vez antes de sincronizar los metadatos del espacio de trabajo.",
+  "wizard.error.walletChangedSync":
+    "La wallet cambió. Inicia sesión de nuevo con la wallet emisora antes de sincronizar los metadatos.",
+
   // Estrategias de subvención. Los índices coinciden con lib/protocol/grants.ts:
   // 0=TIME, 1=MILESTONE, 2=HYBRID.
   "strategy.0.name": "Vesting por tiempo",

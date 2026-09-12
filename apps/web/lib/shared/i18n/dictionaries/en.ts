@@ -79,6 +79,165 @@ export const en = {
   "home.strategies.hybrid.body":
     "Unlocked = min(time vested, approved milestone amount). Both conditions constrain every claim.",
 
+  // Grant wizard (/grants/new). Token symbols, decimals, chain ids, addresses and the isEligible(address) signature are literals passed in as values.
+  "wizard.eyebrow": "New allocation",
+  "wizard.title.create": "Create a grant.",
+  "wizard.title.created": "Your grant is live.",
+  "wizard.lede.create":
+    "Set the terms once. Fund the full allocation. Let the conditions do the rest.",
+  "wizard.lede.created":
+    "The full token allocation is in its own vault on {network}.",
+  "wizard.notice.organization.title": "Creating for {organization}",
+  "wizard.notice.organization.body":
+    "Onchain title, allocation, participants, and permissions remain in the GrantVault. The optional description is saved as workspace metadata after the confirmed transaction.",
+  "wizard.notice.noDeployment.title": "Testnet deployment is not configured",
+  "wizard.notice.noDeployment.body":
+    "Grant creation will be available after the HashVest contracts are deployed and synchronized.",
+  "wizard.sync.pending.title": "Saving workspace metadata",
+  "wizard.sync.pending.body":
+    "The HSK transaction is confirmed. Linking this grant to the workspace…",
+  "wizard.sync.saved":
+    "Workspace metadata saved. The grant is now visible in this organization.",
+  "wizard.sync.failed.title": "Grant created successfully onchain",
+  "wizard.sync.failed.body":
+    "Workspace metadata could not be saved. The GrantVault and its funds remain live; retry the workspace sync without creating another grant.",
+  "wizard.sync.retrying": "Retrying sync…",
+  "wizard.sync.retry": "Retry workspace sync",
+  "wizard.openGrant": "Open grant",
+  "wizard.confirmed.before":
+    "The transaction confirmed. Find your new grant on the ",
+  "wizard.confirmed.link": "Issued dashboard",
+  "wizard.confirmed.after": ".",
+  "wizard.progress": "Creation progress",
+  "wizard.step.0": "Grant",
+  "wizard.step.1": "Strategy",
+  "wizard.step.2": "Conditions",
+  "wizard.step.3": "Review",
+  "wizard.stepTitle.0": "Who is this grant for?",
+  "wizard.stepTitle.1": "Choose how tokens unlock",
+  "wizard.stepTitle.2": "Set the conditions",
+  "wizard.stepTitle.3": "Review before funding",
+  "wizard.field.title.label": "Grant title",
+  "wizard.field.title.hint":
+    "For example: Ecosystem builder grant or Contributor allocation.",
+  "wizard.field.title.placeholder": "Ecosystem builder grant",
+  "wizard.field.beneficiary.label": "Beneficiary",
+  "wizard.field.beneficiary.hint":
+    "The selected member's exact wallet becomes the onchain beneficiary. Only that wallet can claim.",
+  "wizard.field.beneficiaryWallet.label": "Beneficiary wallet",
+  "wizard.field.beneficiaryWallet.hint":
+    "Only this address can claim unlocked tokens. Double-check it.",
+  "wizard.members.unavailable":
+    "The member directory is unavailable. You can still use an external wallet while workspace metadata recovers.",
+  "wizard.field.description.label": "Workspace description",
+  "wizard.field.description.hint":
+    "Optional product context. It does not replace the onchain title.",
+  "wizard.field.description.placeholder":
+    "Support for the HSK developer ecosystem.",
+  "wizard.field.token.label": "ERC20 token address",
+  "wizard.field.token.hint":
+    "Use a normal ERC20 on {network}. Native HSK and fee-on-transfer tokens are unsupported.",
+  "wizard.token.useDemo": "Use demo {symbol}",
+  "wizard.token.reading": "Reading token metadata on {network}…",
+  "wizard.token.error":
+    "Could not read this token. Confirm the address and network.",
+  "wizard.token.decimals": "{symbol} · {decimals} decimals",
+  "wizard.field.allocation.label": "Total allocation",
+  "wizard.field.allocation.hint":
+    "Enter token units, not base units. The full amount is transferred into the vault.",
+  "wizard.schedule.title": "Vesting schedule",
+  "wizard.schedule.lede":
+    "Vesting is linear from the start. At the cliff, the elapsed portion becomes available.",
+  "wizard.schedule.demoTip":
+    "Demo tip: use a 5-minute duration and a 0-minute cliff.",
+  "wizard.field.start.label": "Start date (optional)",
+  "wizard.field.start.hint":
+    "Your local timezone. Leave empty to start at the creation transaction timestamp. A past start releases its elapsed portion immediately.",
+  "wizard.field.unit.label": "Schedule unit",
+  "wizard.unit.minutes": "Minutes",
+  "wizard.unit.hours": "Hours",
+  "wizard.unit.days": "Days",
+  "wizard.field.cliff.label": "Cliff",
+  "wizard.field.duration.label": "Total duration",
+  "wizard.field.reviewer.label": "Reviewer",
+  "wizard.field.reviewer.hint":
+    "The selected member's exact wallet becomes the onchain reviewer for milestone approvals.",
+  "wizard.field.reviewerWallet.label": "Reviewer wallet",
+  "wizard.field.reviewerWallet.hint":
+    "This wallet may approve milestones. Amounts and terms cannot be edited.",
+  "wizard.milestones.title": "Milestones",
+  "wizard.milestones.lede":
+    "Amounts must total exactly {amount} {symbol}. Up to {max} milestones.",
+  "wizard.milestones.theAllocation": "the allocation",
+  "wizard.milestones.add": "Add milestone +",
+  "wizard.milestone.index": "Milestone {index}",
+  "wizard.milestone.remove": "Remove",
+  "wizard.field.milestoneTitle.label": "Title",
+  "wizard.field.milestoneTitle.placeholder": "Deliver working prototype",
+  "wizard.field.milestoneAmount.label": "Amount ({symbol})",
+  "wizard.field.milestoneAmount.fallbackSymbol": "tokens",
+  "wizard.advanced.summary": "Advanced · optional eligibility provider",
+  "wizard.field.eligibility.label": "Eligibility provider address",
+  "wizard.field.eligibility.hint":
+    "Leave empty for no eligibility check. The provider must implement isEligible(address). This demo adapter is not KYC or compliance.",
+  "wizard.field.eligibility.placeholder": "None",
+  "wizard.review.fromPreset":
+    "Started from the {preset} preset. That is workspace metadata only — the terms below are what goes onchain.",
+  "wizard.review.issuer": "Issuer",
+  "wizard.review.beneficiary": "Beneficiary",
+  "wizard.review.token": "Token",
+  "wizard.review.reviewer": "Reviewer",
+  "wizard.review.start": "Start",
+  "wizard.review.startCreation": "Creation timestamp",
+  "wizard.review.cliffDuration": "Cliff / total duration",
+  "wizard.review.eligibility": "Eligibility provider",
+  "wizard.review.eligibilityNone": "None — disabled",
+  "wizard.review.permanent.title": "These terms are permanent",
+  "wizard.review.permanent.body":
+    "No revocation, withdrawals by the issuer, or changes to grant economics. You will approve token spending if needed, then create and fully fund the vault in one transaction.",
+  "wizard.nav.back": "Back",
+  "wizard.nav.continue": "Continue",
+  "wizard.nav.pending": "Transaction in progress…",
+  "wizard.nav.submit": "Approve & create grant",
+  "wizard.walletChanged":
+    "Wallet changed. Go back and review with the current issuer.",
+  "wizard.tx.resetAllowance": "Reset token allowance",
+  "wizard.tx.approve": "Approve token spending",
+  "wizard.tx.create": "Create and fund grant",
+  "wizard.error.title": "Give your grant a title.",
+  "wizard.error.beneficiaryMember":
+    "Choose a beneficiary member or use an external wallet.",
+  "wizard.error.beneficiaryAddress":
+    "Enter a valid, nonzero beneficiary address.",
+  "wizard.error.token":
+    "Enter a valid ERC20 contract address. Native HSK is not supported.",
+  "wizard.error.tokenMetadata":
+    "Wait for the ERC20 symbol and decimals to load. Check that the token is deployed on {network}.",
+  "wizard.error.issuerWallet": "Connect the issuer wallet before reviewing.",
+  "wizard.error.duration": "Duration must be a positive whole number.",
+  "wizard.error.cliff": "Cliff must be a nonnegative whole number.",
+  "wizard.error.cliffTooLong":
+    "Cliff cannot be longer than the total duration.",
+  "wizard.error.durationTooLarge": "Duration is too large.",
+  "wizard.error.startDate": "Enter a valid start date.",
+  "wizard.error.eligibility":
+    "Enter a valid eligibility provider address or leave it empty.",
+  "wizard.error.reviewerMember":
+    "Choose a reviewer member or use an external wallet.",
+  "wizard.error.reviewerRequired":
+    "Milestone and hybrid grants require a reviewer address.",
+  "wizard.error.milestoneCount": "Add between 1 and {max} milestones.",
+  "wizard.error.milestoneSum":
+    "Milestone amounts must add up exactly to the total allocation.",
+  "wizard.error.reviewFirst":
+    "Review the grant and check the Testnet deployment before continuing.",
+  "wizard.error.eligibilityNoCode":
+    "Eligibility provider has no contract code on {network}.",
+  "wizard.error.reviewAgain":
+    "Review the grant again before syncing workspace metadata.",
+  "wizard.error.walletChangedSync":
+    "Wallet changed. Sign in again with the issuing wallet before syncing workspace metadata.",
+
   // Grant strategies. Indexes match lib/protocol/grants.ts: 0=TIME, 1=MILESTONE,
   // 2=HYBRID. The protocol module keeps the English values as data; the copy a
   // reader sees comes from here.
