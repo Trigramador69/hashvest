@@ -71,6 +71,102 @@ export const zhCN: TranslationDictionary = {
   "home.strategies.hybrid.body":
     "已解锁 = min(按时间归属的数量, 已批准的里程碑金额)。两个条件共同约束每一次领取。",
 
+  // 资助策略。索引与 lib/protocol/grants.ts 对应：0=TIME，1=MILESTONE，2=HYBRID。
+  "strategy.0.name": "时间归属",
+  "strategy.1.name": "里程碑资助",
+  "strategy.2.name": "混合",
+  "strategy.0.description":
+    "随时间线性解锁。悬崖期会延迟解锁，但不会重启计划。",
+  "strategy.1.description": "在审核人批准每个里程碑时解锁固定额度。",
+  "strategy.2.description":
+    "解锁按时间归属与已批准里程碑两者中较小的数量。两个条件同时生效。",
+
+  // 资助向导中的预设选择器。
+  "wizard.preset.title": "从预设开始",
+  "wizard.preset.lede":
+    "可选。预设会填入一套策略、时间计划和里程碑拆分，你可以随时编辑或清除。它不会改变金库中存储的内容。",
+  "wizard.preset.custom.name": "自定义 / 空白",
+  "wizard.preset.custom.tagline": "所有数值都由你自己配置，和以前完全一样。",
+  "wizard.preset.custom.meta": "清除预设填入的字段",
+  "wizard.preset.needsReviewer": "需要审核人",
+
+  // 资助预设（HAS-8）。百分比、额度、时间单位和策略索引属于数据而非文案，不做翻译。
+  "preset.builder-grant.name": "建设者资助",
+  "preset.builder-grant.tagline": "每一笔付款都是审核人的一次签名。",
+  "preset.builder-grant.description":
+    "面向外部贡献者或黑客松开发者的里程碑资助。只有在审核人批准每项交付物后资金才会解锁，没有签核就不会有任何流动。",
+  "preset.builder-grant.bestFor.0": "开源贡献者",
+  "preset.builder-grant.bestFor.1": "黑客松开发者",
+  "preset.builder-grant.bestFor.2": "范围固定的交付物",
+  "preset.builder-grant.titleSuggestion": "建设者资助",
+  "preset.builder-grant.descriptionSuggestion":
+    "面向限定范围开发的里程碑资助。",
+  "preset.builder-grant.milestone.0.title": "启动与设计",
+  "preset.builder-grant.milestone.1.title": "核心实现",
+  "preset.builder-grant.milestone.2.title": "发布与交接",
+  "preset.builder-grant.assumption.0":
+    "策略：里程碑资助 — 在里程碑获批前不会解锁任何代币。",
+  "preset.builder-grant.assumption.1":
+    "三个里程碑（20% / 50% / 30%）只是初始拆分；可自由重命名、调整比例、增加或删除。",
+  "preset.builder-grant.assumption.2":
+    "需要一个审核人钱包来批准里程碑；请在注资前选定。",
+
+  "preset.employee-vesting.name": "员工归属",
+  "preset.employee-vesting.tagline": "带悬崖期的经典线性归属。",
+  "preset.employee-vesting.description":
+    "面向团队成员的时间归属：悬崖期之前无法领取，之后代币线性解锁直至计划结束。不涉及审核人或里程碑。",
+  "preset.employee-vesting.bestFor.0": "核心团队成员",
+  "preset.employee-vesting.bestFor.1": "全职贡献者",
+  "preset.employee-vesting.titleSuggestion": "员工归属",
+  "preset.employee-vesting.descriptionSuggestion": "标准的员工代币归属。",
+  "preset.employee-vesting.timing.realWorldNote":
+    "1 分钟悬崖期和 4 分钟归属期，代表 4 年计划中的 1 年悬崖期 — 演示中一分钟代表一年。实际使用时请将单位切换为「天」。",
+  "preset.employee-vesting.assumption.0":
+    "策略：时间归属 — 自起始时间戳线性解锁，并受悬崖期限制。",
+  "preset.employee-vesting.assumption.1":
+    "计划被压缩为一年一分钟，因此可以在演示中完整看到从悬崖期到领取的全过程。",
+  "preset.employee-vesting.assumption.2":
+    "时间归属不使用审核人；TIME 类型的资助从不带审核人语义。",
+
+  "preset.advisor-vesting.name": "顾问归属",
+  "preset.advisor-vesting.tagline": "更短的线性归属，无需悬崖期。",
+  "preset.advisor-vesting.description":
+    "面向顾问或兼职贡献者的时间归属：比员工归属更短的计划，通常没有悬崖期。",
+  "preset.advisor-vesting.bestFor.0": "顾问",
+  "preset.advisor-vesting.bestFor.1": "兼职贡献者",
+  "preset.advisor-vesting.titleSuggestion": "顾问归属",
+  "preset.advisor-vesting.descriptionSuggestion": "顾问代币归属。",
+  "preset.advisor-vesting.timing.realWorldNote":
+    "3 分钟归属期代表一份为期 3 年、没有悬崖期的顾问计划 — 演示中一分钟代表一年。实际使用时请将单位切换为「天」。",
+  "preset.advisor-vesting.assumption.0":
+    "策略：时间归属 — 自起始时间戳线性解锁，默认没有悬崖期限制。",
+  "preset.advisor-vesting.assumption.1":
+    "没有悬崖期时，几乎可以立即领取少量代币 — 适合在台上演示一次领取。",
+  "preset.advisor-vesting.assumption.2":
+    "时间归属不使用审核人；TIME 类型的资助从不带审核人语义。",
+
+  "preset.ecosystem-grant.name": "生态资助",
+  "preset.ecosystem-grant.tagline": "按时间解锁，并再次受里程碑签核限制。",
+  "preset.ecosystem-grant.description":
+    "面向较大的生态合作伙伴：代币既要随时间归属，每个里程碑也需经审核人批准。两个条件同时生效，因此停滞的审核人或走得再快的时钟都无法单独释放资金。",
+  "preset.ecosystem-grant.bestFor.0": "生态合作伙伴",
+  "preset.ecosystem-grant.bestFor.1": "长期集成",
+  "preset.ecosystem-grant.titleSuggestion": "生态资助",
+  "preset.ecosystem-grant.descriptionSuggestion":
+    "同时受时间与里程碑限制的混合型生态资助。",
+  "preset.ecosystem-grant.timing.realWorldNote":
+    "1 分钟悬崖期和 6 分钟归属期，代表一段为期六年的合作 — 演示中一分钟代表一年。实际使用时请将单位切换为「天」。",
+  "preset.ecosystem-grant.milestone.0.title": "接入与集成",
+  "preset.ecosystem-grant.milestone.1.title": "持续贡献",
+  "preset.ecosystem-grant.assumption.0":
+    "策略：混合 — 可领取的是按时间归属与已批准里程碑两者中较小的数量。两个条件同时生效。",
+  "preset.ecosystem-grant.assumption.1":
+    "在悬崖期之前批准里程碑不会释放任何代币：时间这一条仍然限制着它。这正是混合型资助的意义所在。",
+  "preset.ecosystem-grant.assumption.2":
+    "两个里程碑（40% / 60%）只是初始拆分；可自由重命名、调整比例、增加或删除。",
+  "preset.ecosystem-grant.assumption.3":
+    "需要一个审核人钱包来批准里程碑；请在注资前选定。",
+
   "meta.title": "HashVest — 可编程资助",
   "meta.description":
     "在 HashKey Chain 上以时间、里程碑和混合方式解锁的全额注资代币资助。",

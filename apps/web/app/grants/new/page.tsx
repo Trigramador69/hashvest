@@ -51,11 +51,9 @@ import {
   splitAllocationByPercent,
   type AppliedPresetDraft,
 } from "@/lib/shared/grant-presets/apply-preset";
-import {
-  GRANT_PRESETS,
-  getGrantPreset,
-  type GrantPresetKey,
-} from "@/lib/shared/grant-presets/presets";
+import { type GrantPresetKey } from "@/lib/shared/grant-presets/presets";
+import { useGrantPresets } from "@/lib/shared/grant-presets/use-grant-presets";
+import { useTranslations } from "@/lib/shared/i18n/provider";
 
 const steps = ["Grant", "Strategy", "Conditions", "Review"];
 type MilestoneInput = { title: string; amount: string };
@@ -148,31 +146,38 @@ function PresetPicker({
   selected: GrantPresetKey | null;
   onSelect: (key: GrantPresetKey | null) => void;
 }) {
-  const active = selected ? getGrantPreset(selected) : undefined;
+  const t = useTranslations();
+  const { presets, preset: localizedPreset } = useGrantPresets();
+  const active = selected ? localizedPreset(selected) : undefined;
   return (
     <div className="space-y-3">
       <div>
-        <h3 className="font-semibold">Start from a preset</h3>
+        <h3 className="font-semibold">{t("wizard.preset.title")}</h3>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          Optional. A preset fills in a strategy, schedule, and milestone split
-          that you can edit or clear. It never changes what the vault stores.
+          {t("wizard.preset.lede")}
         </p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        {GRANT_PRESETS.map((preset) => (
+        {presets.map((preset) => (
           <PresetOption
             key={preset.key}
             name={preset.name}
             tagline={preset.tagline}
-            meta={`${strategies[preset.strategy]}${preset.reviewerRequired ? " · needs a reviewer" : ""} · ${preset.bestFor[0]}`}
+            meta={[
+              t(`strategy.${preset.strategy}.name`),
+              preset.reviewerRequired && t("wizard.preset.needsReviewer"),
+              preset.bestFor[0],
+            ]
+              .filter(Boolean)
+              .join(" · ")}
             selected={selected === preset.key}
-            onSelect={() => onSelect(preset.key)}
+            onSelect={() => onSelect(preset.key as GrantPresetKey)}
           />
         ))}
         <PresetOption
-          name="Custom / blank"
-          tagline="Configure every value yourself, exactly as before."
-          meta="Clears the fields a preset filled in"
+          name={t("wizard.preset.custom.name")}
+          tagline={t("wizard.preset.custom.tagline")}
+          meta={t("wizard.preset.custom.meta")}
           selected={selected === null}
           onSelect={() => onSelect(null)}
         />
@@ -196,6 +201,7 @@ export type NewGrantProps = {
 };
 
 export function NewGrant({ organizationId }: NewGrantProps) {
+  const { preset: localizedPreset } = useGrantPresets();
   const { address, chainId } = useAccount();
   const client = usePublicClient({ chainId: 133 });
   const { writeContractAsync } = useWriteContract();
@@ -266,7 +272,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
       clearPreset();
       return;
     }
-    const draft = applyPresetToDraft(getGrantPreset(key), {
+    const draft = applyPresetToDraft(localizedPreset(key), {
       allocationDecimal: allocation,
       decimals: tokenMetadata.data?.decimals,
       title,
@@ -319,7 +325,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
     const amounts = splitAllocationByPercent(
       value,
       tokenMetadata.data?.decimals ?? 18,
-      getGrantPreset(presetKey).milestones?.map(
+      localizedPreset(presetKey).milestones?.map(
         (milestone) => milestone.percentOfAllocation,
       ) ?? [],
     );
@@ -1080,8 +1086,8 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             </Field>
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {presetKey && getGrantPreset(presetKey).timing
-                              ? getGrantPreset(presetKey).timing?.realWorldNote
+                            {presetKey && localizedPreset(presetKey).timing
+                              ? localizedPreset(presetKey).timing?.realWorldNote
                               : "Demo tip: use a 5-minute duration and a 0-minute cliff."}
                           </p>
                         </div>
@@ -1246,7 +1252,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                         </p>
                         {presetKey && (
                           <p className="mt-3 text-xs text-muted-foreground">
-                            Started from the {getGrantPreset(presetKey).name}{" "}
+                            Started from the {localizedPreset(presetKey).name}{" "}
                             preset. That is workspace metadata only — the terms
                             below are what goes onchain.
                           </p>

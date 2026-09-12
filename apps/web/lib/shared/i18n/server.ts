@@ -2,8 +2,12 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
-import { createTranslator, getMessages } from "./dictionary";
-import type { Messages, Translator } from "./dictionary";
+import {
+  createOptionalTranslator,
+  createTranslator,
+  getMessages,
+} from "./dictionary";
+import type { Messages, OptionalTranslator, Translator } from "./dictionary";
 import { LOCALE_COOKIE_NAME, resolveLocale, type Locale } from "./locales";
 
 /**
@@ -24,8 +28,14 @@ export async function getTranslations(): Promise<{
   locale: Locale;
   messages: Messages;
   t: Translator;
+  tOptional: OptionalTranslator;
 }> {
   const locale = await getLocale();
   const messages = getMessages(locale);
-  return { locale, messages, t: createTranslator(messages) };
+  return {
+    locale,
+    messages,
+    t: createTranslator(messages),
+    tOptional: createOptionalTranslator(messages),
+  };
 }
