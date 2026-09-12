@@ -1,4 +1,8 @@
-import { apiErrorResponse, assertSameOrigin, readJson } from "@/lib/cloud/api-server";
+import {
+  apiErrorResponse,
+  assertSameOrigin,
+  readJson,
+} from "@/lib/cloud/api-server";
 import { associateGrant, listGrants } from "@/lib/cloud/organizations/server";
 import {
   parseOrganizationGrantInput,

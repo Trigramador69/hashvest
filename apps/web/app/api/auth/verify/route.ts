@@ -7,7 +7,10 @@ import {
   ApiError,
 } from "@/lib/cloud/api-server";
 import { HASHVEST_CHAIN_ID } from "@/lib/cloud/auth/constants";
-import { getApplicationOrigin, verifySiweSignature } from "@/lib/cloud/auth/siwe";
+import {
+  getApplicationOrigin,
+  verifySiweSignature,
+} from "@/lib/cloud/auth/siwe";
 import { setSessionCookie } from "@/lib/cloud/auth/session";
 import { createSupabaseAdmin } from "@/lib/cloud/supabase-server";
 

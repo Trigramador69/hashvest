@@ -4,7 +4,10 @@ import {
   apiErrorResponse,
   readJson,
 } from "@/lib/cloud/api-server";
-import { createSiweChallenge, getApplicationOrigin } from "@/lib/cloud/auth/siwe";
+import {
+  createSiweChallenge,
+  getApplicationOrigin,
+} from "@/lib/cloud/auth/siwe";
 import { createSupabaseAdmin } from "@/lib/cloud/supabase-server";
 import { normalizeWalletAddress } from "@/lib/cloud/organizations/validation";
 import { HASHVEST_CHAIN_ID } from "@/lib/cloud/auth/constants";

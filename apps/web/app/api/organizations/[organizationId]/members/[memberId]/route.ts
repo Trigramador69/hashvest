@@ -1,4 +1,8 @@
-import { apiErrorResponse, assertSameOrigin, readJson } from "@/lib/cloud/api-server";
+import {
+  apiErrorResponse,
+  assertSameOrigin,
+  readJson,
+} from "@/lib/cloud/api-server";
 import { removeMember, updateMember } from "@/lib/cloud/organizations/server";
 import {
   parseMemberUpdateInput,
