@@ -79,6 +79,97 @@ export const en = {
   "home.strategies.hybrid.body":
     "Unlocked = min(time vested, approved milestone amount). Both conditions constrain every claim.",
 
+  // Workspace: dashboard, organization navigation, workspace access and the demo faucet.
+  "dashboard.eyebrow": "Your workspace",
+  "dashboard.title": "Grants, with purpose.",
+  "dashboard.lede":
+    "Manage allocations, track unlocks, and move good work forward.",
+  "dashboard.createGrant": "Create grant",
+  "dashboard.noDeployment.title": "Testnet deployment is not configured",
+  "dashboard.noDeployment.body":
+    "The application needs the HashVest Testnet deployment before it can load or create real grants.",
+  "dashboard.tablist": "Grant role",
+  "dashboard.tab.0": "Issued",
+  "dashboard.tab.1": "Received",
+  "dashboard.tab.2": "Review",
+  "dashboard.grants.loading.title": "Loading your grants",
+  "dashboard.grants.loading.body": "Reading the factory on {network}…",
+  "dashboard.grants.error.title": "Unable to load grants",
+  "dashboard.retry": "Retry",
+  "dashboard.empty.0.title": "Your first grant starts here.",
+  "dashboard.empty.0.body":
+    "Create a fully funded allocation with clear conditions for your beneficiary.",
+  "dashboard.empty.1.title": "No grants received yet.",
+  "dashboard.empty.1.body":
+    "Grants assigned to this wallet will appear here automatically.",
+  "dashboard.empty.2.title": "No milestones to review yet.",
+  "dashboard.empty.2.body":
+    "Grants that name this wallet as reviewer will appear here.",
+  "dashboard.empty.createGrant": "Create a grant",
+  "orgs.notConfigured.title": "Workspace context is not configured",
+  "orgs.notConfigured.body":
+    "Direct onchain grants remain available. Set the server-only auth and Supabase variables to enable organizations.",
+  "orgs.signIn.title": "Sign in to manage organizations",
+  "orgs.signIn.body":
+    "Organization context is separate from wallet connection and needs one explicit signature.",
+  "orgs.loading.title": "Loading your organizations",
+  "orgs.loading.body": "Reading workspace memberships…",
+  "orgs.error.title": "Organizations could not be loaded",
+  "orgs.eyebrow": "Your workspaces",
+  "orgs.heading": "Organizations provide context.",
+  "orgs.create": "+ Create organization",
+  "orgs.empty.title": "Create your first organization",
+  "orgs.empty.body":
+    "Set up a workspace for your team, ecosystem, or treasury. You become the owner automatically.",
+  "orgs.empty.action": "Set up workspace",
+  "orgs.counts": "{members} members · {grants} grants",
+  "member.defaultRole": "Member",
+  "picker.noMembers": "No members available",
+  "picker.chooseBeneficiary": "Choose a beneficiary",
+  "picker.chooseReviewer": "Choose a reviewer",
+  "picker.useExternal": "Use external wallet",
+  "picker.useMembers": "Choose from organization members",
+  "workspace.nav.label": "Organization navigation",
+  "workspace.tab.overview": "Overview",
+  "workspace.tab.grants": "Grants",
+  "workspace.tab.members": "Members",
+  "workspace.loading.title": "Loading workspace",
+  "workspace.loading.body": "Reading organization context…",
+  "workspace.error.title": "Workspace could not be loaded",
+  "workspace.retry": "Retry",
+  "workspace.backToOrganizations": "Organizations",
+  "workspace.eyebrow": "HashVest organization",
+  "workspace.createGrant": "Create grant",
+  "workspace.counts.member": "{count} member",
+  "workspace.counts.members": "{count} members",
+  "workspace.counts.grant": "{count} grant",
+  "workspace.counts.grants": "{count} grants",
+  "workspace.members.loading": "Loading members…",
+  "workspace.members.error": "Members could not be loaded.",
+  "workspace.members.empty": "No members yet.",
+  "workspace.members.more": "+{count} more members",
+  "access.connect.title": "Connect a wallet to open a workspace",
+  "access.connect.body":
+    "Workspace access uses a one-time wallet signature. No email account is required.",
+  "access.network.title": "Switch to {network} before signing in",
+  "access.network.body":
+    "HashVest workspace sessions are bound to chain {chainId}.",
+  "access.notConfigured.title": "Workspace authentication is not configured",
+  "access.notConfigured.body":
+    "Set the server-only authentication secret and Supabase service role key, then restart the app.",
+  "access.walletChanged.title": "Wallet changed",
+  "access.walletChanged.body":
+    "Your current wallet differs from the authenticated workspace session. Sign in again before managing organization data.",
+  "access.signIn.title": "Sign in to your HashVest workspace",
+  "access.signIn.body":
+    "One signature enables off-chain organization context. It does not authorize blockchain actions.",
+  "faucet.title": "Demo token · {symbol}",
+  "faucet.lede": "Test tokens for your first grant. No monetary value.",
+  "faucet.balance": "Your balance:",
+  "faucet.balanceError": "Token balance is unavailable. Check the Testnet RPC.",
+  "faucet.action": "Get demo {symbol}",
+  "faucet.minting": "Minting…",
+
   // Grant surfaces: shared UI (grant-ui), cards, and the grant detail page. Addresses, hashes, block numbers, token symbols and RPC URLs arrive as values.
   "role.Issuer": "Issuer",
   "role.Beneficiary": "Beneficiary",

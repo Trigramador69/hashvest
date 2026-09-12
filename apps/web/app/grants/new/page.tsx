@@ -875,6 +875,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                         <MemberPicker
                           label={t("wizard.field.beneficiary.label")}
                           hint={t("wizard.field.beneficiary.hint")}
+                          choosePlaceholder={t("picker.chooseBeneficiary")}
                           members={organizationMembers.data}
                           memberId={beneficiaryMemberId}
                           addressValue={beneficiary}
@@ -1084,6 +1085,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             <MemberPicker
                               label={t("wizard.field.reviewer.label")}
                               hint={t("wizard.field.reviewer.hint")}
+                              choosePlaceholder={t("picker.chooseReviewer")}
                               members={organizationMembers.data}
                               memberId={reviewerMemberId}
                               addressValue={reviewer}

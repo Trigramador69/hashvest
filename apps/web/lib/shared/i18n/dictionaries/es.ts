@@ -78,6 +78,102 @@ export const es: TranslationDictionary = {
   "home.strategies.hybrid.body":
     "Desbloqueado = min(liberado por tiempo, monto de hitos aprobados). Ambas condiciones limitan cada reclamo.",
 
+  // Espacio de trabajo: panel, navegación de organización, acceso y faucet de demo.
+  "dashboard.eyebrow": "Tu espacio de trabajo",
+  "dashboard.title": "Subvenciones con propósito.",
+  "dashboard.lede":
+    "Gestiona asignaciones, sigue los desbloqueos y haz avanzar el buen trabajo.",
+  "dashboard.createGrant": "Crear subvención",
+  "dashboard.noDeployment.title":
+    "El despliegue de testnet no está configurado",
+  "dashboard.noDeployment.body":
+    "La aplicación necesita el despliegue de HashVest en testnet para poder cargar o crear subvenciones reales.",
+  "dashboard.tablist": "Rol en la subvención",
+  "dashboard.tab.0": "Emitidas",
+  "dashboard.tab.1": "Recibidas",
+  "dashboard.tab.2": "Por revisar",
+  "dashboard.grants.loading.title": "Cargando tus subvenciones",
+  "dashboard.grants.loading.body": "Leyendo la factory en {network}…",
+  "dashboard.grants.error.title": "No se pudieron cargar las subvenciones",
+  "dashboard.retry": "Reintentar",
+  "dashboard.empty.0.title": "Tu primera subvención empieza aquí.",
+  "dashboard.empty.0.body":
+    "Crea una asignación totalmente financiada con condiciones claras para tu beneficiario.",
+  "dashboard.empty.1.title": "Todavía no has recibido subvenciones.",
+  "dashboard.empty.1.body":
+    "Las subvenciones asignadas a esta wallet aparecerán aquí automáticamente.",
+  "dashboard.empty.2.title": "Todavía no hay hitos que revisar.",
+  "dashboard.empty.2.body":
+    "Las subvenciones que nombren a esta wallet como revisora aparecerán aquí.",
+  "dashboard.empty.createGrant": "Crear una subvención",
+  "orgs.notConfigured.title":
+    "El contexto de espacio de trabajo no está configurado",
+  "orgs.notConfigured.body":
+    "Las subvenciones onchain directas siguen disponibles. Configura las variables de auth y Supabase del servidor para habilitar las organizaciones.",
+  "orgs.signIn.title": "Inicia sesión para gestionar organizaciones",
+  "orgs.signIn.body":
+    "El contexto de organización es independiente de la conexión de la wallet y necesita una firma explícita.",
+  "orgs.loading.title": "Cargando tus organizaciones",
+  "orgs.loading.body": "Leyendo las membresías del espacio de trabajo…",
+  "orgs.error.title": "No se pudieron cargar las organizaciones",
+  "orgs.eyebrow": "Tus espacios de trabajo",
+  "orgs.heading": "Las organizaciones aportan contexto.",
+  "orgs.create": "+ Crear organización",
+  "orgs.empty.title": "Crea tu primera organización",
+  "orgs.empty.body":
+    "Monta un espacio de trabajo para tu equipo, tu ecosistema o tu tesorería. Te conviertes en propietario automáticamente.",
+  "orgs.empty.action": "Montar espacio de trabajo",
+  "orgs.counts": "{members} miembros · {grants} subvenciones",
+  "member.defaultRole": "Miembro",
+  "picker.noMembers": "No hay miembros disponibles",
+  "picker.chooseBeneficiary": "Elige un beneficiario",
+  "picker.chooseReviewer": "Elige un revisor",
+  "picker.useExternal": "Usar una wallet externa",
+  "picker.useMembers": "Elegir entre los miembros de la organización",
+  "workspace.nav.label": "Navegación de la organización",
+  "workspace.tab.overview": "Resumen",
+  "workspace.tab.grants": "Subvenciones",
+  "workspace.tab.members": "Miembros",
+  "workspace.loading.title": "Cargando el espacio de trabajo",
+  "workspace.loading.body": "Leyendo el contexto de la organización…",
+  "workspace.error.title": "No se pudo cargar el espacio de trabajo",
+  "workspace.retry": "Reintentar",
+  "workspace.backToOrganizations": "Organizaciones",
+  "workspace.eyebrow": "Organización de HashVest",
+  "workspace.createGrant": "Crear subvención",
+  "workspace.counts.member": "{count} miembro",
+  "workspace.counts.members": "{count} miembros",
+  "workspace.counts.grant": "{count} subvención",
+  "workspace.counts.grants": "{count} subvenciones",
+  "workspace.members.loading": "Cargando miembros…",
+  "workspace.members.error": "No se pudieron cargar los miembros.",
+  "workspace.members.empty": "Todavía no hay miembros.",
+  "workspace.members.more": "+{count} miembros más",
+  "access.connect.title": "Conecta una wallet para abrir un espacio de trabajo",
+  "access.connect.body":
+    "El acceso al espacio usa una firma de wallet de un solo uso. No hace falta ninguna cuenta de correo.",
+  "access.network.title": "Cambia a {network} antes de iniciar sesión",
+  "access.network.body":
+    "Las sesiones de espacio de trabajo de HashVest están ligadas a la chain {chainId}.",
+  "access.notConfigured.title":
+    "La autenticación del espacio de trabajo no está configurada",
+  "access.notConfigured.body":
+    "Configura el secreto de autenticación del servidor y la service role key de Supabase, y reinicia la app.",
+  "access.walletChanged.title": "La wallet cambió",
+  "access.walletChanged.body":
+    "Tu wallet actual no coincide con la sesión autenticada del espacio de trabajo. Inicia sesión de nuevo antes de gestionar datos de la organización.",
+  "access.signIn.title": "Inicia sesión en tu espacio de HashVest",
+  "access.signIn.body":
+    "Una firma habilita el contexto de organización off-chain. No autoriza ninguna acción en la blockchain.",
+  "faucet.title": "Token de demo · {symbol}",
+  "faucet.lede":
+    "Tokens de prueba para tu primera subvención. Sin valor monetario.",
+  "faucet.balance": "Tu saldo:",
+  "faucet.balanceError":
+    "El saldo del token no está disponible. Revisa el RPC de testnet.",
+  "faucet.action": "Conseguir {symbol} de demo",
+  "faucet.minting": "Acuñando…",
+
   // Superficies de subvención: UI compartida, tarjetas y la página de detalle. Direcciones, hashes, números de bloque, símbolos y URLs de RPC llegan como valores.
   "role.Issuer": "Emisor",
   "role.Beneficiary": "Beneficiario",

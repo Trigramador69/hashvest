@@ -6,17 +6,20 @@ import { useAccount } from "wagmi";
 import { Notice } from "@/components/grant-ui";
 import { SessionControl } from "@/components/session-control";
 import { useSession } from "@/hooks/use-session";
+import { useTranslations } from "@/lib/shared/i18n/provider";
+import { hskTestnet } from "@hashvest/web3";
+
+/** Protocol literals: never translated, only interpolated. */
+const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
 export function WorkspaceAccessNotice() {
   const { isConnected, chainId } = useAccount();
   const session = useSession();
+  const t = useTranslations();
   if (!isConnected)
     return (
-      <Notice title="Connect a wallet to open a workspace">
-        <p>
-          Workspace access uses a one-time wallet signature. No email account is
-          required.
-        </p>
+      <Notice title={t("access.connect.title")}>
+        <p>{t("access.connect.body")}</p>
         <div className="mt-4">
           <ConnectButton showBalance={false} />
         </div>
@@ -24,17 +27,14 @@ export function WorkspaceAccessNotice() {
     );
   if (chainId !== 133)
     return (
-      <Notice title="Switch to HSK Testnet before signing in">
-        <p>HashVest workspace sessions are bound to chain 133.</p>
+      <Notice title={t("access.network.title", NETWORK)}>
+        <p>{t("access.network.body", NETWORK)}</p>
       </Notice>
     );
   if (session.isError)
     return (
-      <Notice title="Workspace authentication is not configured" error>
-        <p>
-          Set the server-only authentication secret and Supabase service role
-          key, then restart the app.
-        </p>
+      <Notice title={t("access.notConfigured.title")} error>
+        <p>{t("access.notConfigured.body")}</p>
       </Notice>
     );
   if (!session.walletMatches)
@@ -42,14 +42,14 @@ export function WorkspaceAccessNotice() {
       <Notice
         title={
           session.isAuthenticated
-            ? "Wallet changed"
-            : "Sign in to your HashVest workspace"
+            ? t("access.walletChanged.title")
+            : t("access.signIn.title")
         }
       >
         <p>
           {session.isAuthenticated
-            ? "Your current wallet differs from the authenticated workspace session. Sign in again before managing organization data."
-            : "One signature enables off-chain organization context. It does not authorize blockchain actions."}
+            ? t("access.walletChanged.body")
+            : t("access.signIn.body")}
         </p>
         <div className="mt-4">
           <SessionControl />
