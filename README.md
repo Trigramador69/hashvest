@@ -105,7 +105,7 @@ Optional Blockscout verification (secondary to a working deployment):
 pnpm contracts:verify:testnet
 ```
 
-If Blockscout rejects the automated request, retry the command or verify the three source contracts manually at the explorer with the constructor arguments recorded in the broadcast. Verification failure does not invalidate deployment.
+The current Blockscout endpoint returned HTTP 413 (`Request Entity Too Large`) for the Forge submission, so automated verification is currently non-blocking. To retry, run the command above; if the endpoint still rejects the payload, submit the three source contracts manually in the explorer using the constructor arguments recorded in `packages/contracts/broadcast/DeployHashVest.s.sol/133/run-latest.json`. Verification failure does not invalidate deployment.
 
 ## Demo flow
 
