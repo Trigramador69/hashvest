@@ -4,10 +4,12 @@ import type { ReactNode } from "react";
 
 import "./globals.css";
 import { Providers } from "./providers";
+import { AppShell } from "@/components/app-shell";
 
 export const metadata: Metadata = {
-  title: "HSK Development Environment",
-  description: "Minimal HashKey Chain development workspace.",
+  title: "HashVest — Programmable grants",
+  description:
+    "Fully funded token grants with time, milestone, and hybrid unlocks on HashKey Chain.",
 };
 
 export default function RootLayout({
@@ -16,7 +18,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <AppShell>{children}</AppShell>
+        </Providers>
       </body>
     </html>
   );
