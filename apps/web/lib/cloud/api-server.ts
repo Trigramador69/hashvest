@@ -1,19 +1,12 @@
 import "server-only";
 
-import { AuthConfigurationError } from "@/lib/auth/session";
-import { ServerConfigurationError } from "@/lib/supabase-server";
-import { InputValidationError } from "@/lib/organizations/validation";
-import { getApplicationOrigin } from "@/lib/auth/siwe";
+import { AuthConfigurationError } from "@/lib/cloud/auth/session";
+import { ServerConfigurationError } from "@/lib/cloud/supabase-server";
+import { InputValidationError } from "@/lib/cloud/organizations/validation";
+import { getApplicationOrigin } from "@/lib/cloud/auth/siwe";
+import { ApiError } from "@/lib/shared/api-error";
 
-export class ApiError extends Error {
-  readonly status: number;
-
-  constructor(status: number, message: string) {
-    super(message);
-    this.name = "ApiError";
-    this.status = status;
-  }
-}
+export { ApiError };
 
 export async function readJson(request: Request): Promise<unknown> {
   const contentLength = request.headers.get("content-length");

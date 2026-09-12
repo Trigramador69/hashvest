@@ -45,7 +45,7 @@ import {
   strategies,
   strategyDescriptions,
   validParty,
-} from "@/lib/grants";
+} from "@/lib/protocol/grants";
 
 const steps = ["Grant", "Strategy", "Conditions", "Review"];
 type MilestoneInput = { title: string; amount: string };

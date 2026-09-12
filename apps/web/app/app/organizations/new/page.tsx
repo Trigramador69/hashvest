@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Notice, PageHeading } from "@/components/grant-ui";
 import { useCreateOrganization } from "@/hooks/use-organizations";
 import { useSession } from "@/hooks/use-session";
-import { errorMessage } from "@/lib/grants";
+import { errorMessage } from "@/lib/protocol/grants";
 
 export default function NewOrganizationPage() {
   const router = useRouter();

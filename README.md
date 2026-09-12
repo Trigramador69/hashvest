@@ -33,6 +33,12 @@ GrantVault #1, #2, #3 ...
 
 Each vault stores the issuer, beneficiary, reviewer, token, allocation, strategy, vesting schedule, milestone titles and amounts, and optional eligibility provider as immutable terms. Only milestone approval and claimed amount change after creation. The protocol has no issuer withdrawal, revocation, upgradeability, indexer, or native HSK grant. Organization metadata is an optional off-chain product layer and never replaces contract state.
 
+### Protocol and Cloud layers
+
+The repository holds two layers. **HashVest Protocol** is `packages/contracts` plus the protocol-facing `packages/web3` exports; it holds funds and enforces unlock math. **HashVest Cloud** is `apps/web` plus Supabase, SIWE sessions, organizations, and metadata; it makes the protocol usable and is optional to every protocol operation. Cloud depends on Protocol through `@hashvest/web3`; Protocol never depends on Cloud.
+
+[`docs/architecture.md`](docs/architecture.md) is the authoritative definition: per-field authority, the public integration surface and extension points, the future `hashvest-protocol` / `@hashvest/protocol` extraction boundary, the automated checks that enforce all of it, and the hackathon critical path and stop-adding-features rule.
+
 ### Organizations product layer
 
 Organizations are workspaces around existing GrantVaults. Supabase stores organization names, members, presentation role labels, GrantVault associations, descriptions, and future-facing template metadata. HSK remains authoritative for issuer, beneficiary, reviewer, token, allocation, strategy, schedules, milestone approval, unlocked/claimable/claimed amounts, eligibility, balances, and funds.
@@ -56,11 +62,13 @@ Prerequisites: Node.js 22+, pnpm 10+, Foundry (`forge`, `cast`, `anvil`), a brow
 ```bash
 pnpm install --frozen-lockfile
 cd packages/contracts
-forge install foundry-rs/forge-std@v1.9.7 OpenZeppelin/openzeppelin-contracts@v5.4.0 --no-commit
+forge install --no-git --shallow foundry-rs/forge-std@v1.9.7 OpenZeppelin/openzeppelin-contracts@v5.4.0
 cd ../..
 cp apps/web/.env.local.example apps/web/.env.local
 cp packages/contracts/.env.example packages/contracts/.env
 ```
+
+`--no-git` installs the contract dependencies as plain directories instead of git submodules. `packages/contracts/lib` is ignored, so the submodule bookkeeping adds nothing and fails outright inside a git worktree, leaving a partial install plus a stray `.gitmodules`. Foundry 1.0 removed `--no-commit`; committing is now opt-in through `--commit`.
 
 Set `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` for WalletConnect connections. Browser injected wallets remain available when it is blank. Keep `DEPLOYER_PRIVATE_KEY` only in `packages/contracts/.env`; it is never read by the web application.
 
@@ -168,17 +176,33 @@ HashVest MVP has not been professionally audited. It targets HSK Testnet only, u
 
 ## Roadmap
 
-Possible future extensions are revocable grants, batch creation, reusable templates, and real attestation or compliance adapters. They are not implemented in this MVP.
+Hackathon P0 work, by milestone and owning layer:
+
+| Milestone                               | Owner            |
+| --------------------------------------- | ---------------- |
+| M0 — Protocol/Cloud boundary & baseline | Cloud + Protocol |
+| M1 — Global grant templates             | Cloud            |
+| M2 — Revocation & protocol safety       | Protocol         |
+| M3 — Lifecycle & funding health         | Cloud            |
+| M4 — i18n, browser E2E & submission     | Cloud + Protocol |
+
+Post-hackathon milestones M5–M7 cover P1–P3 work: milestone evidence, AI-assisted grant building and review, batch creation, TGE semantics, reviewer quorum, analytics, notifications, compliance and attestation adapters, an embedded SDK, and extraction of the protocol into a public `hashvest-protocol` repository. None of it is implemented in this MVP. New scope during the hackathon is a swap, never an addition — see the stop-adding-features rule in [`docs/architecture.md`](docs/architecture.md).
 
 ## Repository layout
 
 ```text
-apps/web                 Next.js wallet application
-packages/contracts       Solidity contracts, Foundry tests, deployment script
-packages/web3            HSK chain config, generated ABIs, deployment data, sync scripts
-packages/ui               Shared UI package placeholder
-packages/config           Shared TypeScript and ESLint configuration
-supabase/migrations       Tracked product-context schema and RLS migration
+apps/web                 Cloud     Next.js wallet application
+  lib/protocol           Protocol  chain-facing helpers, wagmi config, onchain roles, vault verification
+  lib/cloud              Cloud     Supabase, SIWE sessions, organizations
+  lib/shared             shared    layer-neutral utilities
+packages/contracts       Protocol  Solidity contracts, Foundry tests, deployment script
+packages/web3            Protocol  HSK chain config, generated ABIs, deployment data, sync scripts
+packages/ui              shared    Shared UI package placeholder
+packages/config          shared    Shared TypeScript and ESLint configuration
+scripts                  shared    Repository-wide boundary checks
+supabase/migrations      Cloud     Tracked product-context schema and RLS migration
 ```
+
+Imports run one way: Cloud may depend on Protocol, never the reverse. `pnpm boundary:check` enforces this, along with service-role secret containment, protocol export drift, and documentation links. See [`docs/architecture.md`](docs/architecture.md).
 
 Important organization implementation files include `apps/web/lib/auth` (SIWE challenge verification and signed sessions), `apps/web/lib/organizations` (validation, server authorization, HSK GrantVault verification, types, and browser API client), `apps/web/hooks/use-organizations.ts` (TanStack Query data layer), and `apps/web/components/organization-*` / `members-manager.tsx` (workspace UI). No Solidity protocol contract was changed for this layer.

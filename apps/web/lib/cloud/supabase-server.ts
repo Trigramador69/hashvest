@@ -2,7 +2,7 @@ import "server-only";
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-import type { Database } from "@/lib/organizations/types";
+import type { Database } from "@/lib/cloud/organizations/types";
 
 export class ServerConfigurationError extends Error {
   constructor(message: string) {

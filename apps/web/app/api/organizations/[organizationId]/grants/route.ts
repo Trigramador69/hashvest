@@ -1,9 +1,13 @@
-import { apiErrorResponse, assertSameOrigin, readJson } from "@/lib/api-server";
-import { associateGrant, listGrants } from "@/lib/organizations/server";
+import {
+  apiErrorResponse,
+  assertSameOrigin,
+  readJson,
+} from "@/lib/cloud/api-server";
+import { associateGrant, listGrants } from "@/lib/cloud/organizations/server";
 import {
   parseOrganizationGrantInput,
   validateUuid,
-} from "@/lib/organizations/validation";
+} from "@/lib/cloud/organizations/validation";
 
 export const runtime = "nodejs";
 

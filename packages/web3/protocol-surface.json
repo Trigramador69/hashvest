@@ -1,0 +1,17 @@
+{
+  "comment": "Declared @hashvest/protocol extraction surface. Verified against src/protocol.ts by pnpm boundary:check. See docs/architecture.md and HAS-38.",
+  "exports": [
+    "addressExplorerUrl",
+    "demoEligibilityProviderAbi",
+    "demoTokenAbi",
+    "eligibilityProviderAbi",
+    "grantVaultAbi",
+    "hashVestFactoryAbi",
+    "hskChains",
+    "hskMainnet",
+    "hskTestnet",
+    "HskChain",
+    "testnetDeployment",
+    "transactionExplorerUrl"
+  ]
+}

@@ -61,3 +61,6 @@ jobs:
 
       - name: Check generated ABIs
         run: pnpm contracts:sync:check
+
+      - name: Check Protocol/Cloud boundary
+        run: pnpm boundary:check

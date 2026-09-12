@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AddressDisplay,
+  FundingHealthSummary,
+  GrantLifecycleBadge,
   NetworkNotice,
   Notice,
   PageHeading,
@@ -28,9 +30,10 @@ import {
   strategies,
   strategyDescriptions,
   tokenAmount,
-} from "@/lib/grants";
+} from "@/lib/protocol/grants";
+import { deriveGrantState } from "@/lib/protocol/grant-state";
 import { ParticipantIdentity } from "./grant-card";
-import { resolveProtocolRoles } from "@/lib/organizations/permissions";
+import { resolveProtocolRoles } from "@/lib/protocol/roles";
 
 export function GrantDetail({ address }: { address: Address }) {
   const [showRevokeModal, setShowRevokeModal] = useState(false);
@@ -75,7 +78,37 @@ export function GrantDetail({ address }: { address: Address }) {
         </Notice>
       </div>
     );
+  if (grant.isRefetchError)
+    return (
+      <div className="space-y-5">
+        <Link className="text-sm text-primary" href="/app">
+          ← My grants
+        </Link>
+        <Notice title="Live grant state is unavailable" error>
+          <p>
+            The last HSK read could not be refreshed, so current grant values
+            are hidden until the live state is available again.
+          </p>
+          <p className="mt-2 break-words">{errorMessage(grant.error)}</p>
+          <div className="mt-3">
+            <AddressDisplay address={address} full />
+          </div>
+          <Button
+            className="mt-4"
+            variant="outline"
+            onClick={() => void grant.refetch()}
+          >
+            Retry
+          </Button>
+        </Notice>
+      </div>
+    );
   const g = grant.data;
+  const state = deriveGrantState({
+    totalAllocation: g.totalAllocation,
+    claimedAmount: g.claimedAmount,
+    vaultBalance: g.balance,
+  });
   const roles = resolveProtocolRoles(wallet.address, g);
   const isBeneficiary = roles.isBeneficiary;
   const isReviewer = roles.isReviewer;
@@ -105,7 +138,7 @@ export function GrantDetail({ address }: { address: Address }) {
     else if (!g.eligibility.eligible)
       claimReason =
         "The configured provider has not marked the beneficiary eligible.";
-    else if (g.claimedAmount === g.totalAllocation)
+    else if (state.lifecycle === "COMPLETED")
       claimReason = "The full allocation has been claimed.";
     else if (
       g.claimableAmount === 0n &&
@@ -216,28 +249,11 @@ export function GrantDetail({ address }: { address: Address }) {
         eyebrow="Grant vault · HSK Testnet"
         title={g.title}
         action={
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap gap-2">
+            <GrantLifecycleBadge lifecycle={state.lifecycle} />
             <span className="rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary">
               {strategies[g.strategy]}
             </span>
-            <span className="rounded-full border border-primary/20 bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
-              {g.revocable ? "Revocable" : "Non-revocable"}
-            </span>
-            {g.revoked && (
-              <span className="rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-destructive">
-                Revoked
-              </span>
-            )}
-            {canRevoke && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-destructive/40 text-destructive hover:bg-destructive/10"
-                onClick={() => setShowRevokeModal(true)}
-              >
-                Revoke grant
-              </Button>
-            )}
           </div>
         }
       >
@@ -259,36 +275,6 @@ export function GrantDetail({ address }: { address: Address }) {
         </div>
       </PageHeading>
       <NetworkNotice />
-      {g.revoked && (
-        <Notice title={`Grant Revoked on ${dateLabel(g.revokedAt)}`}>
-          <p>
-            This grant was revoked by the issuer. The beneficiary’s earned
-            entitlement was locked at{" "}
-            <strong>{amount(g.revocationEarnedAmount)}</strong> at the time of
-            revocation. Unearned tokens (
-            {amount(g.totalAllocation - g.revocationEarnedAmount)}) were
-            recovered by the issuer.
-            {g.claimableAmount > 0n
-              ? ` The beneficiary preserves the remaining ${amount(g.claimableAmount)} of earned value and can claim it below.`
-              : " All earned tokens have been claimed."}
-          </p>
-        </Notice>
-      )}
-      {grant.isRefetchError && (
-        <Notice title="Live refresh is interrupted" error>
-          <p>
-            The last successful values are shown. Actions are paused until the
-            RPC is available.
-          </p>
-          <Button
-            className="mt-3"
-            variant="outline"
-            onClick={() => void grant.refetch()}
-          >
-            Refresh
-          </Button>
-        </Notice>
-      )}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
           ["Total allocated", g.totalAllocation],
@@ -311,6 +297,13 @@ export function GrantDetail({ address }: { address: Address }) {
           </Card>
         ))}
       </div>
+      <FundingHealthSummary
+        funding={state.funding}
+        totalAllocation={g.totalAllocation}
+        vaultBalance={g.balance}
+        decimals={g.decimals}
+        symbol={g.symbol}
+      />
       <div className="grid items-start gap-7 lg:grid-cols-[1.65fr_1fr]">
         <div className="space-y-7">
           {showTime && (
@@ -522,14 +515,6 @@ export function GrantDetail({ address }: { address: Address }) {
                   </span>
                   <span className="break-all text-right">
                     {amount(g.beneficiaryBalance)}
-                  </span>
-                </div>
-                <div className="flex justify-between gap-2">
-                  <span className="text-muted-foreground">
-                    Vault token balance
-                  </span>
-                  <span className="break-all text-right">
-                    {amount(g.balance)}
                   </span>
                 </div>
               </div>
