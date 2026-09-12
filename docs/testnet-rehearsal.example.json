@@ -1,0 +1,32 @@
+{
+  "wallets": {
+    "issuer": {
+      "label": "Issuer / workspace owner",
+      "address": "REPLACE_WITH_PUBLIC_ISSUER_ADDRESS"
+    },
+    "reviewer": {
+      "label": "Treasury Reviewer",
+      "address": "REPLACE_WITH_PUBLIC_REVIEWER_ADDRESS"
+    },
+    "beneficiary": {
+      "label": "Builder",
+      "address": "REPLACE_WITH_PUBLIC_BENEFICIARY_ADDRESS"
+    }
+  },
+  "grant": {
+    "strategy": "HYBRID",
+    "allocation": "100",
+    "cliffSeconds": 0,
+    "durationSeconds": 300,
+    "milestones": [
+      {
+        "title": "Prototype accepted",
+        "amount": "40"
+      },
+      {
+        "title": "Delivery accepted",
+        "amount": "60"
+      }
+    ]
+  }
+}

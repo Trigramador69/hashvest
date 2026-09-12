@@ -15,6 +15,7 @@ coverage/
 .env.*
 !.env.example
 !.env.local.example
+docs/testnet-rehearsal.local.json
 
 # Foundry
 packages/contracts/cache/
