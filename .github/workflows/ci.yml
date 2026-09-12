@@ -43,6 +43,9 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Check formatting
+        run: pnpm format:check
+
       - name: Typecheck
         run: pnpm typecheck
 
@@ -54,5 +57,7 @@ jobs:
         working-directory: packages/contracts
 
       - name: Test contracts
-        run: forge test
-        working-directory: packages/contracts
+        run: pnpm test
+
+      - name: Check generated ABIs
+        run: pnpm contracts:sync:check

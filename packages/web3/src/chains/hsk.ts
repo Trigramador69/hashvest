@@ -37,7 +37,7 @@ export const hskTestnet = defineChain({
   blockExplorers: {
     default: {
       name: "HSK Testnet Explorer",
-      url: "https://testnet-explorer.hsk.xyz",
+      url: "https://testnet-explorer.hskchain.net",
     },
   },
   testnet: true,

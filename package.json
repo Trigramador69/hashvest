@@ -12,12 +12,18 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "test": "pnpm contracts:test",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "test": "pnpm contracts:test && node --test packages/web3/scripts/*.test.mjs",
+    "format": "prettier --write . && pnpm --dir packages/contracts exec forge fmt",
+    "format:check": "prettier --check . && pnpm --dir packages/contracts exec forge fmt --check",
     "contracts:build": "pnpm --dir packages/contracts build",
     "contracts:test": "pnpm --dir packages/contracts test",
-    "contracts:deploy:testnet": "dotenv -e packages/contracts/.env -- pnpm --dir packages/contracts run deploy:testnet"
+    "contracts:sync": "pnpm contracts:build && node packages/web3/scripts/sync-contracts.mjs",
+    "contracts:sync:check": "pnpm contracts:build && node packages/web3/scripts/sync-contracts.mjs --check",
+    "contracts:sync:addresses": "node packages/web3/scripts/sync-contracts.mjs --addresses",
+    "contracts:deploy:testnet": "dotenv -e packages/contracts/.env -- node packages/web3/scripts/deploy-testnet.mjs",
+    "contracts:smoke:testnet": "dotenv -e packages/contracts/.env -- node packages/web3/scripts/smoke-testnet.mjs",
+    "contracts:verify:testnet": "dotenv -e packages/contracts/.env -- node packages/web3/scripts/verify-testnet.mjs",
+    "demo:testnet": "dotenv -e packages/contracts/.env -- node packages/web3/scripts/demo-testnet.mjs"
   },
   "devDependencies": {
     "dotenv-cli": "11.0.0",

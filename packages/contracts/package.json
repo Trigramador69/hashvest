@@ -5,6 +5,6 @@
   "scripts": {
     "build": "forge build",
     "test": "forge test",
-    "deploy:testnet": "forge script script/DeployDevelopmentRegistry.s.sol:DeployDevelopmentRegistry --rpc-url hsk_testnet --broadcast"
+    "deploy:testnet": "forge script script/DeployHashVest.s.sol:DeployHashVest --rpc-url hsk_testnet --chain-id 133 --broadcast"
   }
 }
