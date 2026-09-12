@@ -104,6 +104,16 @@ async function main() {
     }
     assert.fail(`${functionName} did not index ${vault}`);
   }
+  async function waitForValue(label, read, expected) {
+    let actual;
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      actual = await read();
+      if (actual === expected) return;
+      if (attempt < 9)
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    assert.equal(actual, expected, label);
+  }
   const gasPrice = await client.getGasPrice();
   const roleGas = gasPrice * 600_000n + parseEther("0.00001");
   assert.ok(
@@ -200,7 +210,11 @@ async function main() {
     }
     assert.ok(vault, "Factory did not index the created grant");
     evidence.grants[name] = vault;
-    assert.equal(await tokenRead("balanceOf", [vault]), allocation);
+    await waitForValue(
+      `${name} vault funding`,
+      () => tokenRead("balanceOf", [vault]),
+      allocation,
+    );
     assert.equal(await vaultRead(vault, "claimedAmount"), 0n);
     assert.equal(await vaultRead(vault, "issuer"), issuer.account.address);
     await assertRoleIndex("getGrantsByIssuer", issuer.account.address, vault);
@@ -228,7 +242,11 @@ async function main() {
         "approveMilestone",
         [0n],
       );
-      assert.equal(await vaultRead(vault, "claimableAmount"), parseEther("40"));
+      await waitForValue(
+        `${name} milestone 1 unlock`,
+        () => vaultRead(vault, "claimableAmount"),
+        parseEther("40"),
+      );
       await write(
         beneficiary,
         `${name}: beneficiary claims 40 hvUSD`,
@@ -236,11 +254,16 @@ async function main() {
         vaultAbi,
         "claim",
       );
-      assert.equal(
-        await tokenRead("balanceOf", [beneficiary.account.address]),
+      await waitForValue(
+        `${name} milestone 1 claim`,
+        () => tokenRead("balanceOf", [beneficiary.account.address]),
         balanceBefore + parseEther("40"),
       );
-      assert.equal(await vaultRead(vault, "claimableAmount"), 0n);
+      await waitForValue(
+        `${name} milestone 1 claimable reset`,
+        () => vaultRead(vault, "claimableAmount"),
+        0n,
+      );
       await write(
         reviewer,
         `${name}: reviewer approves milestone 2`,
@@ -257,11 +280,24 @@ async function main() {
       vaultAbi,
       "claim",
     );
-    assert.equal(await vaultRead(vault, "claimedAmount"), allocation);
-    assert.equal(await vaultRead(vault, "claimableAmount"), 0n);
-    assert.equal(await tokenRead("balanceOf", [vault]), 0n);
-    assert.equal(
-      await tokenRead("balanceOf", [beneficiary.account.address]),
+    await waitForValue(
+      `${name} claimed amount`,
+      () => vaultRead(vault, "claimedAmount"),
+      allocation,
+    );
+    await waitForValue(
+      `${name} claimable reset`,
+      () => vaultRead(vault, "claimableAmount"),
+      0n,
+    );
+    await waitForValue(
+      `${name} vault emptied`,
+      () => tokenRead("balanceOf", [vault]),
+      0n,
+    );
+    await waitForValue(
+      `${name} beneficiary balance`,
+      () => tokenRead("balanceOf", [beneficiary.account.address]),
       balanceBefore + allocation,
     );
     console.log(
