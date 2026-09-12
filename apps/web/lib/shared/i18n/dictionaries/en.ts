@@ -79,6 +79,76 @@ export const en = {
   "home.strategies.hybrid.body":
     "Unlocked = min(time vested, approved milestone amount). Both conditions constrain every claim.",
 
+  // Organization overview: live metrics, review and claimable queues, grant linking.
+  "overview.loading.title": "Loading organization overview",
+  "overview.loading.body": "Reading workspace data and live HSK grant state…",
+  "overview.error.title": "Organization overview is unavailable",
+  "overview.error.body":
+    "Retry the workspace or check the Supabase configuration.",
+  "overview.metric.members": "Members",
+  "overview.metric.activeGrants": "Active grants",
+  "overview.metric.pendingReviews": "Pending reviews for you",
+  "overview.metric.claimableGrants": "Claimable grants for you",
+  "overview.metricsUnavailable":
+    "Live grant metrics are temporarily unavailable; workspace metadata is still available.",
+  "overview.recent.title": "Recent grants",
+  "overview.recent.lede":
+    "Onchain terms and live state, enriched with workspace context.",
+  "overview.recent.viewAll": "View all",
+  "overview.recent.empty": "No grants in this workspace yet.",
+  "overview.recent.createFirst": "Create the first grant",
+  "overview.review.title": "Review queue",
+  "overview.review.lede":
+    "Only pending milestones for your actual onchain reviewer wallet appear here.",
+  "overview.review.loading": "Reading live reviewer assignments…",
+  "overview.review.unavailable":
+    "Live reviewer assignments are temporarily unavailable.",
+  "overview.review.empty": "No associated grants to review.",
+  "overview.review.item.loading": "Reading review queue…",
+  "overview.review.item.stale":
+    "Live review state is unavailable for this grant. Retry from the grant detail page.",
+  "overview.review.item.pending.one": "{count} pending milestone",
+  "overview.review.item.pending.other": "{count} pending milestones",
+  "overview.review.item.reviewer": "{name} is reviewer",
+  "overview.review.item.next": "Next:",
+  "overview.review.item.action": "Review grant",
+  "overview.claim.title": "Claimable for you",
+  "overview.claim.lede":
+    "Claimable amounts come from each GrantVault, never from Supabase.",
+  "overview.claim.loading": "Reading live beneficiary claimability…",
+  "overview.claim.unavailable":
+    "Live claimable amounts are temporarily unavailable.",
+  "overview.claim.empty": "No claimable grants for this wallet.",
+  "overview.claim.item.loading": "Reading claimable grant…",
+  "overview.claim.item.stale":
+    "Live beneficiary state is unavailable for this grant. Retry from the grant detail page.",
+  "overview.claim.item.fallbackDescription": "Organization grant",
+  "overview.claim.item.amount": "{amount} claimable",
+  "overview.claim.item.action": "Open grant",
+  "overview.members.title": "Members",
+  "overview.members.manage": "Manage",
+  "overview.link.summary": "Link an existing GrantVault",
+  "overview.link.lede":
+    "Use this for a grant that was created before workspace metadata, or to retry a failed metadata sync. The server checks the onchain issuer.",
+  "overview.link.address.placeholder": "GrantVault address",
+  "overview.link.address.label": "Existing GrantVault address",
+  "overview.link.description.placeholder": "Description (optional)",
+  "overview.link.action": "Link grant",
+  "overview.link.pending": "Checking HSK…",
+  "overview.link.success":
+    "Grant metadata linked. The workspace list is up to date.",
+  "orggrants.loading.title": "Loading workspace grants",
+  "orggrants.loading.body": "Reading associated GrantVaults…",
+  "orggrants.error.title": "Workspace grants are unavailable",
+  "orggrants.error.body": "Retry after checking the workspace connection.",
+  "orggrants.title": "Organization grants",
+  "orggrants.count.one": "{count} associated GrantVault.",
+  "orggrants.count.other": "{count} associated GrantVaults.",
+  "orggrants.create": "Create grant",
+  "orggrants.empty.title": "No grants have been associated yet.",
+  "orggrants.empty.body":
+    "Create a grant from this workspace or link an existing GrantVault from the overview.",
+
   // Member directory, organization creation, and the public grant page.
   "members.loading.title": "Loading members",
   "members.loading.body": "Reading the organization directory…",

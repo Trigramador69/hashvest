@@ -78,6 +78,80 @@ export const es: TranslationDictionary = {
   "home.strategies.hybrid.body":
     "Desbloqueado = min(liberado por tiempo, monto de hitos aprobados). Ambas condiciones limitan cada reclamo.",
 
+  // Resumen de organización: métricas en vivo, colas de revisión y reclamo, vinculación.
+  "overview.loading.title": "Cargando el resumen de la organización",
+  "overview.loading.body":
+    "Leyendo los datos del espacio de trabajo y el estado en vivo de las subvenciones en HSK…",
+  "overview.error.title": "El resumen de la organización no está disponible",
+  "overview.error.body": "Reintenta o revisa la configuración de Supabase.",
+  "overview.metric.members": "Miembros",
+  "overview.metric.activeGrants": "Subvenciones activas",
+  "overview.metric.pendingReviews": "Revisiones pendientes para ti",
+  "overview.metric.claimableGrants": "Subvenciones reclamables por ti",
+  "overview.metricsUnavailable":
+    "Las métricas en vivo no están disponibles temporalmente; los metadatos del espacio de trabajo sí lo están.",
+  "overview.recent.title": "Subvenciones recientes",
+  "overview.recent.lede":
+    "Términos onchain y estado en vivo, enriquecidos con el contexto del espacio de trabajo.",
+  "overview.recent.viewAll": "Ver todas",
+  "overview.recent.empty":
+    "Todavía no hay subvenciones en este espacio de trabajo.",
+  "overview.recent.createFirst": "Crear la primera subvención",
+  "overview.review.title": "Cola de revisión",
+  "overview.review.lede":
+    "Aquí solo aparecen los hitos pendientes de tu wallet revisora onchain real.",
+  "overview.review.loading": "Leyendo las asignaciones de revisor en vivo…",
+  "overview.review.unavailable":
+    "Las asignaciones de revisor en vivo no están disponibles temporalmente.",
+  "overview.review.empty": "No hay subvenciones asociadas que revisar.",
+  "overview.review.item.loading": "Leyendo la cola de revisión…",
+  "overview.review.item.stale":
+    "El estado de revisión en vivo no está disponible para esta subvención. Reinténtalo desde su página de detalle.",
+  "overview.review.item.pending.one": "{count} hito pendiente",
+  "overview.review.item.pending.other": "{count} hitos pendientes",
+  "overview.review.item.reviewer": "{name} es el revisor",
+  "overview.review.item.next": "Siguiente:",
+  "overview.review.item.action": "Revisar subvención",
+  "overview.claim.title": "Reclamable por ti",
+  "overview.claim.lede":
+    "Los importes reclamables vienen de cada GrantVault, nunca de Supabase.",
+  "overview.claim.loading":
+    "Leyendo la reclamabilidad del beneficiario en vivo…",
+  "overview.claim.unavailable":
+    "Los importes reclamables en vivo no están disponibles temporalmente.",
+  "overview.claim.empty": "No hay subvenciones reclamables para esta wallet.",
+  "overview.claim.item.loading": "Leyendo la subvención reclamable…",
+  "overview.claim.item.stale":
+    "El estado de beneficiario en vivo no está disponible para esta subvención. Reinténtalo desde su página de detalle.",
+  "overview.claim.item.fallbackDescription": "Subvención de la organización",
+  "overview.claim.item.amount": "{amount} reclamables",
+  "overview.claim.item.action": "Abrir subvención",
+  "overview.members.title": "Miembros",
+  "overview.members.manage": "Gestionar",
+  "overview.link.summary": "Vincular un GrantVault existente",
+  "overview.link.lede":
+    "Úsalo para una subvención creada antes de los metadatos del espacio de trabajo, o para reintentar una sincronización fallida. El servidor comprueba el emisor onchain.",
+  "overview.link.address.placeholder": "Dirección del GrantVault",
+  "overview.link.address.label": "Dirección del GrantVault existente",
+  "overview.link.description.placeholder": "Descripción (opcional)",
+  "overview.link.action": "Vincular subvención",
+  "overview.link.pending": "Comprobando en HSK…",
+  "overview.link.success":
+    "Metadatos vinculados. La lista del espacio de trabajo está al día.",
+  "orggrants.loading.title": "Cargando las subvenciones del espacio de trabajo",
+  "orggrants.loading.body": "Leyendo los GrantVaults asociados…",
+  "orggrants.error.title":
+    "Las subvenciones del espacio de trabajo no están disponibles",
+  "orggrants.error.body":
+    "Reintenta después de revisar la conexión del espacio de trabajo.",
+  "orggrants.title": "Subvenciones de la organización",
+  "orggrants.count.one": "{count} GrantVault asociado.",
+  "orggrants.count.other": "{count} GrantVaults asociados.",
+  "orggrants.create": "Crear subvención",
+  "orggrants.empty.title": "Todavía no se ha asociado ninguna subvención.",
+  "orggrants.empty.body":
+    "Crea una subvención desde este espacio de trabajo o vincula un GrantVault existente desde el resumen.",
+
   // Directorio de miembros, creación de organización y página pública de subvención.
   "members.loading.title": "Cargando miembros",
   "members.loading.body": "Leyendo el directorio de la organización…",
