@@ -131,6 +131,9 @@ Upon `revoke()` by the issuer:
 2. **New Non-Revocable Grants**:
    - Can be created by setting `config.revocable = false`.
    - Calling `revoke()` on these vaults reverts with `GrantNotRevocable()`.
+3. **Creation Readability**:
+   - The factory `GrantCreated` event includes the `revocable` flag, while the
+     vault's `revocable()` getter remains the authoritative mode read.
 
 ---
 
