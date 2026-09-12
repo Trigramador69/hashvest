@@ -122,6 +122,12 @@ for (const [name, mutate] of [
       b.returns = { factory: { value: `0x${"b".repeat(40)}` } };
     },
   ],
+  [
+    "unknown receipt hash",
+    (b) => {
+      b.receipts[0].transactionHash = `0x${"c".repeat(64)}`;
+    },
+  ],
 ]) {
   test(`rejects ${name}`, () => {
     const input = broadcast();

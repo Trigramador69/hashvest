@@ -33,6 +33,11 @@ export function deploymentFromBroadcast(broadcast) {
   const result = { chainId: 133 };
   const transactionHashes = {};
   const blockNumbers = {};
+  const knownTransactionHashes = new Set(
+    (broadcast.transactions ?? [])
+      .map((entry) => entry.hash?.toLowerCase())
+      .filter((hash) => hash && isHash(hash)),
+  );
   let deployer;
   for (const [name, field] of [
     ["HashVestFactory", "factory"],
@@ -82,6 +87,8 @@ export function deploymentFromBroadcast(broadcast) {
     result[field] = getAddress(expectedAddress);
     if (!isHash(receipt.transactionHash))
       throw new Error(`Invalid ${name} receipt hash`);
+    if (!knownTransactionHashes.has(receipt.transactionHash.toLowerCase()))
+      throw new Error(`Unknown ${name} receipt hash`);
     transactionHashes[field] = receipt.transactionHash;
     blockNumbers[field] = Number(BigInt(receipt.blockNumber));
   }
