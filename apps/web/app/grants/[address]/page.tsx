@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { getAddress, isAddress } from "viem";
 import { GrantDetail } from "@/components/grant-detail";
 import { Notice } from "@/components/grant-ui";
+import { normalizeAddress } from "@/lib/grants";
 
 export default async function GrantPage({
   params,
@@ -9,7 +9,8 @@ export default async function GrantPage({
   params: Promise<{ address: string }>;
 }) {
   const { address } = await params;
-  if (!isAddress(address))
+  const normalizedAddress = normalizeAddress(address);
+  if (!normalizedAddress)
     return (
       <Notice title="Invalid grant address" error>
         <p>Open a valid GrantVault address on HSK Testnet.</p>
@@ -18,5 +19,5 @@ export default async function GrantPage({
         </Link>
       </Notice>
     );
-  return <GrantDetail address={getAddress(address)} />;
+  return <GrantDetail address={normalizedAddress} />;
 }

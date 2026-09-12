@@ -32,6 +32,7 @@ import { assertTestnetWallet, useTransaction } from "@/hooks/use-transaction";
 import {
   dateLabel,
   errorMessage,
+  normalizeAddress,
   parseAllocation,
   strategies,
   strategyDescriptions,
@@ -106,9 +107,7 @@ export default function NewGrant() {
   const [prepared, setPrepared] = useState<PreparedGrant>();
   const [createdAddress, setCreatedAddress] = useState<Address>();
   const [creationConfirmed, setCreationConfirmed] = useState(false);
-  const tokenMetadata = useToken(
-    isAddress(token) ? getAddress(token) : undefined,
-  );
+  const tokenMetadata = useToken(normalizeAddress(token));
   const factory = testnetDeployment.factory;
   const canWrite = Boolean(address && chainId === 133 && factory);
 
@@ -295,17 +294,29 @@ export default function NewGrant() {
           (log) => log.address.toLowerCase() === factory.toLowerCase(),
         ),
       });
-      // The role index is the confirmed source of truth for the newly-created
-      // vault. It also covers transient HSK receipt log ordering races.
+      const expectedStart =
+        config.start === 0n
+          ? (await client.getBlock({ blockNumber: receipt.blockNumber }))
+              .timestamp
+          : config.start;
+      // Match every immutable term and milestone. The simulation result and
+      // event are preferred; the role index is a lagging HSK discovery fallback.
       let indexedAddress: Address | undefined;
       const matchesConfiguration = async (candidate: Address) => {
         try {
           const [
             candidateTitle,
+            candidateIssuer,
             candidateBeneficiary,
+            candidateReviewer,
             candidateToken,
             candidateAllocation,
             candidateStrategy,
+            candidateStart,
+            candidateCliff,
+            candidateDuration,
+            candidateProvider,
+            candidateMilestones,
           ] = await Promise.all([
             client.readContract({
               address: candidate,
@@ -315,7 +326,17 @@ export default function NewGrant() {
             client.readContract({
               address: candidate,
               abi: grantVaultAbi,
+              functionName: "issuer",
+            }),
+            client.readContract({
+              address: candidate,
+              abi: grantVaultAbi,
               functionName: "beneficiary",
+            }),
+            client.readContract({
+              address: candidate,
+              abi: grantVaultAbi,
+              functionName: "reviewer",
             }),
             client.readContract({
               address: candidate,
@@ -332,19 +353,67 @@ export default function NewGrant() {
               abi: grantVaultAbi,
               functionName: "strategy",
             }),
+            client.readContract({
+              address: candidate,
+              abi: grantVaultAbi,
+              functionName: "start",
+            }),
+            client.readContract({
+              address: candidate,
+              abi: grantVaultAbi,
+              functionName: "cliff",
+            }),
+            client.readContract({
+              address: candidate,
+              abi: grantVaultAbi,
+              functionName: "duration",
+            }),
+            client.readContract({
+              address: candidate,
+              abi: grantVaultAbi,
+              functionName: "eligibilityProvider",
+            }),
+            client.readContract({
+              address: candidate,
+              abi: grantVaultAbi,
+              functionName: "getMilestones",
+            }),
           ]);
           return (
             candidateTitle === config.title &&
+            candidateIssuer.toLowerCase() === account.toLowerCase() &&
             candidateBeneficiary.toLowerCase() ===
               config.beneficiary.toLowerCase() &&
+            candidateReviewer.toLowerCase() === config.reviewer.toLowerCase() &&
             candidateToken.toLowerCase() === config.token.toLowerCase() &&
             candidateAllocation === config.totalAllocation &&
-            Number(candidateStrategy) === config.strategy
+            Number(candidateStrategy) === config.strategy &&
+            candidateStart === expectedStart &&
+            candidateCliff === config.cliff &&
+            candidateDuration === config.duration &&
+            candidateProvider.toLowerCase() ===
+              config.eligibilityProvider.toLowerCase() &&
+            candidateMilestones.length === items.length &&
+            candidateMilestones.every(
+              (milestone, index) =>
+                milestone.title === items[index].title &&
+                milestone.amount === items[index].amount &&
+                !milestone.approved,
+            )
           );
         } catch {
           return false;
         }
       };
+      const candidates = [simulation.result, events[0]?.args.vault].filter(
+        (candidate): candidate is Address => Boolean(candidate),
+      );
+      for (const candidate of candidates) {
+        if (await matchesConfiguration(candidate)) {
+          indexedAddress = candidate;
+          break;
+        }
+      }
       for (let attempt = 0; attempt < 8 && !indexedAddress; attempt += 1) {
         const indexedGrants = await client.readContract({
           address: factory,
@@ -360,13 +429,6 @@ export default function NewGrant() {
         }
         if (!indexedAddress && attempt < 7)
           await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-      const candidates = [simulation.result, events[0]?.args.vault].filter(
-        (candidate): candidate is Address => Boolean(candidate),
-      );
-      for (const candidate of candidates) {
-        if (!indexedAddress && (await matchesConfiguration(candidate)))
-          indexedAddress = candidate;
       }
       const created = indexedAddress;
       if (created) setCreatedAddress(created);

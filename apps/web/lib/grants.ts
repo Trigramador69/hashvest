@@ -1,9 +1,11 @@
 import {
   BaseError,
   formatUnits,
+  getAddress,
   isAddress,
   parseUnits,
   zeroAddress,
+  type Address,
 } from "viem";
 
 export const strategies = [
@@ -55,7 +57,16 @@ export function errorMessage(error: unknown) {
 }
 
 export function validParty(value: string) {
-  return isAddress(value) && value.toLowerCase() !== zeroAddress;
+  const normalized = normalizeAddress(value);
+  return Boolean(normalized && normalized.toLowerCase() !== zeroAddress);
+}
+
+export function normalizeAddress(value: string): Address | undefined {
+  try {
+    return isAddress(value) ? getAddress(value) : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export function parseAllocation(value: string, decimals: number): bigint {
