@@ -1,0 +1,14 @@
+{
+  "name": "@hashvest/config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./eslint": "./eslint.config.mjs",
+    "./tsconfig.base.json": "./tsconfig.base.json"
+  },
+  "dependencies": {
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.5"
+  }
+}

@@ -1,0 +1,15 @@
+.next
+.turbo
+build
+cache
+coverage
+dist
+node_modules
+out
+packages/contracts/broadcast
+packages/contracts/lib
+packages/contracts/src
+packages/contracts/test
+packages/contracts/script
+packages/contracts/foundry.toml
+pnpm-lock.yaml

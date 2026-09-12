@@ -1,0 +1,10 @@
+{
+  "name": "@hashvest/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "forge build",
+    "test": "forge test",
+    "deploy:testnet": "forge script script/DeployDevelopmentRegistry.s.sol:DeployDevelopmentRegistry --rpc-url hsk_testnet --broadcast"
+  }
+}

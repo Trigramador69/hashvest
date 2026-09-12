@@ -1,0 +1,27 @@
+{
+  "name": "hashvest",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.17.0",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "pnpm contracts:test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "contracts:build": "pnpm --dir packages/contracts build",
+    "contracts:test": "pnpm --dir packages/contracts test",
+    "contracts:deploy:testnet": "dotenv -e .env -- forge script --root packages/contracts script/DeployDevelopmentRegistry.s.sol:DeployDevelopmentRegistry --rpc-url hsk_testnet --broadcast"
+  },
+  "devDependencies": {
+    "dotenv-cli": "11.0.0",
+    "prettier": "3.9.6",
+    "turbo": "2.10.12"
+  }
+}
