@@ -1,0 +1,102 @@
+{
+  "chainId": 133,
+  "issuer": "0x3227B70F81FFB0CecF842f6486407DE991F29C89",
+  "reviewer": "0x520641717AdE34B06Dd6E8F3610748C1cbB3aFa9",
+  "beneficiary": "0x9704B62B3F5fd971a1980CD76735Bacc6567421D",
+  "transactions": [
+    {
+      "label": "Fund demo reviewer gas",
+      "hash": "0x4da13e8c0afd56732ed7b3a973a07f29f4bca06016755610a07b389208060ba4",
+      "url": "https://testnet-explorer.hskchain.net/tx/0x4da13e8c0afd56732ed7b3a973a07f29f4bca06016755610a07b389208060ba4"
+    },
+    {
+      "label": "Fund demo beneficiary gas",
+      "hash": "0x1286c7badb2ca339228b98b54e176603141c213333657cdf27097a4be3dac5db",
+      "url": "https://testnet-explorer.hskchain.net/tx/0x1286c7badb2ca339228b98b54e176603141c213333657cdf27097a4be3dac5db"
+    },
+    {
+      "label": "Mint testnet demo tokens",
+      "hash": "0x35fc3963702433d0e536b5a481203ed73b75b2a40c67b2a4d6cab7f1ce8bb1a8",
+      "url": "https://testnet-explorer.hskchain.net/tx/0x35fc3963702433d0e536b5a481203ed73b75b2a40c67b2a4d6cab7f1ce8bb1a8"
+    },
+    {
+      "label": "Approve three demo allocations",
+      "hash": "0xf9e200a64451e8448abc95ba725d081b92fc877d149722849032ba2741f33efa",
+      "url": "https://testnet-explorer.hskchain.net/tx/0xf9e200a64451e8448abc95ba725d081b92fc877d149722849032ba2741f33efa"
+    },
+    {
+      "label": "Create fully funded TIME grant",
+      "hash": "0x3a918e1eea8866b9eb1392b5769d0a4cd7b82d3dc17936c1388bab57e9e52c58",
+      "url": "https://testnet-explorer.hskchain.net/tx/0x3a918e1eea8866b9eb1392b5769d0a4cd7b82d3dc17936c1388bab57e9e52c58"
+    },
+    {
+      "label": "TIME: beneficiary claims remaining allocation",
+      "hash": "0xb56d174d2a7887831a4651a862e36b5568cdb6e1cfeac1c938f977ca116de740",
+      "url": "https://testnet-explorer.hskchain.net/tx/0xb56d174d2a7887831a4651a862e36b5568cdb6e1cfeac1c938f977ca116de740"
+    },
+    {
+      "label": "Create fully funded MILESTONE grant",
+      "hash": "0xe7a76dda92d4d0a554500d97d9719c4ec08ff2318c766032dd6f5433041686fe",
+      "url": "https://testnet-explorer.hskchain.net/tx/0xe7a76dda92d4d0a554500d97d9719c4ec08ff2318c766032dd6f5433041686fe"
+    },
+    {
+      "label": "MILESTONE: reviewer approves milestone 1",
+      "hash": "0x98e19c1e70bb5103f51d579b07dead18a3c461c6a8dd79d674671c2c7288aff1",
+      "url": "https://testnet-explorer.hskchain.net/tx/0x98e19c1e70bb5103f51d579b07dead18a3c461c6a8dd79d674671c2c7288aff1"
+    },
+    {
+      "label": "MILESTONE: beneficiary claims 40 hvUSD",
+      "hash": "0xc91596532a3d384c4ce86e52b1e375c7d112faae116d16a0333225eac72a1b63",
+      "url": "https://testnet-explorer.hskchain.net/tx/0xc91596532a3d384c4ce86e52b1e375c7d112faae116d16a0333225eac72a1b63"
+    },
+    {
+      "label": "MILESTONE: reviewer approves milestone 2",
+      "hash": "0xff3d4e11d53ecb5c169cd8851f916dcce0c4efef6d5045184ac37868880bb526",
+      "url": "https://testnet-explorer.hskchain.net/tx/0xff3d4e11d53ecb5c169cd8851f916dcce0c4efef6d5045184ac37868880bb526"
+    },
+    {
+      "label": "MILESTONE: beneficiary claims remaining allocation",
+      "hash": "0xe1b0ce43e258a464f77dd12ac7529c89ab490a7d3cb8b66a87651ab683787ad2",
+      "url": "https://testnet-explorer.hskchain.net/tx/0xe1b0ce43e258a464f77dd12ac7529c89ab490a7d3cb8b66a87651ab683787ad2"
+    },
+    {
+      "label": "Create fully funded HYBRID grant",
+      "hash": "0x48735ef9ab059f7d68706f91b825be3f78ea04773dcb8a13f50c5c225c583e3c",
+      "url": "https://testnet-explorer.hskchain.net/tx/0x48735ef9ab059f7d68706f91b825be3f78ea04773dcb8a13f50c5c225c583e3c"
+    },
+    {
+      "label": "HYBRID: reviewer approves milestone 1",
+      "hash": "0x1a25534dce61d6e7b3fcb23921df5bf00248e0aedaea43d67261bb837e90981e",
+      "url": "https://testnet-explorer.hskchain.net/tx/0x1a25534dce61d6e7b3fcb23921df5bf00248e0aedaea43d67261bb837e90981e"
+    },
+    {
+      "label": "HYBRID: beneficiary claims 40 hvUSD",
+      "hash": "0xd752ae2d0eed2307c50b63cbd591a659c245ef4b7eea908e81269f49ae3e2194",
+      "url": "https://testnet-explorer.hskchain.net/tx/0xd752ae2d0eed2307c50b63cbd591a659c245ef4b7eea908e81269f49ae3e2194"
+    },
+    {
+      "label": "HYBRID: reviewer approves milestone 2",
+      "hash": "0x1e2db3bd9daa7be4f185be17f4b6ea19c44688f4937c21511287e19f8487841a",
+      "url": "https://testnet-explorer.hskchain.net/tx/0x1e2db3bd9daa7be4f185be17f4b6ea19c44688f4937c21511287e19f8487841a"
+    },
+    {
+      "label": "HYBRID: beneficiary claims remaining allocation",
+      "hash": "0xf88be90f0a54b8eab29ac0e80707854b06e1dbc4f5b28d146602423785a10f51",
+      "url": "https://testnet-explorer.hskchain.net/tx/0xf88be90f0a54b8eab29ac0e80707854b06e1dbc4f5b28d146602423785a10f51"
+    }
+  ],
+  "grants": {
+    "TIME": "0x31083873eF25C0CDC0e894036E2422104926eA1c",
+    "MILESTONE": "0x1Bb234219596a91A86D56DD9ea720cc42366f200",
+    "HYBRID": "0x0EAEcb0E2ffd3a2a798A80e3035766C1bbbCF5dB"
+  },
+  "verifiedAt": "2026-09-12T04:48:56.133Z",
+  "results": [
+    "TIME full claim",
+    "MILESTONE partial and final claims",
+    "HYBRID milestone-limited partial and final claims",
+    "Fully funded vaults",
+    "Role discovery",
+    "Distinct-wallet token balance changes"
+  ]
+}
