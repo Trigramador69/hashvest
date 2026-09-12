@@ -37,6 +37,7 @@ import {
 } from "@/hooks/use-organizations";
 import { useSession } from "@/hooks/use-session";
 import { assertTestnetWallet, useTransaction } from "@/hooks/use-transaction";
+import { readRevocationState } from "@/lib/protocol/revocation";
 import {
   dateLabel,
   errorMessage,
@@ -579,7 +580,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             candidateDuration,
             candidateProvider,
             candidateMilestones,
-            candidateRevocable,
+            candidateRevocation,
           ] = await Promise.all([
             client.readContract({
               address: candidate,
@@ -641,13 +642,32 @@ export function NewGrant({ organizationId }: NewGrantProps) {
               abi: grantVaultAbi,
               functionName: "getMilestones",
             }),
-            client
-              .readContract({
-                address: candidate,
-                abi: grantVaultAbi,
-                functionName: "revocable",
-              })
-              .catch(() => false),
+            readRevocationState({
+              revocable: () =>
+                client.readContract({
+                  address: candidate,
+                  abi: grantVaultAbi,
+                  functionName: "revocable",
+                }),
+              revoked: () =>
+                client.readContract({
+                  address: candidate,
+                  abi: grantVaultAbi,
+                  functionName: "revoked",
+                }),
+              revokedAt: () =>
+                client.readContract({
+                  address: candidate,
+                  abi: grantVaultAbi,
+                  functionName: "revokedAt",
+                }),
+              revocationEarnedAmount: () =>
+                client.readContract({
+                  address: candidate,
+                  abi: grantVaultAbi,
+                  functionName: "revocationEarnedAmount",
+                }),
+            }),
           ]);
           return (
             candidateTitle === config.title &&
@@ -663,7 +683,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             candidateDuration === config.duration &&
             candidateProvider.toLowerCase() ===
               config.eligibilityProvider.toLowerCase() &&
-            candidateRevocable === config.revocable &&
+            candidateRevocation.revocable === config.revocable &&
             candidateMilestones.length === items.length &&
             candidateMilestones.every(
               (milestone, index) =>

@@ -1,100 +1,128 @@
 {
   "chainId": 133,
+  "deployment": {
+    "factory": "0x7a1cB78CDE03f85a3d42A2D8a93014173Afc1461",
+    "demoToken": "0x61764AE7fa269CC77Aa9C4f905FD7421459687C9",
+    "eligibilityProvider": "0xCA3D0B1B19eda7a8Fa30B9aA2713D979Fb5d1db8"
+  },
   "issuer": "0x3227B70F81FFB0CecF842f6486407DE991F29C89",
-  "reviewer": "0x520641717AdE34B06Dd6E8F3610748C1cbB3aFa9",
-  "beneficiary": "0x9704B62B3F5fd971a1980CD76735Bacc6567421D",
+  "reviewer": "0x7f08F3Fcd9511402dd2350BEfC69343Bb9058B92",
+  "beneficiary": "0x77F994723fe59AA6BE8E024Df8e4C53a3A506fC4",
   "transactions": [
     {
       "label": "Fund demo reviewer gas",
-      "hash": "0x4da13e8c0afd56732ed7b3a973a07f29f4bca06016755610a07b389208060ba4",
-      "url": "https://testnet-explorer.hskchain.net/tx/0x4da13e8c0afd56732ed7b3a973a07f29f4bca06016755610a07b389208060ba4"
+      "hash": "0xa37fee587352d36d51999c2942a5e144019259564b3608c860256a1a2fa1cbe6",
+      "url": "https://testnet-explorer.hskchain.net/tx/0xa37fee587352d36d51999c2942a5e144019259564b3608c860256a1a2fa1cbe6"
     },
     {
       "label": "Fund demo beneficiary gas",
-      "hash": "0x1286c7badb2ca339228b98b54e176603141c213333657cdf27097a4be3dac5db",
-      "url": "https://testnet-explorer.hskchain.net/tx/0x1286c7badb2ca339228b98b54e176603141c213333657cdf27097a4be3dac5db"
+      "hash": "0xdfca4bf06272f20a8400010c5e5f0745e7afbc69bd31114e63bc75674aefbd70",
+      "url": "https://testnet-explorer.hskchain.net/tx/0xdfca4bf06272f20a8400010c5e5f0745e7afbc69bd31114e63bc75674aefbd70"
     },
     {
       "label": "Mint testnet demo tokens",
-      "hash": "0x35fc3963702433d0e536b5a481203ed73b75b2a40c67b2a4d6cab7f1ce8bb1a8",
-      "url": "https://testnet-explorer.hskchain.net/tx/0x35fc3963702433d0e536b5a481203ed73b75b2a40c67b2a4d6cab7f1ce8bb1a8"
+      "hash": "0xab1cd24eb04985364283ba6dc5658562c0a38c3efd6a537683a9fb86ac23c648",
+      "url": "https://testnet-explorer.hskchain.net/tx/0xab1cd24eb04985364283ba6dc5658562c0a38c3efd6a537683a9fb86ac23c648"
     },
     {
-      "label": "Approve three demo allocations",
-      "hash": "0xf9e200a64451e8448abc95ba725d081b92fc877d149722849032ba2741f33efa",
-      "url": "https://testnet-explorer.hskchain.net/tx/0xf9e200a64451e8448abc95ba725d081b92fc877d149722849032ba2741f33efa"
+      "label": "Approve four demo allocations",
+      "hash": "0x4e8de5330d0c7db458a0ce5163df25eaf5018b1a2c3abf68c11144401135972d",
+      "url": "https://testnet-explorer.hskchain.net/tx/0x4e8de5330d0c7db458a0ce5163df25eaf5018b1a2c3abf68c11144401135972d"
     },
     {
       "label": "Create fully funded TIME grant",
-      "hash": "0x3a918e1eea8866b9eb1392b5769d0a4cd7b82d3dc17936c1388bab57e9e52c58",
-      "url": "https://testnet-explorer.hskchain.net/tx/0x3a918e1eea8866b9eb1392b5769d0a4cd7b82d3dc17936c1388bab57e9e52c58"
+      "hash": "0x3f577aadb161dd8e03aa12b9de512bade8ef3246deb8af9cf61faff45d322f75",
+      "url": "https://testnet-explorer.hskchain.net/tx/0x3f577aadb161dd8e03aa12b9de512bade8ef3246deb8af9cf61faff45d322f75"
     },
     {
       "label": "TIME: beneficiary claims remaining allocation",
-      "hash": "0xb56d174d2a7887831a4651a862e36b5568cdb6e1cfeac1c938f977ca116de740",
-      "url": "https://testnet-explorer.hskchain.net/tx/0xb56d174d2a7887831a4651a862e36b5568cdb6e1cfeac1c938f977ca116de740"
+      "hash": "0x85360df326a1a795cf9a50b3fd889924435975b2e89045c464570bd28402433e",
+      "url": "https://testnet-explorer.hskchain.net/tx/0x85360df326a1a795cf9a50b3fd889924435975b2e89045c464570bd28402433e"
     },
     {
       "label": "Create fully funded MILESTONE grant",
-      "hash": "0xe7a76dda92d4d0a554500d97d9719c4ec08ff2318c766032dd6f5433041686fe",
-      "url": "https://testnet-explorer.hskchain.net/tx/0xe7a76dda92d4d0a554500d97d9719c4ec08ff2318c766032dd6f5433041686fe"
+      "hash": "0x28bca8b93cd2fe29d075223dacbbf3ea3643fa4851c5e671d3393a6e1d6c35a0",
+      "url": "https://testnet-explorer.hskchain.net/tx/0x28bca8b93cd2fe29d075223dacbbf3ea3643fa4851c5e671d3393a6e1d6c35a0"
     },
     {
       "label": "MILESTONE: reviewer approves milestone 1",
-      "hash": "0x98e19c1e70bb5103f51d579b07dead18a3c461c6a8dd79d674671c2c7288aff1",
-      "url": "https://testnet-explorer.hskchain.net/tx/0x98e19c1e70bb5103f51d579b07dead18a3c461c6a8dd79d674671c2c7288aff1"
+      "hash": "0xa1f8d51e37014d8d33fcb7597450a736547e8f9ea5b62e18bb8dd79b8b8659c8",
+      "url": "https://testnet-explorer.hskchain.net/tx/0xa1f8d51e37014d8d33fcb7597450a736547e8f9ea5b62e18bb8dd79b8b8659c8"
     },
     {
       "label": "MILESTONE: beneficiary claims 40 hvUSD",
-      "hash": "0xc91596532a3d384c4ce86e52b1e375c7d112faae116d16a0333225eac72a1b63",
-      "url": "https://testnet-explorer.hskchain.net/tx/0xc91596532a3d384c4ce86e52b1e375c7d112faae116d16a0333225eac72a1b63"
+      "hash": "0x6c4bb0c0dbced9644a373cfc92209b547e024a6a9c51a7d78a551db0e7151cc8",
+      "url": "https://testnet-explorer.hskchain.net/tx/0x6c4bb0c0dbced9644a373cfc92209b547e024a6a9c51a7d78a551db0e7151cc8"
     },
     {
       "label": "MILESTONE: reviewer approves milestone 2",
-      "hash": "0xff3d4e11d53ecb5c169cd8851f916dcce0c4efef6d5045184ac37868880bb526",
-      "url": "https://testnet-explorer.hskchain.net/tx/0xff3d4e11d53ecb5c169cd8851f916dcce0c4efef6d5045184ac37868880bb526"
+      "hash": "0x2cb9ee8d51a8e365a7b2a361ca1ed6ca5b36f540d0e92f8b31d441707d4645a0",
+      "url": "https://testnet-explorer.hskchain.net/tx/0x2cb9ee8d51a8e365a7b2a361ca1ed6ca5b36f540d0e92f8b31d441707d4645a0"
     },
     {
       "label": "MILESTONE: beneficiary claims remaining allocation",
-      "hash": "0xe1b0ce43e258a464f77dd12ac7529c89ab490a7d3cb8b66a87651ab683787ad2",
-      "url": "https://testnet-explorer.hskchain.net/tx/0xe1b0ce43e258a464f77dd12ac7529c89ab490a7d3cb8b66a87651ab683787ad2"
+      "hash": "0xa25f03881e955354b8237bc3c12c3fc82564da6db40744d09c3c49d2449f56fe",
+      "url": "https://testnet-explorer.hskchain.net/tx/0xa25f03881e955354b8237bc3c12c3fc82564da6db40744d09c3c49d2449f56fe"
     },
     {
       "label": "Create fully funded HYBRID grant",
-      "hash": "0x48735ef9ab059f7d68706f91b825be3f78ea04773dcb8a13f50c5c225c583e3c",
-      "url": "https://testnet-explorer.hskchain.net/tx/0x48735ef9ab059f7d68706f91b825be3f78ea04773dcb8a13f50c5c225c583e3c"
+      "hash": "0xce36cb920c16dd304ecb0d96cae57202bfd95309b7862dd6d463f4afe25f206a",
+      "url": "https://testnet-explorer.hskchain.net/tx/0xce36cb920c16dd304ecb0d96cae57202bfd95309b7862dd6d463f4afe25f206a"
     },
     {
       "label": "HYBRID: reviewer approves milestone 1",
-      "hash": "0x1a25534dce61d6e7b3fcb23921df5bf00248e0aedaea43d67261bb837e90981e",
-      "url": "https://testnet-explorer.hskchain.net/tx/0x1a25534dce61d6e7b3fcb23921df5bf00248e0aedaea43d67261bb837e90981e"
+      "hash": "0x18678dbd0bc6d1d80111aad5535a6a01b6524f35bb802b10b4ca3f0839b56341",
+      "url": "https://testnet-explorer.hskchain.net/tx/0x18678dbd0bc6d1d80111aad5535a6a01b6524f35bb802b10b4ca3f0839b56341"
     },
     {
       "label": "HYBRID: beneficiary claims 40 hvUSD",
-      "hash": "0xd752ae2d0eed2307c50b63cbd591a659c245ef4b7eea908e81269f49ae3e2194",
-      "url": "https://testnet-explorer.hskchain.net/tx/0xd752ae2d0eed2307c50b63cbd591a659c245ef4b7eea908e81269f49ae3e2194"
+      "hash": "0x7c59e41858b0771a18e0c53b8fdc0bfb33ef032c7eed9855a1e6d6dd852b29b5",
+      "url": "https://testnet-explorer.hskchain.net/tx/0x7c59e41858b0771a18e0c53b8fdc0bfb33ef032c7eed9855a1e6d6dd852b29b5"
     },
     {
       "label": "HYBRID: reviewer approves milestone 2",
-      "hash": "0x1e2db3bd9daa7be4f185be17f4b6ea19c44688f4937c21511287e19f8487841a",
-      "url": "https://testnet-explorer.hskchain.net/tx/0x1e2db3bd9daa7be4f185be17f4b6ea19c44688f4937c21511287e19f8487841a"
+      "hash": "0xc08b99fa4ec2b3a6a796a272d9ecca25e9de7e9ce43aa70432091cf5c2c3c8c8",
+      "url": "https://testnet-explorer.hskchain.net/tx/0xc08b99fa4ec2b3a6a796a272d9ecca25e9de7e9ce43aa70432091cf5c2c3c8c8"
     },
     {
       "label": "HYBRID: beneficiary claims remaining allocation",
-      "hash": "0xf88be90f0a54b8eab29ac0e80707854b06e1dbc4f5b28d146602423785a10f51",
-      "url": "https://testnet-explorer.hskchain.net/tx/0xf88be90f0a54b8eab29ac0e80707854b06e1dbc4f5b28d146602423785a10f51"
+      "hash": "0xf2888d914b7ab73d2d1dfe6f5f78e18568d140301a303aa45dc4ea86548605ce",
+      "url": "https://testnet-explorer.hskchain.net/tx/0xf2888d914b7ab73d2d1dfe6f5f78e18568d140301a303aa45dc4ea86548605ce"
+    },
+    {
+      "label": "Create fully funded REVOCABLE TIME grant",
+      "hash": "0xbe07778cadff07a410b34e721c0b8493673800b38e1e64f28aa308808b6f41ad",
+      "url": "https://testnet-explorer.hskchain.net/tx/0xbe07778cadff07a410b34e721c0b8493673800b38e1e64f28aa308808b6f41ad"
+    },
+    {
+      "label": "REVOCABLE_TIME: issuer revokes unearned allocation",
+      "hash": "0xb536fd1f06b757017436f5492424a675bb3716e1a5f5f022eb6698c563c93945",
+      "url": "https://testnet-explorer.hskchain.net/tx/0xb536fd1f06b757017436f5492424a675bb3716e1a5f5f022eb6698c563c93945"
+    },
+    {
+      "label": "REVOCABLE_TIME: beneficiary claims preserved entitlement",
+      "hash": "0x7ee8356628c59ae4a4500166781fe95327b02029b89e2cf161dcd29c6066ece9",
+      "url": "https://testnet-explorer.hskchain.net/tx/0x7ee8356628c59ae4a4500166781fe95327b02029b89e2cf161dcd29c6066ece9"
     }
   ],
   "grants": {
-    "TIME": "0x31083873eF25C0CDC0e894036E2422104926eA1c",
-    "MILESTONE": "0x1Bb234219596a91A86D56DD9ea720cc42366f200",
-    "HYBRID": "0x0EAEcb0E2ffd3a2a798A80e3035766C1bbbCF5dB"
+    "TIME": "0xb6Fd5bFA1488152F9983729879A1C877b7155440",
+    "MILESTONE": "0x79a480f8F68dBe17447d0070EbFA6fDa5A836C1F",
+    "HYBRID": "0x166B6040698795D618Ad65aB52E934cebC5bC946",
+    "REVOCABLE_TIME": "0x8eC3Fd370de53EA50C23c9Ea33d58355f344F37F"
   },
-  "verifiedAt": "2026-09-12T04:48:56.133Z",
+  "revocation": {
+    "vault": "0x8eC3Fd370de53EA50C23c9Ea33d58355f344F37F",
+    "earnedAmount": "16944444444444444444",
+    "recoveredAmount": "83055555555555555556",
+    "beneficiaryClaimedAmount": "16944444444444444444"
+  },
+  "verifiedAt": "2026-09-12T22:21:43.697Z",
   "results": [
     "TIME full claim",
     "MILESTONE partial and final claims",
     "HYBRID milestone-limited partial and final claims",
+    "REVOCABLE TIME issuer recovery and beneficiary claim",
     "Fully funded vaults",
     "Role discovery",
     "Distinct-wallet token balance changes"

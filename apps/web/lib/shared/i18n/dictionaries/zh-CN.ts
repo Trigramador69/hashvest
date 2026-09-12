@@ -46,7 +46,8 @@ export const zhCN: TranslationDictionary = {
     "HashVest 将代币分配转化为全额注资的资助，按时间、里程碑或两者共同解锁。",
   "home.cta.openApp": "打开应用",
   "home.cta.createGrant": "创建资助",
-  "home.note": "已在 {network} 上线 · ERC20 代币 · 不可撤销",
+  "home.note":
+    "已在 {network} 上线 · ERC20 代币 · 可选发行方撤销 · 已获得价值受保护",
 
   "home.steps.title": "一次分配，条件清晰。",
   "home.steps.fund.title": "国库为金库注资",

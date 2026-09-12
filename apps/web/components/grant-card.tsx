@@ -137,6 +137,9 @@ export function GrantCard({
           </span>
           <GrantLifecycleBadge lifecycle={state.lifecycle} />
         </div>
+        <span className="mt-3 inline-flex w-fit rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-xs font-medium text-muted-foreground">
+          {g.revocable ? "Revocable" : "Non-revocable"}
+        </span>
         {organization && (
           <Link
             href={`/app/organizations/${organization.id}`}
@@ -213,7 +216,7 @@ export function GrantCard({
         </div>
         <div className="mt-auto flex flex-wrap items-end justify-between gap-4 border-t pt-4">
           <div className="text-xs text-muted-foreground">
-            {pendingMilestones > 0 && roles.isReviewer && (
+            {pendingMilestones > 0 && roles.isReviewer && !g.revoked && (
               <span className="font-medium text-primary">
                 {pendingMilestones} milestone
                 {pendingMilestones === 1 ? "" : "s"} to review

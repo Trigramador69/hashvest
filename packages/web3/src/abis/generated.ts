@@ -99,6 +99,7 @@ export const hashVestFactoryAbi = [
         indexed: false,
         internalType: "enum UnlockStrategy",
       },
+      { name: "revocable", type: "bool", indexed: false, internalType: "bool" },
     ],
     anonymous: false,
   },

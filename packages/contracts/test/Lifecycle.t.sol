@@ -13,11 +13,24 @@ contract SixDecimalToken is TestToken {
 }
 
 contract LifecycleTest is HashVestTestBase {
+    function test_revocableCreationEventIdentifiesMode() public {
+        GrantConfig memory grant = revocableConfig(UnlockStrategy.HYBRID);
+        address predictedVault = vm.computeCreateAddress(address(factory), vm.getNonce(address(factory)));
+        vm.expectEmit(true, true, true, true, address(factory));
+        emit HashVestFactory.GrantCreated(
+            predictedVault, issuer, beneficiary, reviewer, grant.title, grant.strategy, true
+        );
+
+        vm.prank(issuer);
+        GrantVault vault = GrantVault(factory.createGrant(grant, milestones()));
+        assertTrue(vault.revocable());
+    }
+
     function test_threeWalletHybridLifecycleEmitsEventsAndSettlesExactly() public {
         address predictedVault = vm.computeCreateAddress(address(factory), vm.getNonce(address(factory)));
         vm.expectEmit(true, true, true, true, address(factory));
         emit HashVestFactory.GrantCreated(
-            predictedVault, issuer, beneficiary, reviewer, "Builder grant", UnlockStrategy.HYBRID
+            predictedVault, issuer, beneficiary, reviewer, "Builder grant", UnlockStrategy.HYBRID, false
         );
         GrantVault vault = createMilestoneGrant(UnlockStrategy.HYBRID);
         assertEq(address(vault), predictedVault);

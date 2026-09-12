@@ -50,7 +50,8 @@ export const es: TranslationDictionary = {
     "HashVest convierte asignaciones de tokens en subvenciones totalmente financiadas que se desbloquean por tiempo, por hitos o por ambos.",
   "home.cta.openApp": "Abrir aplicación",
   "home.cta.createGrant": "Crear una subvención",
-  "home.note": "En vivo en {network} · Tokens ERC20 · Sin revocación",
+  "home.note":
+    "En vivo en {network} · Tokens ERC20 · Revocación opcional del emisor · Valor ganado protegido",
 
   "home.steps.title": "Una asignación. Condiciones claras.",
   "home.steps.fund.title": "La tesorería financia un vault",

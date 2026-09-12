@@ -8,7 +8,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IEligibilityProvider} from "./IEligibilityProvider.sol";
 
-/// @notice A single grant with immutable terms. No revocation or administrator withdrawals.
+/// @notice A single grant with immutable terms and optional issuer revocation.
 contract GrantVault is ReentrancyGuard {
     using SafeERC20 for IERC20;
 

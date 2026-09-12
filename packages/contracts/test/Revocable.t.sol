@@ -11,8 +11,6 @@ contract RevocableTest is HashVestTestBase {
     // 1. Mandatory Semantic Example
     // ---------------------------------------------------------------------
     function test_mandatorySemanticExample() public {
-        // Allocation: 100,000 tokens
-        // start: START, duration: 100 days, cliff: 0
         GrantConfig memory cfg = revocableConfig(UnlockStrategy.TIME);
         cfg.cliff = 0;
         cfg.duration = 100 days;
@@ -21,26 +19,6 @@ contract RevocableTest is HashVestTestBase {
 
         assertTrue(vault.revocable());
         assertFalse(vault.revoked());
-
-        // Advance to 40 days -> 40,000 tokens vested / earned
-        vm.warp(START + 40 days);
-        assertEq(vault.unlockedAmount(), 40_000 ether);
-
-        // Beneficiary claims 20,000 tokens
-        // To claim 20,000 tokens out of 40,000, we can either claim full claimable
-        // or check claim when claimable is 20,000 at day 20, then warp to day 40.
-        // Let's test claiming 20,000 at day 20:
-        // Reset to START + 20 days:
-        // But since we are at day 40, claim() claims the full claimableAmount (40,000).
-        // Let's create a scenario where at revocation: earned = 40,000, already claimed = 20,000!
-    }
-
-    function test_mandatorySemanticExample_exactLifecycle() public {
-        GrantConfig memory cfg = revocableConfig(UnlockStrategy.TIME);
-        cfg.cliff = 0;
-        cfg.duration = 100 days;
-        vm.prank(issuer);
-        GrantVault vault = GrantVault(factory.createGrant(cfg, new MilestoneInput[](0)));
 
         // Warp to 20 days: 20,000 tokens unlocked
         vm.warp(START + 20 days);

@@ -58,6 +58,11 @@ async function main() {
   const tokenAbi = await abi("DemoToken");
   const evidence = {
     chainId: 133,
+    deployment: {
+      factory: deployment.factory,
+      demoToken: deployment.demoToken,
+      eligibilityProvider: deployment.eligibilityProvider,
+    },
     issuer: issuer.account.address,
     reviewer: reviewer.account.address,
     beneficiary: beneficiary.account.address,
@@ -106,6 +111,22 @@ async function main() {
     });
   const vaultRead = (address, functionName, args = []) =>
     client.readContract({ address, abi: vaultAbi, functionName, args });
+  async function findVaultByTitle(title) {
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      const indexedGrants = await client.readContract({
+        address: deployment.factory,
+        abi: factoryAbi,
+        functionName: "getGrantsByIssuer",
+        args: [issuer.account.address],
+      });
+      for (const candidate of [...indexedGrants].reverse()) {
+        if ((await vaultRead(candidate, "title")) === title) return candidate;
+      }
+      if (attempt < 9)
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    assert.fail(`Factory did not index the created grant: ${title}`);
+  }
   async function assertRoleIndex(functionName, account, vault) {
     for (let attempt = 0; attempt < 10; attempt += 1) {
       const grants = await client.readContract({
@@ -135,7 +156,7 @@ async function main() {
   const roleGas = gasPrice * 600_000n + parseEther("0.00001");
   assert.ok(
     (await client.getBalance({ address: issuer.account.address })) >
-      roleGas * 4n,
+      roleGas * 6n,
     "Insufficient HSK for live demo",
   );
   for (const [role, signer] of [
@@ -163,11 +184,16 @@ async function main() {
   const allocation = parseEther("100");
   await write(
     issuer,
-    "Approve three demo allocations",
+    "Approve four demo allocations",
     deployment.demoToken,
     tokenAbi,
     "approve",
-    [deployment.factory, allocation * 3n],
+    [deployment.factory, allocation * 4n],
+  );
+  await waitForValue(
+    "Factory allowance after approval",
+    () => tokenRead("allowance", [issuer.account.address, deployment.factory]),
+    allocation * 4n,
   );
   for (const [name, strategy] of [
     ["TIME", 0],
@@ -189,6 +215,7 @@ async function main() {
       cliff: 30n,
       duration: 60n,
       eligibilityProvider: "0x0000000000000000000000000000000000000000",
+      revocable: false,
     };
     const milestones =
       strategy === 0
@@ -208,27 +235,7 @@ async function main() {
     // Resolve the vault from the factory's role index after confirmation. This
     // is resilient to an HSK RPC race where waitForTransactionReceipt can
     // briefly return logs from an adjacent transaction in the same block.
-    let vault;
-    // HSK can expose the confirmed receipt before the factory's role-array
-    // read reflects the same block. Poll the index until this grant's title
-    // appears instead of assuming the previous last entry is the new vault.
-    for (let attempt = 0; attempt < 10 && !vault; attempt += 1) {
-      const indexedGrants = await client.readContract({
-        address: deployment.factory,
-        abi: factoryAbi,
-        functionName: "getGrantsByIssuer",
-        args: [issuer.account.address],
-      });
-      for (const candidate of [...indexedGrants].reverse()) {
-        if ((await vaultRead(candidate, "title")) === config.title) {
-          vault = candidate;
-          break;
-        }
-      }
-      if (!vault && attempt < 9)
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-    assert.ok(vault, "Factory did not index the created grant");
+    const vault = await findVaultByTitle(config.title);
     evidence.grants[name] = vault;
     await waitForValue(
       `${name} vault funding`,
@@ -324,6 +331,103 @@ async function main() {
       `${name} real lifecycle verified with distinct issuer, reviewer, beneficiary.`,
     );
   }
+
+  const revocableNow = (await client.getBlock()).timestamp;
+  const revocableConfig = {
+    title: `HashVest REVOCABLE TIME live verification ${runId}`,
+    token: deployment.demoToken,
+    beneficiary: beneficiary.account.address,
+    reviewer: "0x0000000000000000000000000000000000000000",
+    totalAllocation: allocation,
+    strategy: 0,
+    start: revocableNow - 600n,
+    cliff: 0n,
+    duration: 3600n,
+    eligibilityProvider: "0x0000000000000000000000000000000000000000",
+    revocable: true,
+  };
+  await write(
+    issuer,
+    "Create fully funded REVOCABLE TIME grant",
+    deployment.factory,
+    factoryAbi,
+    "createGrant",
+    [revocableConfig, []],
+  );
+  const revocableVault = await findVaultByTitle(revocableConfig.title);
+  evidence.grants.REVOCABLE_TIME = revocableVault;
+  const earnedBeforeRevocation = await vaultRead(
+    revocableVault,
+    "unlockedAmount",
+  );
+  assert.ok(
+    earnedBeforeRevocation > 0n && earnedBeforeRevocation < allocation,
+    "Revocable fixture must be partially earned before revocation",
+  );
+  const issuerBalanceBeforeRevocation = await tokenRead("balanceOf", [
+    issuer.account.address,
+  ]);
+  const beneficiaryBalanceBeforeRevocation = await tokenRead("balanceOf", [
+    beneficiary.account.address,
+  ]);
+  await write(
+    issuer,
+    "REVOCABLE_TIME: issuer revokes unearned allocation",
+    revocableVault,
+    vaultAbi,
+    "revoke",
+  );
+  await waitForValue(
+    "REVOCABLE_TIME revoked state",
+    () => vaultRead(revocableVault, "revoked"),
+    true,
+  );
+  const earnedAtRevocation = await vaultRead(
+    revocableVault,
+    "revocationEarnedAmount",
+  );
+  const recoveredAtRevocation = allocation - earnedAtRevocation;
+  assert.ok(
+    earnedAtRevocation >= earnedBeforeRevocation &&
+      earnedAtRevocation < allocation,
+    "Revocable fixture must remain partially earned at revocation",
+  );
+  assert.equal(
+    (await tokenRead("balanceOf", [issuer.account.address])) -
+      issuerBalanceBeforeRevocation,
+    recoveredAtRevocation,
+  );
+  assert.equal(
+    await tokenRead("balanceOf", [revocableVault]),
+    earnedAtRevocation,
+  );
+  await write(
+    beneficiary,
+    "REVOCABLE_TIME: beneficiary claims preserved entitlement",
+    revocableVault,
+    vaultAbi,
+    "claim",
+  );
+  await waitForValue(
+    "REVOCABLE_TIME beneficiary claim",
+    () => tokenRead("balanceOf", [beneficiary.account.address]),
+    beneficiaryBalanceBeforeRevocation + earnedAtRevocation,
+  );
+  await waitForValue(
+    "REVOCABLE_TIME claimable reset",
+    () => vaultRead(revocableVault, "claimableAmount"),
+    0n,
+  );
+  assert.equal(await tokenRead("balanceOf", [revocableVault]), 0n);
+  evidence.revocation = {
+    vault: revocableVault,
+    earnedAmount: earnedAtRevocation.toString(),
+    recoveredAmount: recoveredAtRevocation.toString(),
+    beneficiaryClaimedAmount: earnedAtRevocation.toString(),
+  };
+  console.log(
+    "REVOCABLE_TIME live lifecycle verified: issuer recovery and beneficiary entitlement preservation.",
+  );
   // Return residual native gas while ephemeral wallets are still available.
   for (const [role, signer] of [
     ["reviewer", reviewer],
@@ -365,6 +469,7 @@ async function main() {
     "TIME full claim",
     "MILESTONE partial and final claims",
     "HYBRID milestone-limited partial and final claims",
+    "REVOCABLE TIME issuer recovery and beneficiary claim",
     "Fully funded vaults",
     "Role discovery",
     "Distinct-wallet token balance changes",

@@ -1,4 +1,4 @@
-# HashVest Revocable Grants: State-Transition & Accounting Specification (HAS-5)
+# HashVest Revocable Grants: State-Transition & Accounting Specification (HAS-25 / HAS-26)
 
 ## 1. Problem & Executive Summary
 
@@ -126,11 +126,14 @@ Upon `revoke()` by the issuer:
 1. **Old Deployed Vaults**:
    - Deployed vaults lack `revoke()`, `revocable()`, `revoked()`, and `revokedAt()`.
    - Any external call to `revoke()` on old vaults will revert via Solidity EVM fallback rejection.
-   - Off-chain clients and web UI query `revocable` with graceful error catching: if function call reverts, default to `revocable: false`, `revoked: false`, `revokedAt: 0`, `revocationEarnedAmount: 0`.
+   - Off-chain clients probe `revocable` as the capability boundary. Only an unsupported selector/zero-data legacy response maps to `revocable: false`, `revoked: false`, `revokedAt: 0`, `revocationEarnedAmount: 0`; transport or current-vault read failures remain errors and hide stale lifecycle state.
    - Existing workflows (time claims, reviewer approvals, beneficiary claims) on old vaults remain 100% operational.
 2. **New Non-Revocable Grants**:
    - Can be created by setting `config.revocable = false`.
    - Calling `revoke()` on these vaults reverts with `GrantNotRevocable()`.
+3. **Creation Readability**:
+   - The factory `GrantCreated` event includes the `revocable` flag, while the
+     vault's `revocable()` getter remains the authoritative mode read.
 
 ---
 
