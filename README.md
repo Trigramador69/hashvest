@@ -62,11 +62,13 @@ Prerequisites: Node.js 22+, pnpm 10+, Foundry (`forge`, `cast`, `anvil`), a brow
 ```bash
 pnpm install --frozen-lockfile
 cd packages/contracts
-forge install foundry-rs/forge-std@v1.9.7 OpenZeppelin/openzeppelin-contracts@v5.4.0 --no-commit
+forge install --no-git --shallow foundry-rs/forge-std@v1.9.7 OpenZeppelin/openzeppelin-contracts@v5.4.0
 cd ../..
 cp apps/web/.env.local.example apps/web/.env.local
 cp packages/contracts/.env.example packages/contracts/.env
 ```
+
+`--no-git` installs the contract dependencies as plain directories instead of git submodules. `packages/contracts/lib` is ignored, so the submodule bookkeeping adds nothing and fails outright inside a git worktree, leaving a partial install plus a stray `.gitmodules`. Foundry 1.0 removed `--no-commit`; committing is now opt-in through `--commit`.
 
 Set `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` for WalletConnect connections. Browser injected wallets remain available when it is blank. Keep `DEPLOYER_PRIVATE_KEY` only in `packages/contracts/.env`; it is never read by the web application.
 
