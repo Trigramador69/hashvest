@@ -1,34 +1,24 @@
 # HashVest
 
-HashVest is a programmable grant and vesting protocol for HashKey Chain. An issuer creates and fully funds an ERC20 GrantVault with immutable terms; a beneficiary claims tokens as time, milestone approval, or both make them available.
+**Open programmable-grants infrastructure on HashKey Chain.** An issuer creates and fully funds an ERC20 GrantVault with immutable terms; a beneficiary claims tokens as time, reviewer-approved milestones, or both make them available. A workspace layer lets an organization run that protocol with named members, review queues, and presets.
 
-This is a hackathon MVP for HSK Testnet. It is unaudited, uses demo assets, and is not production custody software.
+This is a hackathon MVP deployed on **HSK Chain Testnet**. It is unaudited, uses demo assets, and is not production custody software.
 
-## Agent-assisted development
+## At a glance
 
-The shared agent contract is [`AGENTS.md`](AGENTS.md). Canonical project skills live in [`.agents/skills/`](.agents/skills/), and generated Claude adapters live in [`.claude/skills/`](.claude/skills/). The compatibility and maintenance rules are in [`docs/agents/`](docs/agents/README.md).
+|                    |                                                                                                                                          |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Buildathon**     | Ethereum Bolivia Buildathon 2026 · EAG Global Buildathon                                                                                 |
+| **Tracks**         | Real World Applications powered by HSK Chain · Real-World Ethereum Applications · Road to ShanhaiWoo                                     |
+| **Network**        | HSK Chain Testnet (chain ID 133)                                                                                                         |
+| **Factory**        | [`0x7a1cB78CDE03f85a3d42A2D8a93014173Afc1461`](https://testnet-explorer.hskchain.net/address/0x7a1cB78CDE03f85a3d42A2D8a93014173Afc1461) |
+| **Live proof**     | TIME, MILESTONE, HYBRID, and revocable grant lifecycles with 19 public transactions — [`docs/testnet-demo.json`](docs/testnet-demo.json) |
+| **Technical docs** | Problem, track, architecture, evidence, and roadmap — [`docs/submission.md`](docs/submission.md)                                         |
+| **Architecture**   | Protocol/Cloud boundary and per-field authority — [`docs/architecture.md`](docs/architecture.md)                                         |
 
-Before creating or updating a PR, agents must run `pnpm agents:sync`, `pnpm agents:check`, and `pnpm ci:check`. Work is delivered in small, logically grouped commits; a Linear issue is used when available, while an explicitly requested issue-free design branch records its scope in `design.md` and the handoff. Changes to commands, paths, APIs, schemas, locales, architecture, deployments, CI, or user flows must update the affected skills, this README, `AGENTS.md`, and relevant docs in the same change.
+## Features
 
-<!-- BEGIN:hashvest-agent-catalog -->
-
-### Agent workflow catalog
-
-Canonical skills live in `.agents/skills/`; Claude adapters are generated in `.claude/skills/`.
-
-- [`agent-maintenance`](.agents/skills/agent-maintenance/SKILL.md) — Keep HashVest agent instructions, skills, generated adapters, README, architecture docs, and CI contracts synchronized whenever repository behavior or references change.
-- [`architecture`](.agents/skills/architecture/SKILL.md) — Design or review HashVest changes while preserving the Cloud, web3, Protocol, Supabase, and HSK authority boundaries documented by the repository.
-- [`ci-preflight`](.agents/skills/ci-preflight/SKILL.md) — Reproduce the HashVest GitHub CI validation locally, diagnose failures without hiding them, and produce exact evidence before a pull request is created or updated.
-- [`deployment`](.agents/skills/deployment/SKILL.md) — Plan, rehearse, execute, or verify HashVest HSK Testnet operations with chain guards, explicit transaction authority, safe secrets, and evidence-backed state changes.
-- [`localization`](.agents/skills/localization/SKILL.md) — Add or update HashVest localized strings for selected languages using the typed English source dictionary, safe fallbacks, preserved technical literals, and focused validation.
-- [`pr-delivery`](.agents/skills/pr-delivery/SKILL.md) — Deliver focused HashVest work through incremental commits, evidence-backed review, and a validated pull-request workflow, with Linear linkage when required by the requester.
-- [`ui-ux`](.agents/skills/ui-ux/SKILL.md) — Implement the HashVest design specification as accessible, responsive UI while preserving wallet, session, transaction, analytics authority, and localization behavior.
-- [`workspace-setup`](.agents/skills/workspace-setup/SKILL.md) — Set up or diagnose the HashVest monorepo safely, including Node, pnpm, Foundry, package-local environment templates, and reproducible dependencies.
-
-After changing a skill, run `pnpm agents:sync` and `pnpm agents:check`.
-<!-- END:hashvest-agent-catalog -->
-
-## MVP features
+### Protocol
 
 - Time vesting with a start timestamp, cliff, and linear duration.
 - Milestone grants with fixed amounts approved by a designated reviewer.
@@ -37,6 +27,14 @@ After changing a skill, run `pnpm agents:sync` and `pnpm agents:check`.
 - Optional one-way issuer revocation that recovers only unearned allocation while preserving earned and claimed beneficiary value.
 - One fully funded vault per grant; SafeERC20 rejects underfunded fee-on-transfer funding.
 - Beneficiary-only claims, role dashboards, explorer links, and real HSK Testnet transactions.
+
+### Cloud
+
+- Wallet sign-in (SIWE) for workspace access, kept separate from wallet connection.
+- Organizations and a member directory, so beneficiaries and reviewers are chosen by name instead of by pasted address.
+- Editable grant presets — Builder Grant, Employee Vesting, Advisor Vesting, and Ecosystem Grant — that prefill the creation wizard.
+- Review and claim queues, plus lifecycle and funding health computed from live HSK reads.
+- A language selector for English, 简体中文, and Español with typed English fallback.
 
 ## Architecture
 
@@ -99,7 +97,7 @@ Organization writes go through authenticated Next.js Route Handlers. The browser
 
 The cliff delays access but does not restart the vesting curve: before `start + cliff`, vesting is zero; at `start + duration`, the full allocation is vested; between those points, vesting is linear from `start`. Milestone amounts must sum exactly to the allocation, and no more than 20 milestones are accepted.
 
-## Setup
+## Installation
 
 Prerequisites: Node.js 22+, pnpm 10+, Foundry (`forge`, `cast`, `anvil`), a browser wallet, and an optional WalletConnect Cloud project ID.
 
@@ -141,6 +139,8 @@ The migration is [`supabase/migrations/20260912000000_hashvest_organizations.sql
 
 If a wallet reports HSK Testnet chain 133 but an approval shows `eth_getBlockByNumber` or a thirdweb support error, its saved RPC endpoint is unavailable. Use the **Use canonical HSK RPC** action in the app, or set the wallet network RPC to `https://testnet.hsk.xyz` with chain ID `133`.
 
+## Running the app
+
 Run the app and checks:
 
 ```bash
@@ -162,6 +162,18 @@ HSK state.
 The application is available at `http://localhost:3000`. Routes are `/` (landing), `/app` (organization entry point plus Issued / Received / Review dashboard), `/grants/new` (the shared five-step template-aware creation wizard: Template, Grant, Strategy, Conditions, Review), `/grants/<GrantVault address>` (public role-aware detail page), `/app/organizations/new`, `/app/organizations/<uuid>`, `/app/organizations/<uuid>/members`, `/app/organizations/<uuid>/grants`, and `/app/organizations/<uuid>/grants/new`. `/visual/dashboard` is a local-only deterministic fixture for the Playwright visual contract and is unavailable in production.
 
 Wallet connection and workspace authentication are separate. After connecting an HSK Testnet wallet, click **Sign in to workspace** and approve one SIWE/EIP-4361 message. The server stores a five-minute, one-time nonce and issues a 24-hour HttpOnly, SameSite session cookie signed with `AUTH_SECRET`. If the connected wallet changes, organization reads and writes are disabled until the new wallet explicitly signs in; the application never silently signs or writes as the previous wallet.
+
+## Technical integration
+
+The protocol is usable without this application. Integrators depend on the contracts and the `@hashvest/web3` protocol surface, never on the Cloud API.
+
+- **Create grants** by calling `HashVestFactory.createGrant`, which deploys a `GrantVault` and transfers the full allocation in the same transaction. The wizard at `/grants/new` is one client of this call, not the interface.
+- **Discover grants** with `getGrantsByIssuer`, `getGrantsByBeneficiary`, and `getGrantsByReviewer`. These role arrays mean a frontend can list a wallet's grants without an indexer or a database.
+- **Read and act on a grant** through `grantVaultAbi`: unlocked, claimable, and claimed amounts, milestone approval, claims, and optional revocation.
+- **Gate claims** by implementing `IEligibilityProvider` and passing its address at creation. `DemoEligibilityProvider` is a reference implementation, not KYC.
+- **Reuse the integration layer.** `packages/web3/src/protocol.ts` exports the HSK chain definitions, the factory, vault, token, and eligibility ABIs, the confirmed testnet deployment, and explorer URL helpers. It has no dependency on the Cloud layer, and `pnpm boundary:check` fails if that changes.
+
+The Cloud HTTP routes under `apps/web/app/api` are application-private: session-bound, same-origin guarded, and not a public API. See the public integration surface in [`docs/architecture.md`](docs/architecture.md).
 
 ## Contracts and deterministic integration
 
@@ -229,6 +241,8 @@ HashVest MVP has not been professionally audited. It targets HSK Testnet only, u
 
 ## Roadmap
 
+The product roadmap after the buildathon — templates, milestone evidence, batch grants, sponsored claims, AI-assisted review, reviewer quorum, and protocol extraction — is described in [`docs/submission.md`](docs/submission.md#future-roadmap). A professional audit is the precondition for any mainnet deployment.
+
 Hackathon P0 work, by milestone and owning layer:
 
 | Milestone                               | Owner            |
@@ -240,6 +254,30 @@ Hackathon P0 work, by milestone and owning layer:
 | M4 — i18n, browser E2E & submission     | Cloud + Protocol |
 
 Post-hackathon milestones M5–M7 cover P1–P3 work: milestone evidence, AI-assisted grant building and review, batch creation, TGE semantics, reviewer quorum, analytics, notifications, compliance and attestation adapters, an embedded SDK, and extraction of the protocol into a public `hashvest-protocol` repository. None of it is implemented in this MVP. New scope during the hackathon is a swap, never an addition — see the stop-adding-features rule in [`docs/architecture.md`](docs/architecture.md).
+
+## Contributing with agents
+
+The shared agent contract is [`AGENTS.md`](AGENTS.md). Canonical project skills live in [`.agents/skills/`](.agents/skills/), and generated Claude adapters live in [`.claude/skills/`](.claude/skills/). The compatibility and maintenance rules are in [`docs/agents/`](docs/agents/README.md).
+
+Before creating or updating a PR, agents must run `pnpm agents:sync`, `pnpm agents:check`, and `pnpm ci:check`. Work is delivered in small, logically grouped commits; a Linear issue is used when available, while an explicitly requested issue-free design branch records its scope in `design.md` and the handoff. Changes to commands, paths, APIs, schemas, locales, architecture, deployments, CI, or user flows must update the affected skills, this README, `AGENTS.md`, and relevant docs in the same change.
+
+<!-- BEGIN:hashvest-agent-catalog -->
+
+### Agent workflow catalog
+
+Canonical skills live in `.agents/skills/`; Claude adapters are generated in `.claude/skills/`.
+
+- [`agent-maintenance`](.agents/skills/agent-maintenance/SKILL.md) — Keep HashVest agent instructions, skills, generated adapters, README, architecture docs, and CI contracts synchronized whenever repository behavior or references change.
+- [`architecture`](.agents/skills/architecture/SKILL.md) — Design or review HashVest changes while preserving the Cloud, web3, Protocol, Supabase, and HSK authority boundaries documented by the repository.
+- [`ci-preflight`](.agents/skills/ci-preflight/SKILL.md) — Reproduce the HashVest GitHub CI validation locally, diagnose failures without hiding them, and produce exact evidence before a pull request is created or updated.
+- [`deployment`](.agents/skills/deployment/SKILL.md) — Plan, rehearse, execute, or verify HashVest HSK Testnet operations with chain guards, explicit transaction authority, safe secrets, and evidence-backed state changes.
+- [`localization`](.agents/skills/localization/SKILL.md) — Add or update HashVest localized strings for selected languages using the typed English source dictionary, safe fallbacks, preserved technical literals, and focused validation.
+- [`pr-delivery`](.agents/skills/pr-delivery/SKILL.md) — Deliver focused HashVest work through incremental commits, evidence-backed review, and a validated pull-request workflow, with Linear linkage when required by the requester.
+- [`ui-ux`](.agents/skills/ui-ux/SKILL.md) — Implement the HashVest design specification as accessible, responsive UI while preserving wallet, session, transaction, analytics authority, and localization behavior.
+- [`workspace-setup`](.agents/skills/workspace-setup/SKILL.md) — Set up or diagnose the HashVest monorepo safely, including Node, pnpm, Foundry, package-local environment templates, and reproducible dependencies.
+
+After changing a skill, run `pnpm agents:sync` and `pnpm agents:check`.
+<!-- END:hashvest-agent-catalog -->
 
 ## Repository layout
 
