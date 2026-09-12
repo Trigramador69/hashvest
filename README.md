@@ -17,6 +17,10 @@ This is a hackathon MVP for HSK Testnet. It is unaudited, uses demo assets, and 
 
 ```text
 Next.js
+   |                         |
+SIWE session          server-only Supabase
+   |                         |
+workspace UI          Postgres product context
    |
 wagmi / viem
    |
@@ -27,7 +31,15 @@ HashVestFactory ---- role discovery arrays
 GrantVault #1, #2, #3 ...
 ```
 
-Each vault stores the issuer, beneficiary, reviewer, token, allocation, strategy, vesting schedule, milestone titles and amounts, and optional eligibility provider as immutable terms. Only milestone approval and claimed amount change after creation. There is no issuer withdrawal, revocation, upgradeability, database, indexer, or native HSK grant.
+Each vault stores the issuer, beneficiary, reviewer, token, allocation, strategy, vesting schedule, milestone titles and amounts, and optional eligibility provider as immutable terms. Only milestone approval and claimed amount change after creation. The protocol has no issuer withdrawal, revocation, upgradeability, indexer, or native HSK grant. Organization metadata is an optional off-chain product layer and never replaces contract state.
+
+### Organizations product layer
+
+Organizations are workspaces around existing GrantVaults. Supabase stores organization names, members, presentation role labels, GrantVault associations, descriptions, and future-facing template metadata. HSK remains authoritative for issuer, beneficiary, reviewer, token, allocation, strategy, schedules, milestone approval, unlocked/claimable/claimed amounts, eligibility, balances, and funds.
+
+The canonical identities are lowercase EVM addresses for wallets, `(chain_id, vault_address)` for grants, and UUIDs for organizations. The current organization schema accepts HSK Testnet only (`chain_id = 133`). Product role labels such as `Treasury Reviewer` are presentation metadata; they do not grant permission to approve or claim.
+
+Organization writes go through authenticated Next.js Route Handlers. The browser never uses the Supabase service-role key or writes organization tables directly. Workspace grant cards and queues join organization metadata with fresh GrantVault reads; they do not aggregate token balances or invent USD values.
 
 ### Unlock semantics
 
@@ -52,6 +64,29 @@ cp packages/contracts/.env.example packages/contracts/.env
 
 Set `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` for WalletConnect connections. Browser injected wallets remain available when it is blank. Keep `DEPLOYER_PRIVATE_KEY` only in `packages/contracts/.env`; it is never read by the web application.
 
+For workspace features, set the browser-facing Supabase URL and anon key plus the server-only values in `apps/web/.env.local`:
+
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+AUTH_SECRET=
+AUTH_APP_URL=http://localhost:3000
+HSK_TESTNET_RPC_URL=
+```
+
+Generate `AUTH_SECRET` with `openssl rand -base64 32` or another cryptographically random secret. Never prefix `SUPABASE_SERVICE_ROLE_KEY` or `AUTH_SECRET` with `NEXT_PUBLIC_`, commit them, or expose them to browser code. `AUTH_APP_URL` should be the canonical application origin when deployed behind a proxy; leave it at the local origin for local development.
+
+Apply the tracked organization migration to the existing Supabase project from a machine with Supabase CLI access:
+
+```bash
+supabase login
+supabase link --project-ref <your-project-ref>
+supabase db push
+```
+
+The migration is [`supabase/migrations/20260912000000_hashvest_organizations.sql`](supabase/migrations/20260912000000_hashvest_organizations.sql). It creates `organizations`, `organization_members`, `organization_grants`, and server-only `auth_nonces`, adds constraints/indexes, enables RLS, and intentionally grants no public/anon/authenticated table policies. The application uses the service role only from server Route Handlers, while business authorization still checks the verified session and organization membership/ownership.
+
 If a wallet reports HSK Testnet chain 133 but an approval shows `eth_getBlockByNumber` or a thirdweb support error, its saved RPC endpoint is unavailable. Use the **Use canonical HSK RPC** action in the app, or set the wallet network RPC to `https://testnet.hsk.xyz` with chain ID `133`.
 
 Run the app and checks:
@@ -65,7 +100,9 @@ pnpm build
 pnpm test
 ```
 
-The application is available at `http://localhost:3000`. Routes are `/` (landing), `/app` (Issued / Received / Review dashboard), `/grants/new` (four-step creation wizard), and `/grants/<GrantVault address>` (role-aware detail page).
+The application is available at `http://localhost:3000`. Routes are `/` (landing), `/app` (organization entry point plus Issued / Received / Review dashboard), `/grants/new` (raw-address four-step creation wizard), `/grants/<GrantVault address>` (public role-aware detail page), `/app/organizations/new`, `/app/organizations/<uuid>`, `/app/organizations/<uuid>/members`, `/app/organizations/<uuid>/grants`, and `/app/organizations/<uuid>/grants/new`.
+
+Wallet connection and workspace authentication are separate. After connecting an HSK Testnet wallet, click **Sign in to workspace** and approve one SIWE/EIP-4361 message. The server stores a five-minute, one-time nonce and issues a 24-hour HttpOnly, SameSite session cookie signed with `AUTH_SECRET`. If the connected wallet changes, organization reads and writes are disabled until the new wallet explicitly signs in; the application never silently signs or writes as the previous wallet.
 
 ## Contracts and deterministic integration
 
@@ -111,12 +148,17 @@ The current Blockscout endpoint returned HTTP 413 (`Request Entity Too Large`) f
 
 ## Demo flow
 
-1. Open the app with three wallets available on HSK Testnet (issuer, reviewer, beneficiary).
-2. Use **Get demo hvUSD** on `/app` or `/grants/new` from the issuer wallet.
-3. Open **Create grant**, choose **Use demo hvUSD**, select **Hybrid**, and enter the beneficiary and reviewer addresses.
-4. Add milestones whose amounts total the allocation, choose a short time schedule for the demo, review the immutable terms, and approve spending.
-5. Open the created vault. Switch to the reviewer wallet and approve a pending milestone; the detail page refreshes real onchain values.
-6. Switch to the beneficiary wallet and claim the displayed amount. The token balance and claimed metric update after confirmation.
+### Organization workspace
+
+1. Open the app with three wallets available on HSK Testnet (issuer/owner, reviewer, beneficiary).
+2. Connect the issuer wallet, click **Sign in to workspace**, and create an organization such as `HashKey LATAM Ecosystem`. The creator becomes its owner/member.
+3. Open **Members**, add the reviewer and beneficiary wallets with display names and presentation labels such as `Treasury Reviewer` and `Builder`.
+4. Choose **Create grant** from the organization. Select the beneficiary and reviewer by name, or use the secondary **Use external wallet** escape hatch. Select **Hybrid**, add milestones totaling the allocation, choose a short schedule, and approve spending.
+5. Wait for the HSK transaction to confirm. The app then links `(133, GrantVault address)` to the organization with the optional description. If that metadata request fails, use **Retry workspace sync**; do not create another grant.
+6. Switch to the reviewer wallet, connect, sign in explicitly, and open the organization review queue. **Review grant** opens the existing GrantDetail page, where the reviewer approves the pending milestone.
+7. Switch to the beneficiary wallet, connect, sign in explicitly, and open the organization workspace. The grant appears with its live claimable amount; open GrantDetail and claim the real hvUSD.
+
+The direct protocol flow remains available at `/grants/new`: enter raw beneficiary/reviewer addresses and create TIME, MILESTONE, or HYBRID grants without organization metadata. Existing GrantVaults can be attached later by an organization owner from the overview using **Link an existing GrantVault**. The server verifies bytecode, GrantVault reads, and the actual onchain issuer before association.
 
 Every approval, creation, milestone, faucet, and claim transaction exposes an HSK Testnet explorer link. Use `/app` to move between role-specific grants.
 
@@ -136,5 +178,7 @@ packages/contracts       Solidity contracts, Foundry tests, deployment script
 packages/web3            HSK chain config, generated ABIs, deployment data, sync scripts
 packages/ui               Shared UI package placeholder
 packages/config           Shared TypeScript and ESLint configuration
-supabase/migrations       Existing unused scaffold
+supabase/migrations       Tracked product-context schema and RLS migration
 ```
+
+Important organization implementation files include `apps/web/lib/auth` (SIWE challenge verification and signed sessions), `apps/web/lib/organizations` (validation, server authorization, HSK GrantVault verification, types, and browser API client), `apps/web/hooks/use-organizations.ts` (TanStack Query data layer), and `apps/web/components/organization-*` / `members-manager.tsx` (workspace UI). No Solidity protocol contract was changed for this layer.
