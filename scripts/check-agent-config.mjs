@@ -4,14 +4,17 @@ import { join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
+  CATALOG_END,
+  CATALOG_START,
   claudeSkillsDirectory,
   generatedManifestPath,
   readCanonicalSkills,
+  renderCatalog,
   root,
+  SKILL_NAME_PATTERN,
 } from "./sync-agent-skills.mjs";
 import { checkDocumentationLinks } from "./check-boundary.mjs";
 
-const SKILL_DIRECTORY_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const REQUIRED_MARKERS = [
   "NECESSARY AND OBLIGATORY",
   "pnpm agents:sync",
@@ -27,12 +30,14 @@ function repoPath(path) {
 export function checkSkillMetadata(skills) {
   const violations = [];
   for (const skill of skills) {
-    if (!SKILL_DIRECTORY_PATTERN.test(skill.directory)) {
+    if (!SKILL_NAME_PATTERN.test(skill.directory)) {
       violations.push(
         `${repoPath(skill.path)}: directory name must be lowercase kebab-case.`,
       );
     }
-    if (skill.name !== skill.directory) {
+    if (typeof skill.name !== "string") {
+      violations.push(`${repoPath(skill.path)}: frontmatter name is required.`);
+    } else if (skill.name !== skill.directory) {
       violations.push(
         `${repoPath(skill.path)}: frontmatter name must equal its directory.`,
       );
@@ -71,7 +76,17 @@ export async function checkClaudeMirrors(skills) {
   }
 
   const expected = skills.map((skill) => skill.name).sort();
-  const actual = [...(manifest.skills ?? [])].sort();
+  if (
+    !Array.isArray(manifest.skills) ||
+    manifest.skills.some(
+      (name) => typeof name !== "string" || !SKILL_NAME_PATTERN.test(name),
+    )
+  ) {
+    return [
+      `${repoPath(generatedManifestPath)}: generated skill list is invalid; run pnpm agents:sync.`,
+    ];
+  }
+  const actual = [...manifest.skills].sort();
   if (JSON.stringify(expected) !== JSON.stringify(actual)) {
     violations.push(
       `${repoPath(generatedManifestPath)}: generated skill list is stale; run pnpm agents:sync.`,
@@ -171,24 +186,38 @@ export async function checkProjectContract(skills) {
     );
   }
 
-  for (const relativePath of ["README.md", "AGENTS.md"]) {
+  for (const { relativePath, skillLinkPrefix } of [
+    { relativePath: "README.md", skillLinkPrefix: ".agents/skills" },
+    { relativePath: "AGENTS.md", skillLinkPrefix: ".agents/skills" },
+    {
+      relativePath: "docs/agents/README.md",
+      skillLinkPrefix: "../../.agents/skills",
+    },
+  ]) {
     const source = await readFile(join(root, relativePath), "utf8").catch(
       () => "",
     );
-    if (!source.includes("<!-- BEGIN:hashvest-agent-catalog -->")) {
+    const start = source.indexOf(CATALOG_START);
+    const end = source.indexOf(CATALOG_END);
+    if (start === -1) {
       violations.push(
         `${relativePath}: missing generated agent catalog start marker.`,
       );
     }
-    if (!source.includes("<!-- END:hashvest-agent-catalog -->")) {
+    if (end === -1 || end < start) {
       violations.push(
         `${relativePath}: missing generated agent catalog end marker.`,
       );
     }
-    for (const skill of skills) {
-      if (!source.includes(`.agents/skills/${skill.directory}/SKILL.md`)) {
+    if (start !== -1 && end !== -1 && end >= start) {
+      const actualBlock = source.slice(start, end + CATALOG_END.length);
+      const expectedBlock = `${CATALOG_START}\n\n${renderCatalog(
+        skills,
+        skillLinkPrefix,
+      )}\n${CATALOG_END}`;
+      if (actualBlock !== expectedBlock) {
         violations.push(
-          `${relativePath}: generated catalog is missing ${skill.directory}.`,
+          `${relativePath}: generated agent catalog is stale; run pnpm agents:sync.`,
         );
       }
     }

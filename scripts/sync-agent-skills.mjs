@@ -13,6 +13,7 @@ export const generatedManifestPath = join(
 
 export const CATALOG_START = "<!-- BEGIN:hashvest-agent-catalog -->";
 export const CATALOG_END = "<!-- END:hashvest-agent-catalog -->";
+export const SKILL_NAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function parseScalar(value) {
   const trimmed = value.trim();
@@ -61,6 +62,18 @@ export async function readCanonicalSkills() {
     }
     const source = await readFile(path, "utf8");
     const { data } = parseFrontmatter(source);
+    if (
+      typeof data.name !== "string" ||
+      !SKILL_NAME_PATTERN.test(data.name) ||
+      data.name !== entry.name
+    ) {
+      throw new Error(
+        `Invalid skill name in ${path}; use the directory's lowercase kebab-case name.`,
+      );
+    }
+    if (typeof data.description !== "string" || data.description.length < 20) {
+      throw new Error(`Missing specific skill description in ${path}.`);
+    }
     skills.push({
       directory: entry.name,
       name: data.name,
@@ -84,7 +97,7 @@ export function replaceGeneratedBlock(source, body) {
   return `${source.slice(0, start)}${CATALOG_START}\n\n${body}\n${CATALOG_END}${source.slice(endOffset)}`;
 }
 
-export function renderCatalog(skills) {
+export function renderCatalog(skills, skillLinkPrefix = ".agents/skills") {
   const lines = [
     "### Agent workflow catalog",
     "",
@@ -93,7 +106,7 @@ export function renderCatalog(skills) {
   ];
   for (const skill of skills) {
     lines.push(
-      `- [\`${skill.name}\`](.agents/skills/${skill.directory}/SKILL.md) — ${skill.description}`,
+      `- [\`${skill.name}\`](${skillLinkPrefix}/${skill.directory}/SKILL.md) — ${skill.description}`,
     );
   }
   lines.push(
@@ -111,6 +124,16 @@ async function syncClaudeSkills(skills) {
       previous = JSON.parse(await readFile(generatedManifestPath, "utf8"));
     } catch {
       throw new Error(`Invalid generated manifest: ${generatedManifestPath}`);
+    }
+    if (
+      !Array.isArray(previous.skills) ||
+      previous.skills.some(
+        (name) => typeof name !== "string" || !SKILL_NAME_PATTERN.test(name),
+      )
+    ) {
+      throw new Error(
+        `Invalid skill names in generated manifest: ${generatedManifestPath}`,
+      );
     }
   }
 
@@ -144,11 +167,20 @@ async function syncClaudeSkills(skills) {
 }
 
 async function syncCatalogs(skills) {
-  const catalog = renderCatalog(skills);
-  for (const relativePath of ["README.md", "AGENTS.md"]) {
+  for (const { relativePath, skillLinkPrefix } of [
+    { relativePath: "README.md", skillLinkPrefix: ".agents/skills" },
+    { relativePath: "AGENTS.md", skillLinkPrefix: ".agents/skills" },
+    {
+      relativePath: "docs/agents/README.md",
+      skillLinkPrefix: "../../.agents/skills",
+    },
+  ]) {
     const path = join(root, relativePath);
     const source = await readFile(path, "utf8");
-    await writeFile(path, replaceGeneratedBlock(source, catalog));
+    await writeFile(
+      path,
+      replaceGeneratedBlock(source, renderCatalog(skills, skillLinkPrefix)),
+    );
   }
 }
 

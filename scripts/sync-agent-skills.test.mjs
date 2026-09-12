@@ -41,3 +41,20 @@ test("replaces generated catalogs without touching surrounding content", () => {
   assert.match(result, /after/);
   assert.doesNotMatch(result, /\nold\n/);
 });
+
+test("renders skill links relative to the document that owns the catalog", () => {
+  const catalog = renderCatalog(
+    [
+      {
+        name: "architecture",
+        directory: "architecture",
+        description: "Review architecture boundaries safely",
+      },
+    ],
+    "../../.agents/skills",
+  );
+  assert.match(
+    catalog,
+    /\(\.\.\/\.\.\/\.agents\/skills\/architecture\/SKILL\.md\)/,
+  );
+});
