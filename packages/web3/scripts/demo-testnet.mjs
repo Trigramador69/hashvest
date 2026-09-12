@@ -88,6 +88,21 @@ async function main() {
     });
   const vaultRead = (address, functionName, args = []) =>
     client.readContract({ address, abi: vaultAbi, functionName, args });
+  async function assertRoleIndex(functionName, account, vault) {
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      const grants = await client.readContract({
+        address: deployment.factory,
+        abi: factoryAbi,
+        functionName,
+        args: [account],
+      });
+      if (grants.some((entry) => entry.toLowerCase() === vault.toLowerCase()))
+        return;
+      if (attempt < 9)
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    assert.fail(`${functionName} did not index ${vault}`);
+  }
   const gasPrice = await client.getGasPrice();
   const roleGas = gasPrice * 600_000n + parseEther("0.00001");
   assert.ok(
@@ -187,21 +202,18 @@ async function main() {
     assert.equal(await tokenRead("balanceOf", [vault]), allocation);
     assert.equal(await vaultRead(vault, "claimedAmount"), 0n);
     assert.equal(await vaultRead(vault, "issuer"), issuer.account.address);
-    for (const [functionName, role] of [
-      ["getGrantsByIssuer", issuer],
-      ["getGrantsByBeneficiary", beneficiary],
-      ...(strategy === 0 ? [] : [["getGrantsByReviewer", reviewer]]),
-    ]) {
-      const grants = await client.readContract({
-        address: deployment.factory,
-        abi: factoryAbi,
-        functionName,
-        args: [role.account.address],
-      });
-      assert.ok(
-        grants.some((entry) => entry.toLowerCase() === vault.toLowerCase()),
+    await assertRoleIndex("getGrantsByIssuer", issuer.account.address, vault);
+    await assertRoleIndex(
+      "getGrantsByBeneficiary",
+      beneficiary.account.address,
+      vault,
+    );
+    if (strategy !== 0)
+      await assertRoleIndex(
+        "getGrantsByReviewer",
+        reviewer.account.address,
+        vault,
       );
-    }
     const balanceBefore = await tokenRead("balanceOf", [
       beneficiary.account.address,
     ]);
