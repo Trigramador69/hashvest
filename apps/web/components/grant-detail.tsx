@@ -467,7 +467,11 @@ export function GrantDetail({ address }: { address: Address }) {
                   >
                     <dt className="text-muted-foreground">{label}</dt>
                     <dd>
-                      {label === "Token" ? (
+                      {label === "Terms" ? (
+                        <span className="font-medium text-foreground">
+                          {party}
+                        </span>
+                      ) : label === "Token" ? (
                         <AddressDisplay address={getAddress(party)} />
                       ) : (
                         <ParticipantIdentity
