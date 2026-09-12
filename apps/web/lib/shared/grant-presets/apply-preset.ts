@@ -12,7 +12,7 @@ import { formatUnits, parseUnits } from "viem";
 import type { GrantPreset } from "./presets";
 
 /** The default used when the ERC20's decimals have not loaded yet. Amounts stay editable. */
-const FALLBACK_DECIMALS = 18;
+export const FALLBACK_DECIMALS = 18;
 
 export const MAX_PRESET_MILESTONES = 20;
 

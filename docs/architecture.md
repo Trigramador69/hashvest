@@ -39,6 +39,7 @@ The Cloud is the product layer. It makes the Protocol usable — workspaces, nam
 | `apps/web/lib/cloud/organizations/**`   | Validation, server authorization, browser API client, types |
 | `apps/web/lib/cloud/supabase-server.ts` | The only service-role Supabase client; server-only          |
 | `apps/web/lib/shared/i18n/**`           | Locale selection and the typed translation boundary         |
+| `apps/web/lib/shared/grant-presets/**`  | Grant preset catalog, wizard mapping, and field ownership   |
 | `supabase/migrations/**`                | Organizations, members, grant associations, auth nonces     |
 
 Cloud authority stops at workspace access. The SIWE statement in `apps/web/lib/cloud/auth/constants.ts` says so explicitly: the signature _"authenticates workspace access only; it does not authorize onchain actions."_
@@ -96,7 +97,7 @@ Amounts are never cached in Supabase. Dashboard counts in `apps/web/hooks/use-or
 The Protocol is usable without this application. Anyone integrating should depend on the contract ABIs and the factory's role discovery arrays, not on the Cloud API.
 
 - **Alternative frontends** — consume `@hashvest/web3`'s protocol surface (or the raw ABIs) and read role discovery from `HashVestFactory`. No Supabase, no session, no Route Handler required.
-- **Grant workflows** — build vaults through `HashVestFactory` directly. The wizard at `/grants/new` is one client, not the interface.
+- **Grant workflows** — build vaults through `HashVestFactory` directly. The shared five-step wizard at `/grants/new` is one client, not the interface; its template choice and localized suggestions are Cloud presentation metadata, while submitted terms remain onchain truth.
 - **Eligibility and compliance adapters** — implement `IEligibilityProvider` and pass the address at creation. `DemoEligibilityProvider` is a reference implementation, not KYC.
 - **Third-party integrations** — read-only indexing, reporting, and notification services can be built entirely from chain state and explorer data.
 

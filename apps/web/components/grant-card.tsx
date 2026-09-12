@@ -9,11 +9,12 @@ import { findMemberByWallet } from "@/lib/cloud/members";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
 import { strategyKey } from "@/lib/shared/i18n/keys";
 import { useTranslations } from "@/lib/shared/i18n/provider";
+import { errorMessage, percent, tokenAmount } from "@/lib/protocol/grants";
 import type {
   OrganizationGrant,
   OrganizationMember,
 } from "@/lib/cloud/organizations/types";
-import { errorMessage, percent, tokenAmount } from "@/lib/protocol/grants";
+import { useGrantPresets } from "@/lib/shared/grant-presets/use-grant-presets";
 
 import {
   AddressDisplay,
@@ -73,6 +74,7 @@ export function GrantCard({
   members,
 }: GrantCardProps) {
   const t = useTranslations();
+  const { findPreset: localizedTemplate } = useGrantPresets();
   const { address: walletAddress } = useAccount();
   const grant = useGrant(address);
   if (grant.isPending)
@@ -120,6 +122,9 @@ export function GrantCard({
     revoked: g.revoked,
   });
   const roles = resolveProtocolRoles(walletAddress, g);
+  // Workspace metadata: which preset this grant started from. An unknown or
+  // retired key simply shows nothing; the vault's own terms are above.
+  const template = localizedTemplate(metadata?.templateKey);
   const pendingMilestones = g.milestones.filter(
     (item) => !item.approved,
   ).length;
@@ -152,6 +157,13 @@ export function GrantCard({
         {metadata?.description && (
           <p className="pt-2 text-sm leading-6 text-muted-foreground">
             {metadata.description}
+          </p>
+        )}
+        {template && (
+          <p className="pt-2 text-xs text-muted-foreground">
+            {t("card.fromTemplate", {
+              template: template.name,
+            })}
           </p>
         )}
         {roles.roles.length > 0 && (

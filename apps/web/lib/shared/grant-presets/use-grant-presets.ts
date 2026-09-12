@@ -4,7 +4,7 @@ import { useCallback, useMemo } from "react";
 
 import { useI18n } from "../i18n/provider";
 import { localizeGrantPreset } from "./localize";
-import { GRANT_PRESETS, getGrantPreset } from "./presets";
+import { findGrantPreset, GRANT_PRESETS, getGrantPreset } from "./presets";
 import type { GrantPreset, GrantPresetKey } from "./presets";
 
 /**
@@ -17,6 +17,7 @@ import type { GrantPreset, GrantPresetKey } from "./presets";
 export function useGrantPresets(): {
   presets: GrantPreset[];
   preset: (key: GrantPresetKey) => GrantPreset;
+  findPreset: (key: string | null | undefined) => GrantPreset | undefined;
 } {
   const { tOptional } = useI18n();
   const presets = useMemo(
@@ -28,5 +29,12 @@ export function useGrantPresets(): {
       localizeGrantPreset(getGrantPreset(key), tOptional),
     [tOptional],
   );
-  return { presets, preset };
+  const findPreset = useCallback(
+    (key: string | null | undefined) => {
+      const found = findGrantPreset(key);
+      return found ? localizeGrantPreset(found, tOptional) : undefined;
+    },
+    [tOptional],
+  );
+  return { presets, preset, findPreset };
 }

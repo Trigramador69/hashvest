@@ -1,0 +1,14 @@
+{
+  "generatedBy": "scripts/sync-agent-skills.mjs",
+  "source": ".agents/skills",
+  "skills": [
+    "agent-maintenance",
+    "architecture",
+    "ci-preflight",
+    "deployment",
+    "localization",
+    "pr-delivery",
+    "ui-ux",
+    "workspace-setup"
+  ]
+}

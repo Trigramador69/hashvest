@@ -417,6 +417,7 @@ export const en = {
   "card.stale.body":
     "The last HSK read could not be refreshed, so current values are hidden.",
   "card.retry": "Retry",
+  "card.fromTemplate": "From the {template} template",
   "card.totalAllocation": "Total allocation",
   "card.unlocked": "Unlocked",
   "card.unlockedProgress": "Grant unlocked",
@@ -434,6 +435,8 @@ export const en = {
   "detail.stale.body":
     "The last HSK read could not be refreshed, so current grant values are hidden until the live state is available again.",
   "detail.retry": "Retry",
+  "detail.fromTemplate":
+    "From the {template} template · workspace metadata only",
   "detail.eyebrow": "Grant vault · {network}",
   "detail.youAre.Issuer": "You are the issuer",
   "detail.youAre.Beneficiary": "You are the beneficiary",
@@ -526,14 +529,16 @@ export const en = {
   "wizard.confirmed.link": "Issued dashboard",
   "wizard.confirmed.after": ".",
   "wizard.progress": "Creation progress",
-  "wizard.step.0": "Grant",
-  "wizard.step.1": "Strategy",
-  "wizard.step.2": "Conditions",
-  "wizard.step.3": "Review",
-  "wizard.stepTitle.0": "Who is this grant for?",
-  "wizard.stepTitle.1": "Choose how tokens unlock",
-  "wizard.stepTitle.2": "Set the conditions",
-  "wizard.stepTitle.3": "Review before funding",
+  "wizard.step.0": "Template",
+  "wizard.step.1": "Grant",
+  "wizard.step.2": "Strategy",
+  "wizard.step.3": "Conditions",
+  "wizard.step.4": "Review",
+  "wizard.stepTitle.0": "Start from a template",
+  "wizard.stepTitle.1": "Who is this grant for?",
+  "wizard.stepTitle.2": "Choose how tokens unlock",
+  "wizard.stepTitle.3": "Set the conditions",
+  "wizard.stepTitle.4": "Review before funding",
   "wizard.field.title.label": "Grant title",
   "wizard.field.title.hint":
     "For example: Ecosystem builder grant or Contributor allocation.",
@@ -677,6 +682,7 @@ export const en = {
     "Configure every value yourself, exactly as before.",
   "wizard.preset.custom.meta": "Clears the fields a preset filled in",
   "wizard.preset.needsReviewer": "needs a reviewer",
+  "wizard.preset.allocationShare": "{percent}% of the allocation",
 
   // Grant presets (HAS-8). Keys mirror the catalog in
   // lib/shared/grant-presets/presets.ts and are resolved through

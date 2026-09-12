@@ -435,6 +435,7 @@ export const es: TranslationDictionary = {
   "card.stale.body":
     "No se pudo refrescar la última lectura de HSK, así que los valores actuales están ocultos.",
   "card.retry": "Reintentar",
+  "card.fromTemplate": "Desde la plantilla {template}",
   "card.totalAllocation": "Asignación total",
   "card.unlocked": "Desbloqueado",
   "card.unlockedProgress": "Desbloqueo de la subvención",
@@ -452,6 +453,8 @@ export const es: TranslationDictionary = {
   "detail.stale.body":
     "No se pudo refrescar la última lectura de HSK, así que los valores actuales quedan ocultos hasta que el estado en vivo vuelva a estar disponible.",
   "detail.retry": "Reintentar",
+  "detail.fromTemplate":
+    "Desde la plantilla {template} · solo metadatos del espacio de trabajo",
   "detail.eyebrow": "Vault de subvención · {network}",
   "detail.youAre.Issuer": "Eres el emisor",
   "detail.youAre.Beneficiary": "Eres el beneficiario",
@@ -546,14 +549,16 @@ export const es: TranslationDictionary = {
   "wizard.confirmed.link": "panel de emitidas",
   "wizard.confirmed.after": ".",
   "wizard.progress": "Progreso de creación",
-  "wizard.step.0": "Subvención",
-  "wizard.step.1": "Estrategia",
-  "wizard.step.2": "Condiciones",
-  "wizard.step.3": "Revisión",
-  "wizard.stepTitle.0": "¿Para quién es esta subvención?",
-  "wizard.stepTitle.1": "Elige cómo se desbloquean los tokens",
-  "wizard.stepTitle.2": "Define las condiciones",
-  "wizard.stepTitle.3": "Revisa antes de financiar",
+  "wizard.step.0": "Plantilla",
+  "wizard.step.1": "Subvención",
+  "wizard.step.2": "Estrategia",
+  "wizard.step.3": "Condiciones",
+  "wizard.step.4": "Revisión",
+  "wizard.stepTitle.0": "Empieza desde una plantilla",
+  "wizard.stepTitle.1": "¿Para quién es esta subvención?",
+  "wizard.stepTitle.2": "Elige cómo se desbloquean los tokens",
+  "wizard.stepTitle.3": "Define las condiciones",
+  "wizard.stepTitle.4": "Revisa antes de financiar",
   "wizard.field.title.label": "Título de la subvención",
   "wizard.field.title.hint":
     "Por ejemplo: Subvención para builder del ecosistema, o Asignación para colaborador.",
@@ -696,6 +701,7 @@ export const es: TranslationDictionary = {
     "Configura cada valor tú mismo, exactamente como antes.",
   "wizard.preset.custom.meta": "Borra los campos que rellenó un preset",
   "wizard.preset.needsReviewer": "necesita revisor",
+  "wizard.preset.allocationShare": "{percent}% de la asignación",
 
   // Presets de subvención (HAS-8). Porcentajes, asignaciones, unidades de
   // calendario e índices de estrategia son datos, no copy: nunca se traducen.

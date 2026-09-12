@@ -25,42 +25,10 @@ jobs:
           node-version: 22
           cache: pnpm
 
-      - name: Install JavaScript dependencies
-        run: pnpm install --frozen-lockfile
-
       - name: Set up Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: stable
 
-      - name: Install Foundry dependencies
-        working-directory: packages/contracts
-        run: |
-          if [ ! -d lib/forge-std ] || [ ! -d lib/openzeppelin-contracts ]; then
-            forge install foundry-rs/forge-std@v1.9.7 OpenZeppelin/openzeppelin-contracts@v5.4.0 --no-commit
-          fi
-
-      - name: Lint
-        run: pnpm lint
-
-      - name: Check formatting
-        run: pnpm format:check
-
-      - name: Typecheck
-        run: pnpm typecheck
-
-      - name: Build workspace
-        run: pnpm build
-
-      - name: Build contracts
-        run: forge build
-        working-directory: packages/contracts
-
-      - name: Test contracts
-        run: pnpm test
-
-      - name: Check generated ABIs
-        run: pnpm contracts:sync:check
-
-      - name: Check Protocol/Cloud boundary
-        run: pnpm boundary:check
+      - name: Run local CI parity preflight
+        run: pnpm ci:check

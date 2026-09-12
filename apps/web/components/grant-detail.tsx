@@ -39,6 +39,7 @@ import { deriveGrantState } from "@/lib/protocol/grant-state";
 import { deriveRevocationPreview } from "@/lib/protocol/revocation";
 import { ParticipantIdentity } from "./grant-card";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
+import { useGrantPresets } from "@/lib/shared/grant-presets/use-grant-presets";
 
 /** Protocol literals: never translated, only interpolated into messages. */
 const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
@@ -48,6 +49,7 @@ const REFRESH_SECONDS = 7;
 export function GrantDetail({ address }: { address: Address }) {
   const t = useTranslations();
   const walletMessages = getWalletGuardMessages(t);
+  const { findPreset: localizedTemplate } = useGrantPresets();
   const [showRevokeModal, setShowRevokeModal] = useState(false);
   const grant = useGrant(address);
   const grantContext = useGrantContext(address);
@@ -122,6 +124,9 @@ export function GrantDetail({ address }: { address: Address }) {
     revoked: g.revoked,
   });
   const roles = resolveProtocolRoles(wallet.address, g);
+  // Workspace metadata: which preset this grant started from. An unknown or
+  // retired key simply shows nothing; the vault's own terms are authoritative.
+  const template = localizedTemplate(grantContext.data?.grant.templateKey);
   const isBeneficiary = roles.isBeneficiary;
   const isReviewer = roles.isReviewer;
   const isIssuer = roles.isIssuer;
@@ -288,6 +293,13 @@ export function GrantDetail({ address }: { address: Address }) {
         {grantContext.data?.grant.description && (
           <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
             {grantContext.data.grant.description}
+          </p>
+        )}
+        {template && (
+          <p className="mt-3 text-sm text-muted-foreground">
+            {t("detail.fromTemplate", {
+              template: template.name,
+            })}
           </p>
         )}
         <div className="mt-3 flex flex-wrap gap-2">
