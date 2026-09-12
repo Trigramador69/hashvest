@@ -11,6 +11,7 @@ import { type Address } from "viem";
 import { grantVaultAbi } from "@hashvest/web3";
 
 import { organizationApi } from "@/lib/cloud/organizations/client";
+import { deriveGrantLifecycle } from "@/lib/protocol/grant-state";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
 
 import { useSession } from "./use-session";
@@ -222,7 +223,11 @@ export function useOrganizationGrantStats(
     isPending: queries.some((query) => query.isPending),
     hasError: queries.some((query) => query.isError),
     activeGrants: summaries.filter(
-      (summary) => summary.claimedAmount < summary.totalAllocation,
+      (summary) =>
+        deriveGrantLifecycle({
+          totalAllocation: summary.totalAllocation,
+          claimedAmount: summary.claimedAmount,
+        }) === "ACTIVE",
     ).length,
     pendingReviews: summaries.filter(
       (summary) =>

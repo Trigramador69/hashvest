@@ -18,9 +18,16 @@ import {
   tokenAmount,
 } from "@/lib/protocol/grants";
 
-import { AddressDisplay, Notice, Progress } from "./grant-ui";
+import {
+  AddressDisplay,
+  FundingHealthSummary,
+  GrantLifecycleBadge,
+  Notice,
+  Progress,
+} from "./grant-ui";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader } from "./ui/card";
+import { deriveGrantState } from "@/lib/protocol/grant-state";
 
 export type GrantCardProps = {
   address: Address;
@@ -92,7 +99,30 @@ export function GrantCard({
         </Button>
       </Notice>
     );
+  if (grant.isRefetchError)
+    return (
+      <Notice title="Live grant state is unavailable" error>
+        <AddressDisplay address={address} />
+        <p>
+          The last HSK read could not be refreshed, so current values are
+          hidden.
+        </p>
+        <p className="mt-2 break-words">{errorMessage(grant.error)}</p>
+        <Button
+          variant="outline"
+          className="mt-3"
+          onClick={() => void grant.refetch()}
+        >
+          Retry
+        </Button>
+      </Notice>
+    );
   const g = grant.data;
+  const state = deriveGrantState({
+    totalAllocation: g.totalAllocation,
+    claimedAmount: g.claimedAmount,
+    vaultBalance: g.balance,
+  });
   const roles = resolveProtocolRoles(walletAddress, g);
   const pendingMilestones = g.milestones.filter(
     (item) => !item.approved,
@@ -104,9 +134,7 @@ export function GrantCard({
           <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-primary">
             {strategies[g.strategy]}
           </span>
-          <span className="text-xs text-muted-foreground">
-            {g.claimedAmount === g.totalAllocation ? "Completed" : "Active"}
-          </span>
+          <GrantLifecycleBadge lifecycle={state.lifecycle} />
         </div>
         {organization && (
           <Link
@@ -150,6 +178,14 @@ export function GrantCard({
             </span>
           </p>
         </div>
+        <FundingHealthSummary
+          funding={state.funding}
+          totalAllocation={g.totalAllocation}
+          vaultBalance={g.balance}
+          decimals={g.decimals}
+          symbol={g.symbol}
+          compact
+        />
         <div>
           <div className="mb-2 flex justify-between text-xs">
             <span>Unlocked</span>
@@ -192,11 +228,6 @@ export function GrantCard({
             </p>
           </div>
         </div>
-        {grant.isRefetchError && (
-          <p className="text-xs text-destructive">
-            Refresh failed. Values may be stale.
-          </p>
-        )}
       </CardContent>
     </Card>
   );

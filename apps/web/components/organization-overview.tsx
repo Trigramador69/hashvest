@@ -26,7 +26,8 @@ import { GrantCard } from "./grant-card";
 import { MembersPreview } from "./organization-ui";
 import { Button, buttonVariants } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Notice } from "./grant-ui";
+import { FundingHealthSummary, GrantLifecycleBadge, Notice } from "./grant-ui";
+import { deriveGrantState } from "@/lib/protocol/grant-state";
 
 function LiveMetric({ label, value }: { label: string; value: string }) {
   return (
@@ -52,7 +53,24 @@ function ReviewQueueItem({
     return (
       <p className="text-sm text-muted-foreground">Reading review queue…</p>
     );
-  if (!live.data) return null;
+  if (live.isRefetchError)
+    return (
+      <p role="alert" className="text-sm text-destructive">
+        Live review state is unavailable for this grant. Retry from the grant
+        detail page.
+      </p>
+    );
+  if (!live.data)
+    return (
+      <p role="alert" className="text-sm text-destructive">
+        {errorMessage(live.error)}
+      </p>
+    );
+  const state = deriveGrantState({
+    totalAllocation: live.data.totalAllocation,
+    claimedAmount: live.data.claimedAmount,
+    vaultBalance: live.data.balance,
+  });
   const roles = resolveProtocolRoles(address, live.data);
   const pending = live.data.milestones.filter(
     (milestone) => !milestone.approved,
@@ -63,6 +81,9 @@ function ReviewQueueItem({
     <Card>
       <CardContent className="flex flex-wrap items-center justify-between gap-4 p-5">
         <div className="min-w-0">
+          <div className="mb-2">
+            <GrantLifecycleBadge lifecycle={state.lifecycle} />
+          </div>
           <p className="font-semibold">{live.data.title}</p>
           <p className="mt-1 text-sm text-muted-foreground">
             {pending.length} pending milestone{pending.length === 1 ? "" : "s"}
@@ -73,6 +94,16 @@ function ReviewQueueItem({
             {tokenAmount(pending[0]?.amount ?? 0n, live.data.decimals)}{" "}
             {live.data.symbol}
           </p>
+          <div className="mt-4 max-w-xl">
+            <FundingHealthSummary
+              funding={state.funding}
+              totalAllocation={live.data.totalAllocation}
+              vaultBalance={live.data.balance}
+              decimals={live.data.decimals}
+              symbol={live.data.symbol}
+              compact
+            />
+          </div>
         </div>
         <Link
           className={buttonVariants({ variant: "outline" })}
@@ -94,7 +125,28 @@ function ClaimableQueueItem({
 }) {
   const { address } = useAccount();
   const live = useGrant(grant.vaultAddress as Address);
-  if (live.isPending || !live.data) return null;
+  if (live.isPending)
+    return (
+      <p className="text-sm text-muted-foreground">Reading claimable grant…</p>
+    );
+  if (live.isRefetchError)
+    return (
+      <p role="alert" className="text-sm text-destructive">
+        Live beneficiary state is unavailable for this grant. Retry from the
+        grant detail page.
+      </p>
+    );
+  if (!live.data)
+    return (
+      <p role="alert" className="text-sm text-destructive">
+        {errorMessage(live.error)}
+      </p>
+    );
+  const state = deriveGrantState({
+    totalAllocation: live.data.totalAllocation,
+    claimedAmount: live.data.claimedAmount,
+    vaultBalance: live.data.balance,
+  });
   const roles = resolveProtocolRoles(address, live.data);
   if (!roles.isBeneficiary || live.data.claimableAmount === 0n) return null;
   const beneficiary = findMemberByWallet(members, live.data.beneficiary);
@@ -102,6 +154,9 @@ function ClaimableQueueItem({
     <Card className="border-primary/30 bg-primary/5">
       <CardContent className="flex flex-wrap items-center justify-between gap-4 p-5">
         <div>
+          <div className="mb-2">
+            <GrantLifecycleBadge lifecycle={state.lifecycle} />
+          </div>
           <p className="font-semibold">{live.data.title}</p>
           <p className="mt-1 text-sm text-muted-foreground">
             {beneficiary?.displayName ?? "Beneficiary"} ·{" "}
@@ -111,6 +166,16 @@ function ClaimableQueueItem({
             {tokenAmount(live.data.claimableAmount, live.data.decimals)}{" "}
             {live.data.symbol} claimable
           </p>
+          <div className="mt-4 max-w-xl">
+            <FundingHealthSummary
+              funding={state.funding}
+              totalAllocation={live.data.totalAllocation}
+              vaultBalance={live.data.balance}
+              decimals={live.data.decimals}
+              symbol={live.data.symbol}
+              compact
+            />
+          </div>
         </div>
         <Link
           className={buttonVariants()}

@@ -6,7 +6,11 @@ import { useAccount, useSwitchChain } from "wagmi";
 import { addressExplorerUrl, transactionExplorerUrl } from "@hashvest/web3";
 import type { Address } from "viem";
 import { Button } from "@/components/ui/button";
-import { errorMessage, shortAddress } from "@/lib/protocol/grants";
+import { errorMessage, shortAddress, tokenAmount } from "@/lib/protocol/grants";
+import type {
+  GrantFundingHealth,
+  GrantLifecycle,
+} from "@/lib/protocol/grant-state";
 import type { TransactionRecord } from "@/hooks/use-transaction";
 import {
   hskTestnetAddChainParameter,
@@ -266,6 +270,98 @@ export function Progress({ value, label }: { value: number; label: string }) {
         className="h-full rounded-full bg-primary transition-[width]"
         style={{ width: `${value}%` }}
       />
+    </div>
+  );
+}
+
+export function GrantLifecycleBadge({
+  lifecycle,
+}: {
+  lifecycle: GrantLifecycle;
+}) {
+  return (
+    <span
+      className={`rounded-full px-2.5 py-1 text-xs font-medium ${lifecycle === "COMPLETED" ? "bg-secondary text-muted-foreground" : "bg-primary/10 text-primary"}`}
+    >
+      {lifecycle === "COMPLETED" ? "Completed" : "Active"}
+    </span>
+  );
+}
+
+export function FundingHealthSummary({
+  funding,
+  totalAllocation,
+  vaultBalance,
+  decimals,
+  symbol,
+  compact = false,
+}: {
+  funding: GrantFundingHealth;
+  totalAllocation: bigint;
+  vaultBalance: bigint;
+  decimals: number;
+  symbol: string;
+  compact?: boolean;
+}) {
+  const shortfall =
+    funding.requiredVaultBalance > vaultBalance
+      ? funding.requiredVaultBalance - vaultBalance
+      : 0n;
+  return (
+    <div
+      className={`rounded-xl border ${funding.isFullyFunded ? "border-primary/25 bg-primary/5" : "border-destructive/25 bg-destructive/5"} ${compact ? "p-4" : "p-5"}`}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-medium text-muted-foreground">
+            Funding health
+          </p>
+          <p className="mt-1 text-lg font-semibold">
+            {funding.isFullyFunded
+              ? "100% funded"
+              : `${funding.percent}% funded`}
+          </p>
+        </div>
+        <span
+          className={`rounded-full px-2.5 py-1 text-xs font-medium ${funding.isFullyFunded ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"}`}
+        >
+          {funding.isFullyFunded ? "Healthy" : "Underfunded"}
+        </span>
+      </div>
+      <div className="mt-3">
+        <Progress value={funding.percent} label="Grant funding health" />
+      </div>
+      <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
+        <div>
+          <dt className="text-muted-foreground">Allocation</dt>
+          <dd className="mt-1 break-all font-medium">
+            {tokenAmount(totalAllocation, decimals)} {symbol}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-muted-foreground">Vault balance</dt>
+          <dd className="mt-1 break-all font-medium">
+            {tokenAmount(vaultBalance, decimals)} {symbol}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-muted-foreground">Required after claims</dt>
+          <dd className="mt-1 break-all font-medium">
+            {tokenAmount(funding.requiredVaultBalance, decimals)} {symbol}
+          </dd>
+        </div>
+      </dl>
+      {shortfall > 0n && (
+        <p className="mt-3 text-xs font-medium text-destructive">
+          Shortfall: {tokenAmount(shortfall, decimals)} {symbol}
+        </p>
+      )}
+      {funding.surplusAmount > 0n && (
+        <p className="mt-3 text-xs text-muted-foreground">
+          Extra vault balance: {tokenAmount(funding.surplusAmount, decimals)}{" "}
+          {symbol}. This is outside the fixed allocation.
+        </p>
+      )}
     </div>
   );
 }
