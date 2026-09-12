@@ -358,7 +358,9 @@ main().catch((error) => {
   console.error(
     error.name === "AssertionError" || error.name === "Error"
       ? error.message
-      : "Live demo failed. Inspect confirmed explorer transactions and RPC availability.",
+      : (error.shortMessage ??
+          error.message ??
+          "Live demo failed. Inspect confirmed explorer transactions and RPC availability."),
   );
   process.exitCode = 1;
 });
