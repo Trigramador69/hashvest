@@ -51,4 +51,22 @@ describe("organization input validation", () => {
       parseOrganizationGrantInput({ chainId: 133, vaultAddress: wallet }),
     ).toMatchObject({ chainId: 133, vaultAddress: wallet });
   });
+
+  it("stores a grant preset key as optional template metadata", () => {
+    expect(
+      parseOrganizationGrantInput({
+        chainId: 133,
+        vaultAddress: wallet,
+        templateKey: "ecosystem-grant",
+      }),
+    ).toMatchObject({ templateKey: "ecosystem-grant" });
+    // A custom/blank grant carries no preset.
+    expect(
+      parseOrganizationGrantInput({
+        chainId: 133,
+        vaultAddress: wallet,
+        templateKey: null,
+      }),
+    ).toMatchObject({ templateKey: null });
+  });
 });
