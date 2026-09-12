@@ -45,7 +45,17 @@ import {
   strategies,
   strategyDescriptions,
   validParty,
-} from "@/lib/grants";
+} from "@/lib/protocol/grants";
+import {
+  applyPresetToDraft,
+  splitAllocationByPercent,
+  type AppliedPresetDraft,
+} from "@/lib/shared/grant-presets/apply-preset";
+import {
+  GRANT_PRESETS,
+  getGrantPreset,
+  type GrantPresetKey,
+} from "@/lib/shared/grant-presets/presets";
 
 const steps = ["Grant", "Strategy", "Conditions", "Review"];
 type MilestoneInput = { title: string; amount: string };
@@ -92,6 +102,96 @@ function Field({
   );
 }
 
+function PresetOption({
+  name,
+  tagline,
+  meta,
+  selected,
+  onSelect,
+}: {
+  name: string;
+  tagline: string;
+  meta: string;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <label
+      className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 ${selected ? "border-primary bg-primary/5" : "bg-card"}`}
+    >
+      <input
+        className="mt-1 accent-primary"
+        type="radio"
+        name="preset"
+        checked={selected}
+        onChange={onSelect}
+      />
+      <span className="min-w-0">
+        <span className="block font-semibold">{name}</span>
+        <span className="mt-1 block text-sm leading-6 text-muted-foreground">
+          {tagline}
+        </span>
+        <span className="mt-2 block text-xs text-muted-foreground">{meta}</span>
+      </span>
+    </label>
+  );
+}
+
+/**
+ * Optional starting points for the same wizard. A preset only fills fields the
+ * user can still edit or clear; the vault stores what is submitted, and the
+ * chosen key travels as workspace metadata only.
+ */
+function PresetPicker({
+  selected,
+  onSelect,
+}: {
+  selected: GrantPresetKey | null;
+  onSelect: (key: GrantPresetKey | null) => void;
+}) {
+  const active = selected ? getGrantPreset(selected) : undefined;
+  return (
+    <div className="space-y-3">
+      <div>
+        <h3 className="font-semibold">Start from a preset</h3>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">
+          Optional. A preset fills in a strategy, schedule, and milestone split
+          that you can edit or clear. It never changes what the vault stores.
+        </p>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {GRANT_PRESETS.map((preset) => (
+          <PresetOption
+            key={preset.key}
+            name={preset.name}
+            tagline={preset.tagline}
+            meta={`${strategies[preset.strategy]}${preset.reviewerRequired ? " · needs a reviewer" : ""} · ${preset.bestFor[0]}`}
+            selected={selected === preset.key}
+            onSelect={() => onSelect(preset.key)}
+          />
+        ))}
+        <PresetOption
+          name="Custom / blank"
+          tagline="Configure every value yourself, exactly as before."
+          meta="Clears the fields a preset filled in"
+          selected={selected === null}
+          onSelect={() => onSelect(null)}
+        />
+      </div>
+      {active && (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+          <p className="text-sm leading-6">{active.description}</p>
+          <ul className="mt-3 space-y-1 text-xs leading-5 text-muted-foreground">
+            {active.assumptions.map((assumption) => (
+              <li key={assumption}>· {assumption}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export type NewGrantProps = {
   organizationId?: string;
 };
@@ -127,6 +227,8 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   ]);
   const [provider, setProvider] = useState("");
   const [revocable, setRevocable] = useState(false);
+  const [presetKey, setPresetKey] = useState<GrantPresetKey | null>(null);
+  const [appliedPreset, setAppliedPreset] = useState<AppliedPresetDraft>();
   const [validationError, setValidationError] = useState("");
   const [prepared, setPrepared] = useState<PreparedGrant>();
   const [createdAddress, setCreatedAddress] = useState<Address>();
@@ -144,6 +246,92 @@ export function NewGrant({ organizationId }: NewGrantProps) {
     (!organizationId ||
       (session.walletMatches && organization.data?.membership.isOwner)),
   );
+
+  function sameMilestones(items: MilestoneInput[], other: MilestoneInput[]) {
+    return (
+      items.length === other.length &&
+      items.every(
+        (item, index) =>
+          item.title === other[index].title &&
+          item.amount === other[index].amount,
+      )
+    );
+  }
+
+  /**
+   * Applies a preset to the fields below. Everything it writes stays editable,
+   * and an allocation the user already typed always wins over the suggestion.
+   */
+  function selectPreset(key: GrantPresetKey | null) {
+    setValidationError("");
+    if (!key) {
+      clearPreset();
+      return;
+    }
+    const draft = applyPresetToDraft(getGrantPreset(key), {
+      allocationDecimal: allocation,
+      decimals: tokenMetadata.data?.decimals,
+      title,
+    });
+    setTitle(draft.title);
+    if (organizationId) setDescription(draft.description);
+    setAllocation(draft.allocation);
+    setStrategy(draft.strategy);
+    setUnit(draft.unit);
+    setCliff(draft.cliff);
+    setDuration(draft.duration);
+    setMilestones(
+      draft.milestones.length ? draft.milestones : [{ title: "", amount: "" }],
+    );
+    setPresetKey(key);
+    setAppliedPreset(draft);
+  }
+
+  /** Clears only the values still holding what the preset wrote; edits survive. */
+  function clearPreset() {
+    const draft = appliedPreset;
+    if (draft) {
+      if (title === draft.title) setTitle("");
+      if (description === draft.description) setDescription("");
+      if (allocation === draft.allocation) setAllocation("");
+      if (strategy === draft.strategy) setStrategy(0);
+      if (unit === draft.unit) setUnit("60");
+      if (cliff === draft.cliff) setCliff("0");
+      if (duration === draft.duration) setDuration("5");
+      if (sameMilestones(milestones, draft.milestones))
+        setMilestones([{ title: "", amount: "" }]);
+    }
+    setPresetKey(null);
+    setAppliedPreset(undefined);
+  }
+
+  /**
+   * Keeps an untouched preset milestone split in step with the allocation, so a
+   * changed amount cannot silently break the exact-sum rule at review time.
+   */
+  function changeAllocation(value: string) {
+    setAllocation(value);
+    const draft = appliedPreset;
+    if (
+      !presetKey ||
+      !draft?.milestones.length ||
+      !sameMilestones(milestones, draft.milestones)
+    )
+      return;
+    const amounts = splitAllocationByPercent(
+      value,
+      tokenMetadata.data?.decimals ?? 18,
+      getGrantPreset(presetKey).milestones?.map(
+        (milestone) => milestone.percentOfAllocation,
+      ) ?? [],
+    );
+    const updated = draft.milestones.map((milestone, index) => ({
+      title: milestone.title,
+      amount: amounts[index] ?? "",
+    }));
+    setMilestones(updated);
+    setAppliedPreset({ ...draft, allocation: value, milestones: updated });
+  }
 
   function validateMemberSelection(
     memberId: string,
@@ -546,6 +734,9 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         chainId: 133,
         vaultAddress,
         description: description.trim() || null,
+        // Optional product metadata: which preset this grant started from. It
+        // carries no onchain authority and never changes the vault's terms.
+        templateKey: presetKey,
       });
       setMetadataSync("saved");
     } catch (error) {
@@ -701,6 +892,10 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                 <fieldset className="min-w-0 space-y-6" disabled={tx.pending}>
                   {step === 0 && (
                     <>
+                      <PresetPicker
+                        selected={presetKey}
+                        onSelect={selectPreset}
+                      />
                       <Field
                         label="Grant title"
                         hint="For example: Ecosystem builder grant or Contributor allocation."
@@ -809,7 +1004,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                           className="field"
                           value={allocation}
                           onChange={(event) =>
-                            setAllocation(event.target.value)
+                            changeAllocation(event.target.value)
                           }
                           inputMode="decimal"
                           placeholder="1000"
@@ -902,8 +1097,9 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             </Field>
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            Demo tip: use a 5-minute duration and a 0-minute
-                            cliff.
+                            {presetKey && getGrantPreset(presetKey).timing
+                              ? getGrantPreset(presetKey).timing?.realWorldNote
+                              : "Demo tip: use a 5-minute duration and a 0-minute cliff."}
                           </p>
                         </div>
                       )}
@@ -1081,6 +1277,13 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                         <p className="mt-2 text-sm text-muted-foreground">
                           {strategyDescriptions[prepared.config.strategy]}
                         </p>
+                        {presetKey && (
+                          <p className="mt-3 text-xs text-muted-foreground">
+                            Started from the {getGrantPreset(presetKey).name}{" "}
+                            preset. That is workspace metadata only — the terms
+                            below are what goes onchain.
+                          </p>
+                        )}
                       </div>
                       <dl className="space-y-4 text-sm">
                         {[

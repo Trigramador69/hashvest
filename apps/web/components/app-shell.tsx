@@ -4,7 +4,11 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import type { ReactNode } from "react";
-import { cn } from "@/lib/utils";
+
+import { hskTestnet } from "@hashvest/web3";
+import { cn } from "@/lib/shared/utils";
+import { useTranslations } from "@/lib/shared/i18n/provider";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import { SessionControl } from "@/components/session-control";
 import { useOrganizations } from "@/hooks/use-organizations";
 import { useSession } from "@/hooks/use-session";
@@ -14,6 +18,7 @@ function OrganizationSwitcher() {
   const router = useRouter();
   const session = useSession();
   const organizations = useOrganizations();
+  const t = useTranslations();
   if (!session.walletMatches || !organizations.data?.length) return null;
   const activeId = pathname.match(/^\/app\/organizations\/([^/]+)/)?.[1] ?? "";
   const value = organizations.data.some((item) => item.id === activeId)
@@ -21,11 +26,11 @@ function OrganizationSwitcher() {
     : "";
   return (
     <label className="flex items-center gap-2 text-xs text-muted-foreground">
-      <span className="hidden sm:inline">Workspace</span>
+      <span className="hidden sm:inline">{t("shell.workspace.label")}</span>
       <select
         className="field h-9 min-w-36 py-1 text-xs sm:min-w-48"
         value={value}
-        aria-label="Choose workspace"
+        aria-label={t("shell.workspace.choose")}
         onChange={(event) => {
           if (event.target.value === "create")
             router.push("/app/organizations/new");
@@ -33,13 +38,13 @@ function OrganizationSwitcher() {
             router.push(`/app/organizations/${event.target.value}`);
         }}
       >
-        <option value="">Your organizations</option>
+        <option value="">{t("shell.workspace.yours")}</option>
         {organizations.data.map((organization) => (
           <option key={organization.id} value={organization.id}>
             {organization.name}
           </option>
         ))}
-        <option value="create">+ Create organization</option>
+        <option value="create">{t("shell.workspace.create")}</option>
       </select>
     </label>
   );
@@ -47,6 +52,7 @@ function OrganizationSwitcher() {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const t = useTranslations();
   return (
     <div className="min-h-screen">
       <header className="border-b bg-card/90">
@@ -54,7 +60,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Link
             href="/"
             className="flex items-center gap-2.5 text-xl font-semibold tracking-tight"
-            aria-label="HashVest home"
+            aria-label={t("shell.home")}
           >
             <span className="grid size-8 place-items-center rounded-lg bg-primary text-lg text-primary-foreground">
               H
@@ -62,7 +68,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             HashVest
           </Link>
           <nav
-            aria-label="Main navigation"
+            aria-label={t("shell.nav.label")}
             className="order-3 flex w-full gap-6 text-sm font-medium sm:order-none sm:w-auto"
           >
             <Link
@@ -74,7 +80,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   "text-primary",
               )}
             >
-              Organizations / grants
+              {t("shell.nav.organizations")}
             </Link>
             <Link
               href="/grants/new"
@@ -83,13 +89,15 @@ export function AppShell({ children }: { children: ReactNode }) {
                 pathname === "/grants/new" && "text-primary",
               )}
             >
-              Create grant
+              {t("shell.nav.createGrant")}
             </Link>
           </nav>
           <div className="flex max-w-full flex-wrap items-center justify-end gap-3">
             <OrganizationSwitcher />
+            <LocaleSwitcher />
+            {/* Network name and chain id are protocol literals, never translated. */}
             <span className="hidden rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary lg:block">
-              HSK Testnet · 133
+              {hskTestnet.name} · {hskTestnet.id}
             </span>
             <SessionControl compact />
             <ConnectButton
@@ -104,8 +112,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
       <footer className="mx-auto mt-10 flex max-w-7xl flex-wrap justify-between gap-3 border-t px-5 py-6 text-xs text-muted-foreground sm:px-8">
-        <span>HashVest · Programmable grants on HashKey Chain</span>
-        <span>Hackathon MVP · Unaudited · Testnet assets only</span>
+        <span>HashVest · {t("shell.footer.tagline")}</span>
+        <span>{t("shell.footer.disclaimer")}</span>
       </footer>
     </div>
   );

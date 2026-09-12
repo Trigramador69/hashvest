@@ -1,10 +1,14 @@
-export { hskChains, hskMainnet, hskTestnet, type HskChain } from "./chains/hsk";
 export {
+  hskChains,
+  hskMainnet,
+  hskTestnet,
+  type HskChain,
   hashVestFactoryAbi,
   grantVaultAbi,
   demoTokenAbi,
   demoEligibilityProviderAbi,
   eligibilityProviderAbi,
-} from "./abis";
-export { testnetDeployment } from "./addresses";
-export { addressExplorerUrl, transactionExplorerUrl } from "./explorer";
+  testnetDeployment,
+  addressExplorerUrl,
+  transactionExplorerUrl,
+} from "./protocol";

@@ -1,0 +1,10 @@
+# Normalize every text file to LF in the repository and in the working tree.
+#
+# Without this, a Windows clone with core.autocrlf=true checks files out as CRLF
+# while Prettier and `forge fmt` both expect LF, so `pnpm format:check` reports
+# every file as misformatted even when nothing changed. Pinning eol=lf keeps the
+# checkout identical on Linux, macOS and Windows.
+#
+# Every blob currently stored in the repository is already LF, so this changes
+# no committed content.
+* text=auto eol=lf

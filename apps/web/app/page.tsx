@@ -1,72 +1,66 @@
 import Link from "next/link";
+
+import { hskTestnet } from "@hashvest/web3";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getTranslations } from "@/lib/shared/i18n/server";
 
-export default function Home() {
+/** Step and strategy cards are key triples; the copy lives in the dictionary. */
+const STEPS = ["fund", "unlock", "claim"] as const;
+const STRATEGIES = ["time", "milestone", "hybrid"] as const;
+
+export default async function Home() {
+  const { t } = await getTranslations();
   return (
     <div className="space-y-16 py-7 sm:py-12">
       <section className="grid items-center gap-12 lg:grid-cols-[1.2fr_1fr]">
         <div>
           <p className="mb-6 text-xs font-semibold uppercase tracking-[.2em] text-primary">
-            Programmable grants · HashKey Chain
+            {t("home.eyebrow")}
           </p>
           <h1 className="max-w-3xl text-5xl font-semibold leading-[1.08] tracking-tight sm:text-6xl">
-            Fund the work.
+            {t("home.headline.line1")}
             <br />
-            <span className="text-primary">Define the unlock.</span>
+            <span className="text-primary">{t("home.headline.line2")}</span>
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
-            HashVest turns token allocations into fully funded grants that
-            unlock with time, milestones, or both.
+            {t("home.lede")}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/app" className={buttonVariants({ size: "lg" })}>
-              Open application <span aria-hidden>↗</span>
+              {t("home.cta.openApp")} <span aria-hidden>↗</span>
             </Link>
             <Link
               href="/grants/new"
               className={buttonVariants({ size: "lg", variant: "outline" })}
             >
-              Create a grant
+              {t("home.cta.createGrant")}
             </Link>
           </div>
           <p className="mt-5 text-xs text-muted-foreground">
-            Live on HSK Testnet · ERC20 tokens · No revocation
+            {/* Network name is a protocol literal. */}
+            {t("home.note", { network: hskTestnet.name })}
           </p>
         </div>
         <div className="rounded-2xl border bg-secondary/60 p-7 sm:p-10">
           <p className="mb-7 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            One allocation. Clear conditions.
+            {t("home.steps.title")}
           </p>
           <div className="space-y-4">
-            {[
-              [
-                "01",
-                "Treasury funds a vault",
-                "The full allocation is deposited at creation.",
-              ],
-              [
-                "02",
-                "Conditions unlock tokens",
-                "A fixed schedule, reviewer approval, or both.",
-              ],
-              [
-                "03",
-                "Beneficiary claims",
-                "Only the recipient can withdraw unlocked tokens.",
-              ],
-            ].map(([step, title, description]) => (
+            {STEPS.map((step, index) => (
               <div
                 key={step}
                 className="flex gap-4 rounded-xl border bg-card p-5"
               >
                 <span className="text-sm font-semibold text-primary">
-                  {step}
+                  {String(index + 1).padStart(2, "0")}
                 </span>
                 <div>
-                  <p className="font-semibold">{title}</p>
+                  <p className="font-semibold">
+                    {t(`home.steps.${step}.title`)}
+                  </p>
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                    {description}
+                    {t(`home.steps.${step}.body`)}
                   </p>
                 </div>
               </div>
@@ -77,40 +71,26 @@ export default function Home() {
       <section>
         <div className="mb-7 flex flex-wrap items-end justify-between gap-3">
           <h2 className="text-2xl font-semibold tracking-tight">
-            Built for every kind of contribution.
+            {t("home.strategies.title")}
           </h2>
           <p className="text-sm text-muted-foreground">
-            Ecosystem builders · Teams · Advisors · Contributors
+            {t("home.strategies.audience")}
           </p>
         </div>
         <div className="grid gap-5 md:grid-cols-3">
-          {[
-            [
-              "Time vesting",
-              "Reward sustained commitment.",
-              "Tokens vest linearly from the start. An optional cliff delays access without resetting the curve.",
-            ],
-            [
-              "Milestone grants",
-              "Fund measurable progress.",
-              "A designated reviewer approves fixed milestones. Each approval unlocks its exact allocation.",
-            ],
-            [
-              "Hybrid grants",
-              "Keep time and delivery aligned.",
-              "Unlocked = min(time vested, approved milestone amount). Both conditions constrain every claim.",
-            ],
-          ].map(([title, subtitle, description]) => (
-            <Card key={title}>
+          {STRATEGIES.map((strategy) => (
+            <Card key={strategy}>
               <CardHeader>
-                <CardTitle className="text-lg">{title}</CardTitle>
+                <CardTitle className="text-lg">
+                  {t(`home.strategies.${strategy}.title`)}
+                </CardTitle>
                 <p className="pt-2 text-sm font-medium text-primary">
-                  {subtitle}
+                  {t(`home.strategies.${strategy}.subtitle`)}
                 </p>
               </CardHeader>
               <CardContent>
                 <p className="text-sm leading-7 text-muted-foreground">
-                  {description}
+                  {t(`home.strategies.${strategy}.body`)}
                 </p>
               </CardContent>
             </Card>

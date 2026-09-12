@@ -4,7 +4,7 @@ import { createPublicClient, http, type Address } from "viem";
 
 import { grantVaultAbi, hskTestnet } from "@hashvest/web3";
 
-import { ApiError } from "@/lib/api-server";
+import { ApiError } from "@/lib/shared/api-error";
 
 function publicClient() {
   const rpcUrl =

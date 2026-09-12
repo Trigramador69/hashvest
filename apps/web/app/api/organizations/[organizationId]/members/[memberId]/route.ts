@@ -1,9 +1,13 @@
-import { apiErrorResponse, assertSameOrigin, readJson } from "@/lib/api-server";
-import { removeMember, updateMember } from "@/lib/organizations/server";
+import {
+  apiErrorResponse,
+  assertSameOrigin,
+  readJson,
+} from "@/lib/cloud/api-server";
+import { removeMember, updateMember } from "@/lib/cloud/organizations/server";
 import {
   parseMemberUpdateInput,
   validateUuid,
-} from "@/lib/organizations/validation";
+} from "@/lib/cloud/organizations/validation";
 
 export const runtime = "nodejs";
 

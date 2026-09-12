@@ -5,8 +5,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { usePublicClient } from "wagmi";
 import { getAccount } from "wagmi/actions";
 import type { Address, Hash } from "viem";
-import { wagmiConfig } from "@/lib/wagmi";
-import { errorMessage } from "@/lib/grants";
+import { wagmiConfig } from "@/lib/protocol/wagmi";
+import { errorMessage } from "@/lib/protocol/grants";
 
 export type TransactionRecord = {
   label: string;

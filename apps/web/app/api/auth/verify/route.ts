@@ -5,11 +5,14 @@ import {
   apiErrorResponse,
   readJson,
   ApiError,
-} from "@/lib/api-server";
-import { HASHVEST_CHAIN_ID } from "@/lib/auth/constants";
-import { getApplicationOrigin, verifySiweSignature } from "@/lib/auth/siwe";
-import { setSessionCookie } from "@/lib/auth/session";
-import { createSupabaseAdmin } from "@/lib/supabase-server";
+} from "@/lib/cloud/api-server";
+import { HASHVEST_CHAIN_ID } from "@/lib/cloud/auth/constants";
+import {
+  getApplicationOrigin,
+  verifySiweSignature,
+} from "@/lib/cloud/auth/siwe";
+import { setSessionCookie } from "@/lib/cloud/auth/session";
+import { createSupabaseAdmin } from "@/lib/cloud/supabase-server";
 
 export const runtime = "nodejs";
 

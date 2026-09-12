@@ -2,11 +2,11 @@ import "server-only";
 
 import { getAddress, type Address } from "viem";
 
-import { ApiError } from "@/lib/api-server";
-import { readSession } from "@/lib/auth/session";
-import { createSupabaseAdmin } from "@/lib/supabase-server";
+import { ApiError } from "@/lib/cloud/api-server";
+import { readSession } from "@/lib/cloud/auth/session";
+import { createSupabaseAdmin } from "@/lib/cloud/supabase-server";
 
-import { verifyGrantVault } from "./onchain";
+import { verifyGrantVault } from "@/lib/protocol/verify";
 import { validateUuid } from "./validation";
 import type {
   Organization,
