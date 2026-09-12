@@ -6,14 +6,14 @@ import { useAccount, useSwitchChain } from "wagmi";
 import { addressExplorerUrl, transactionExplorerUrl } from "@hashvest/web3";
 import type { Address } from "viem";
 import { Button } from "@/components/ui/button";
-import { errorMessage, shortAddress } from "@/lib/grants";
+import { errorMessage, shortAddress } from "@/lib/protocol/grants";
 import type { TransactionRecord } from "@/hooks/use-transaction";
 import {
   hskTestnetAddChainParameter,
   hskTestnetSwitchParameter,
   isBrowserProvider,
   probeWalletRpc,
-} from "@/lib/network";
+} from "@/lib/protocol/network";
 
 export function NetworkNotice() {
   const { isConnected, chainId, connector } = useAccount();

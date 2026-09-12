@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import type { ReactNode } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/shared/utils";
 import { SessionControl } from "@/components/session-control";
 import { useOrganizations } from "@/hooks/use-organizations";
 import { useSession } from "@/hooks/use-session";

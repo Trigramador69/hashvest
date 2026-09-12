@@ -8,8 +8,8 @@ import {
   useOrganizationMembers,
 } from "@/hooks/use-organizations";
 import { useSession } from "@/hooks/use-session";
-import { errorMessage, shortAddress } from "@/lib/grants";
-import type { OrganizationMember } from "@/lib/organizations/types";
+import { errorMessage, shortAddress } from "@/lib/protocol/grants";
+import type { OrganizationMember } from "@/lib/cloud/organizations/types";
 
 import { Notice, PageHeading } from "./grant-ui";
 import { Button } from "./ui/button";

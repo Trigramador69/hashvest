@@ -6,7 +6,7 @@ import { demoTokenAbi, testnetDeployment } from "@hashvest/web3";
 import { Button } from "@/components/ui/button";
 import { AddressDisplay, TransactionStatus } from "@/components/grant-ui";
 import { useTransaction, assertTestnetWallet } from "@/hooks/use-transaction";
-import { tokenAmount } from "@/lib/grants";
+import { tokenAmount } from "@/lib/protocol/grants";
 
 export function DemoFaucet() {
   const { address, chainId } = useAccount();

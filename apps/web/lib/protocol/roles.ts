@@ -1,3 +1,8 @@
+/**
+ * Protocol roles are derived from GrantVault state alone. Organization
+ * membership and presentation role labels never participate; see
+ * docs/architecture.md.
+ */
 export type ProtocolRole = "Issuer" | "Beneficiary" | "Reviewer";
 
 export type ProtocolRoleResolution = {
@@ -32,14 +37,4 @@ export function resolveProtocolRoles(
       isReviewer && "Reviewer",
     ].filter((role): role is ProtocolRole => Boolean(role)),
   };
-}
-
-export function findMemberByWallet<T extends { walletAddress: string }>(
-  members: readonly T[] | undefined,
-  walletAddress: string,
-) {
-  return members?.find(
-    (member) =>
-      member.walletAddress.toLowerCase() === walletAddress.toLowerCase(),
-  );
 }

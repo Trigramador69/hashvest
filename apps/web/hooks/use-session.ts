@@ -3,8 +3,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAccount } from "wagmi";
 
-import { isSessionWalletMatch } from "@/lib/auth/session-utils";
-import { organizationApi } from "@/lib/organizations/client";
+import { isSessionWalletMatch } from "@/lib/cloud/auth/session-utils";
+import { organizationApi } from "@/lib/cloud/organizations/client";
 
 export const sessionQueryKey = ["workspace-session"] as const;
 

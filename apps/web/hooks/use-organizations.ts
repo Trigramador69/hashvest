@@ -10,8 +10,8 @@ import { useAccount, usePublicClient } from "wagmi";
 import { type Address } from "viem";
 import { grantVaultAbi } from "@hashvest/web3";
 
-import { organizationApi } from "@/lib/organizations/client";
-import { resolveProtocolRoles } from "@/lib/organizations/permissions";
+import { organizationApi } from "@/lib/cloud/organizations/client";
+import { resolveProtocolRoles } from "@/lib/protocol/roles";
 
 import { useSession } from "./use-session";
 
