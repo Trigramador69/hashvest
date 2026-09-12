@@ -87,7 +87,17 @@ pnpm contracts:deploy:testnet
 pnpm contracts:smoke:testnet
 ```
 
-The current deployment is written to `packages/web3/src/addresses/hsk-testnet.json` after a successful broadcast. The canonical explorer is [HSK Testnet Explorer](https://testnet-explorer.hskchain.net). Contract addresses and transaction hashes are intentionally listed from the verified deployment artifact rather than copied into this README by hand.
+The current deployment is written to `packages/web3/src/addresses/hsk-testnet.json` after a successful broadcast. The canonical explorer is [HSK Testnet Explorer](https://testnet-explorer.hskchain.net). The generated deployment artifact remains the source of truth; the current values are repeated below for demo convenience.
+
+Current verified HSK Testnet deployment (chain 133):
+
+| Contract                | Address                                                                                                                                  | Deployment transaction                                                                                                                                                              |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| HashVestFactory         | [`0xD854A966Bb680710Ae31a834AEC527D3A5d074e7`](https://testnet-explorer.hskchain.net/address/0xD854A966Bb680710Ae31a834AEC527D3A5d074e7) | [`0x9a0d3465d6671f4206bd71c42a2e247b14c33db30e36630df855fc712a52c1f1`](https://testnet-explorer.hskchain.net/tx/0x9a0d3465d6671f4206bd71c42a2e247b14c33db30e36630df855fc712a52c1f1) |
+| DemoToken (`hvUSD`)     | [`0x757DDb21F99B9E949a62127603F94B1AAe80d600`](https://testnet-explorer.hskchain.net/address/0x757DDb21F99B9E949a62127603F94B1AAe80d600) | [`0x22da9c596bd23f780393a921583832d0101ae2a40b6677e3c908a29846d1fa1f`](https://testnet-explorer.hskchain.net/tx/0x22da9c596bd23f780393a921583832d0101ae2a40b6677e3c908a29846d1fa1f) |
+| DemoEligibilityProvider | [`0x065804b3822B0A896fb2D227489476038d489048`](https://testnet-explorer.hskchain.net/address/0x065804b3822B0A896fb2D227489476038d489048) | [`0x6f0fc72ebfa6d872d170e6c909fcce0d74241b4b3d6724359baf2ba6566869fb`](https://testnet-explorer.hskchain.net/tx/0x6f0fc72ebfa6d872d170e6c909fcce0d74241b4b3d6724359baf2ba6566869fb) |
+
+The latest clean live lifecycle evidence is recorded in [`docs/testnet-demo.json`](docs/testnet-demo.json), including the TIME, MILESTONE, and HYBRID grant vaults and every public transaction hash.
 
 Optional Blockscout verification (secondary to a working deployment):
 
