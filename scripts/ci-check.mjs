@@ -7,7 +7,7 @@ export const root = fileURLToPath(new URL("../", import.meta.url));
 export const contractsDirectory = join(root, "packages", "contracts");
 
 export function executable(name, platform = process.platform) {
-  return platform === "win32" ? `${name}.cmd` : name;
+  return platform === "win32" && name === "pnpm" ? "pnpm.cmd" : name;
 }
 
 export function validationSteps() {

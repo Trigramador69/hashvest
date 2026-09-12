@@ -10,6 +10,7 @@ import {
 test("uses the platform executable suffix only on Windows", () => {
   assert.equal(executable("pnpm", "linux"), "pnpm");
   assert.equal(executable("pnpm", "win32"), "pnpm.cmd");
+  assert.equal(executable("forge", "win32"), "forge");
 });
 
 test("mirrors the repository CI validation order", () => {
