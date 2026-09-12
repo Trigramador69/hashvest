@@ -32,4 +32,26 @@ contract DeploymentTest is Test {
         vm.expectRevert(DemoToken.DemoNetworkOnly.selector);
         new DemoToken(address(this));
     }
+
+    function test_demoTokenFaucetCannotMintAfterChainChangesToMainnet() public {
+        vm.chainId(133);
+        DemoToken token = new DemoToken(address(this));
+        vm.chainId(177);
+        vm.expectRevert(DemoToken.DemoNetworkOnly.selector);
+        token.faucet();
+    }
+
+    function test_demoTokenSupportsLocalAnvil() public {
+        vm.chainId(31337);
+        DemoToken token = new DemoToken(address(this));
+        assertEq(token.balanceOf(address(this)), 1_000_000 ether);
+    }
+
+    function testFuzz_deployScriptRejectsEveryOtherChain(uint64 chainId) public {
+        vm.assume(chainId != 133);
+        vm.chainId(chainId);
+        DeployHashVest script = new DeployHashVest();
+        vm.expectRevert(DeployHashVest.WrongChain.selector);
+        script.run();
+    }
 }

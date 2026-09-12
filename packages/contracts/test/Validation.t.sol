@@ -156,4 +156,19 @@ contract ValidationTest is HashVestTestBase {
         vm.warp(START + DURATION / 2);
         assertEq(vault.unlockedAmount(), 50_000 ether);
     }
+
+    function test_maximumEndTimestampStillVestsCorrectly() public {
+        GrantConfig memory grant = config(UnlockStrategy.TIME);
+        grant.start = type(uint256).max - 10;
+        grant.cliff = 5;
+        grant.duration = 10;
+        vm.prank(issuer);
+        GrantVault vault = GrantVault(factory.createGrant(grant, new MilestoneInput[](0)));
+        vm.warp(type(uint256).max - 6);
+        assertEq(vault.vestedByTime(), 0);
+        vm.warp(type(uint256).max - 5);
+        assertEq(vault.vestedByTime(), 50_000 ether);
+        vm.warp(type(uint256).max);
+        assertEq(vault.vestedByTime(), ALLOCATION);
+    }
 }
