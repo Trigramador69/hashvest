@@ -6,7 +6,11 @@ import { demoTokenAbi, testnetDeployment } from "@hashvest/web3";
 import { useTranslations } from "@/lib/shared/i18n/provider";
 import { Button } from "@/components/ui/button";
 import { AddressDisplay, TransactionStatus } from "@/components/grant-ui";
-import { useTransaction, assertTestnetWallet } from "@/hooks/use-transaction";
+import {
+  assertTestnetWallet,
+  getWalletGuardMessages,
+  useTransaction,
+} from "@/hooks/use-transaction";
 import { tokenAmount } from "@/lib/protocol/grants";
 
 /** The demo token's symbol and decimals are protocol literals. */
@@ -15,6 +19,7 @@ const DEMO_DECIMALS = 18;
 
 export function DemoFaucet() {
   const t = useTranslations();
+  const walletMessages = getWalletGuardMessages(t);
   const { address, chainId } = useAccount();
   const token = testnetDeployment.demoToken;
   const { writeContractAsync } = useWriteContract();
@@ -60,7 +65,7 @@ export function DemoFaucet() {
           disabled={!address || chainId !== 133 || tx.pending}
           onClick={() =>
             void tx.run(async () => {
-              const account = assertTestnetWallet(address);
+              const account = assertTestnetWallet(address, walletMessages);
               await tx.confirm(
                 t("faucet.action", { symbol: DEMO_SYMBOL }),
                 () =>

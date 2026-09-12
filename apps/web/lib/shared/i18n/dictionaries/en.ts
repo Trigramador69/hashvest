@@ -88,6 +88,13 @@ export const en = {
   "tx.stage.confirmed": "Transaction confirmed. Onchain state is up to date.",
   "tx.stage.reverted":
     "{label} reverted onchain. No changes from this transaction were applied.",
+  "tx.error.notConnected": "Connect your wallet to continue.",
+  "tx.error.wrongNetwork":
+    "Switch your wallet to {network} (chain {chainId}) to continue.",
+  "tx.error.walletChanged":
+    "Your wallet changed. Review the grant again before continuing.",
+  "tx.error.rpcUnavailable": "{network} RPC is unavailable.",
+  "tx.error.tokenAddressRequired": "Token address is required.",
   "grants.error.decimals":
     "This token supports at most {decimals} decimal places.",
   "wizard.error.amountFormat": "Enter a positive decimal token amount.",

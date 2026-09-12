@@ -37,7 +37,11 @@ import {
   useOrganizationMembers,
 } from "@/hooks/use-organizations";
 import { useSession } from "@/hooks/use-session";
-import { assertTestnetWallet, useTransaction } from "@/hooks/use-transaction";
+import {
+  assertTestnetWallet,
+  getWalletGuardMessages,
+  useTransaction,
+} from "@/hooks/use-transaction";
 import { readRevocationState } from "@/lib/protocol/revocation";
 import {
   dateLabel,
@@ -208,6 +212,7 @@ export type NewGrantProps = {
 
 export function NewGrant({ organizationId }: NewGrantProps) {
   const t = useTranslations();
+  const walletMessages = getWalletGuardMessages(t);
   const { preset: localizedPreset } = useGrantPresets();
   /** Translated rejection messages for the pure parseAllocation helper. */
   const allocationErrors = (decimals: number) => ({
@@ -489,7 +494,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
     await tx.run(async () => {
       if (!prepared || !client || !factory)
         throw new Error(t("wizard.error.reviewFirst"));
-      const account = assertTestnetWallet(prepared.issuer);
+      const account = assertTestnetWallet(prepared.issuer, walletMessages);
       const { config, milestones: items } = prepared;
       const balance = await client.readContract({
         address: config.token,
@@ -523,7 +528,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
               functionName: "approve",
               args: [factory, 0n],
               chainId: 133,
-              account: assertTestnetWallet(account),
+              account: assertTestnetWallet(account, walletMessages),
               gas: 60_000n,
             }),
           );
@@ -535,12 +540,12 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             functionName: "approve",
             args: [factory, config.totalAllocation],
             chainId: 133,
-            account: assertTestnetWallet(account),
+            account: assertTestnetWallet(account, walletMessages),
             gas: 80_000n,
           }),
         );
       }
-      assertTestnetWallet(account);
+      assertTestnetWallet(account, walletMessages);
       const simulation = await client.simulateContract({
         address: factory,
         abi: hashVestFactoryAbi,
@@ -555,7 +560,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
           functionName: "createGrant",
           args: [config, items],
           chainId: 133,
-          account: assertTestnetWallet(account),
+          account: assertTestnetWallet(account, walletMessages),
           gas: simulation.request.gas
             ? (simulation.request.gas * 130n) / 100n
             : undefined,
@@ -749,7 +754,10 @@ export function NewGrant({ organizationId }: NewGrantProps) {
     setMetadataError("");
     try {
       if (!prepared) throw new Error(t("wizard.error.reviewAgain"));
-      const currentWallet = assertTestnetWallet(prepared.issuer);
+      const currentWallet = assertTestnetWallet(
+        prepared.issuer,
+        walletMessages,
+      );
       if (
         !session.walletMatches ||
         session.session?.walletAddress.toLowerCase() !==

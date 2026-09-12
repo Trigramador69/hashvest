@@ -22,7 +22,11 @@ import {
   useGrantContext,
   useOrganizationMembers,
 } from "@/hooks/use-organizations";
-import { assertTestnetWallet, useTransaction } from "@/hooks/use-transaction";
+import {
+  assertTestnetWallet,
+  getWalletGuardMessages,
+  useTransaction,
+} from "@/hooks/use-transaction";
 import {
   dateLabel,
   errorMessage,
@@ -43,6 +47,7 @@ const REFRESH_SECONDS = 7;
 
 export function GrantDetail({ address }: { address: Address }) {
   const t = useTranslations();
+  const walletMessages = getWalletGuardMessages(t);
   const [showRevokeModal, setShowRevokeModal] = useState(false);
   const grant = useGrant(address);
   const grantContext = useGrantContext(address);
@@ -163,8 +168,8 @@ export function GrantDetail({ address }: { address: Address }) {
 
   async function handleRevoke() {
     await tx.run(async () => {
-      if (!client) throw new Error("HSK Testnet RPC is unavailable.");
-      const account = assertTestnetWallet(g.issuer);
+      if (!client) throw new Error(t("tx.error.rpcUnavailable", NETWORK));
+      const account = assertTestnetWallet(g.issuer, walletMessages);
       await client.simulateContract({
         address,
         abi: grantVaultAbi,
@@ -177,7 +182,7 @@ export function GrantDetail({ address }: { address: Address }) {
           abi: grantVaultAbi,
           functionName: "revoke",
           chainId: 133,
-          account: assertTestnetWallet(g.issuer),
+          account: assertTestnetWallet(g.issuer, walletMessages),
         }),
       );
       setShowRevokeModal(false);
@@ -187,7 +192,7 @@ export function GrantDetail({ address }: { address: Address }) {
   async function claim() {
     await tx.run(async () => {
       if (!client) throw new Error(t("detail.rpcUnavailable", NETWORK));
-      const account = assertTestnetWallet(g.beneficiary);
+      const account = assertTestnetWallet(g.beneficiary, walletMessages);
       await client.simulateContract({
         address,
         abi: grantVaultAbi,
@@ -200,7 +205,7 @@ export function GrantDetail({ address }: { address: Address }) {
           abi: grantVaultAbi,
           functionName: "claim",
           chainId: 133,
-          account: assertTestnetWallet(g.beneficiary),
+          account: assertTestnetWallet(g.beneficiary, walletMessages),
         }),
       );
     });
@@ -209,7 +214,7 @@ export function GrantDetail({ address }: { address: Address }) {
   async function approve(index: number) {
     await tx.run(async () => {
       if (!client) throw new Error(t("detail.rpcUnavailable", NETWORK));
-      const account = assertTestnetWallet(g.reviewer);
+      const account = assertTestnetWallet(g.reviewer, walletMessages);
       await client.simulateContract({
         address,
         abi: grantVaultAbi,
@@ -226,7 +231,7 @@ export function GrantDetail({ address }: { address: Address }) {
             functionName: "approveMilestone",
             args: [BigInt(index)],
             chainId: 133,
-            account: assertTestnetWallet(g.reviewer),
+            account: assertTestnetWallet(g.reviewer, walletMessages),
           }),
       );
     });

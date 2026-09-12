@@ -84,9 +84,17 @@ export const es: TranslationDictionary = {
   "party.terms": "Términos",
   "tx.stage.confirm": "{label}: confirma en tu wallet",
   "tx.stage.waiting": "{label}: esperando confirmación",
-  "tx.stage.confirmed": "Transacción confirmada. El estado onchain está al día.",
+  "tx.stage.confirmed":
+    "Transacción confirmada. El estado onchain está al día.",
   "tx.stage.reverted":
     "{label} revirtió onchain. No se aplicó ningún cambio de esta transacción.",
+  "tx.error.notConnected": "Conecta tu wallet para continuar.",
+  "tx.error.wrongNetwork":
+    "Cambia tu wallet a {network} (chain {chainId}) para continuar.",
+  "tx.error.walletChanged":
+    "Tu wallet cambió. Revisa de nuevo la subvención antes de continuar.",
+  "tx.error.rpcUnavailable": "El RPC de {network} no está disponible.",
+  "tx.error.tokenAddressRequired": "La dirección del token es obligatoria.",
   "grants.error.decimals":
     "Este token admite como máximo {decimals} decimales.",
   "wizard.error.amountFormat":
