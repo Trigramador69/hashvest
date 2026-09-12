@@ -26,7 +26,8 @@ contract InitialUnlockTest is HashVestTestBase {
             cliff: CLIFF,
             duration: DURATION,
             eligibilityProvider: address(0),
-            initialUnlock: initialUnlock
+            initialUnlock: initialUnlock,
+            revocable: false
         });
     }
 

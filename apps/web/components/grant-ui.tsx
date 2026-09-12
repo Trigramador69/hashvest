@@ -281,9 +281,19 @@ export function GrantLifecycleBadge({
 }) {
   return (
     <span
-      className={`rounded-full px-2.5 py-1 text-xs font-medium ${lifecycle === "COMPLETED" ? "bg-secondary text-muted-foreground" : "bg-primary/10 text-primary"}`}
+      className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+        lifecycle === "REVOKED"
+          ? "bg-destructive/10 text-destructive font-semibold"
+          : lifecycle === "COMPLETED"
+            ? "bg-secondary text-muted-foreground"
+            : "bg-primary/10 text-primary"
+      }`}
     >
-      {lifecycle === "COMPLETED" ? "Completed" : "Active"}
+      {lifecycle === "REVOKED"
+        ? "Revoked"
+        : lifecycle === "COMPLETED"
+          ? "Completed"
+          : "Active"}
     </span>
   );
 }

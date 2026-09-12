@@ -19,6 +19,7 @@ struct GrantConfig {
     uint256 duration;
     address eligibilityProvider;
     uint256 initialUnlock;
+    bool revocable;
 }
 
 struct MilestoneInput {

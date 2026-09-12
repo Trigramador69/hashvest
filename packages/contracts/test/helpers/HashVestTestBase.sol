@@ -58,13 +58,25 @@ abstract contract HashVestTestBase is Test {
             cliff: 90 days,
             duration: DURATION,
             eligibilityProvider: address(0),
-            initialUnlock: 0
+            initialUnlock: 0,
+            revocable: false
         });
+    }
+
+    function revocableConfig(UnlockStrategy strategy) internal view returns (GrantConfig memory) {
+        GrantConfig memory cfg = config(strategy);
+        cfg.revocable = true;
+        return cfg;
     }
 
     function createTime() internal returns (GrantVault) {
         vm.prank(issuer);
         return GrantVault(factory.createGrant(config(UnlockStrategy.TIME), new MilestoneInput[](0)));
+    }
+
+    function createRevocableTime() internal returns (GrantVault) {
+        vm.prank(issuer);
+        return GrantVault(factory.createGrant(revocableConfig(UnlockStrategy.TIME), new MilestoneInput[](0)));
     }
 
     function milestones() internal pure returns (MilestoneInput[] memory inputs) {
@@ -76,5 +88,10 @@ abstract contract HashVestTestBase is Test {
     function createMilestoneGrant(UnlockStrategy strategy) internal returns (GrantVault) {
         vm.prank(issuer);
         return GrantVault(factory.createGrant(config(strategy), milestones()));
+    }
+
+    function createRevocableMilestoneGrant(UnlockStrategy strategy) internal returns (GrantVault) {
+        vm.prank(issuer);
+        return GrantVault(factory.createGrant(revocableConfig(strategy), milestones()));
     }
 }

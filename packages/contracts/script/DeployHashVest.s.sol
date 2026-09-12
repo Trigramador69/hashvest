@@ -17,7 +17,13 @@ contract DeployHashVest is Script {
     {
         // Check the actual execution network before reading any signing material.
         if (block.chainid != 133) revert WrongChain();
-        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        uint256 deployerPrivateKey;
+        try vm.envUint("DEPLOYER_PRIVATE_KEY") returns (uint256 key) {
+            deployerPrivateKey = key;
+        } catch {
+            string memory rawKey = vm.envString("DEPLOYER_PRIVATE_KEY");
+            deployerPrivateKey = vm.parseUint(string.concat("0x", rawKey));
+        }
         address deployer = vm.addr(deployerPrivateKey);
 
         vm.startBroadcast(deployerPrivateKey);

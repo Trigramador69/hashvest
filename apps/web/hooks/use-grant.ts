@@ -56,6 +56,10 @@ export function useGrant(address: Address) {
         claimableAmount,
         milestones,
         initialUnlock,
+        revocable,
+        revoked,
+        revokedAt,
+        revocationEarnedAmount,
       ] = await Promise.all([
         client.readContract({ ...contract, functionName: "title" }),
         client.readContract({ ...contract, functionName: "issuer" }),
@@ -80,7 +84,21 @@ export function useGrant(address: Address) {
         client.readContract({ ...contract, functionName: "unlockedAmount" }),
         client.readContract({ ...contract, functionName: "claimableAmount" }),
         client.readContract({ ...contract, functionName: "getMilestones" }),
-        client.readContract({ ...contract, functionName: "initialUnlock" }),
+        client
+          .readContract({ ...contract, functionName: "initialUnlock" })
+          .catch(() => 0n),
+        client
+          .readContract({ ...contract, functionName: "revocable" })
+          .catch(() => false),
+        client
+          .readContract({ ...contract, functionName: "revoked" })
+          .catch(() => false),
+        client
+          .readContract({ ...contract, functionName: "revokedAt" })
+          .catch(() => 0n),
+        client
+          .readContract({ ...contract, functionName: "revocationEarnedAmount" })
+          .catch(() => 0n),
       ]);
       const tokenContract = { address: token, abi: erc20Abi, blockNumber };
       const [decimals, symbol, balance, beneficiaryBalance, eligibility] =
@@ -131,6 +149,10 @@ export function useGrant(address: Address) {
         claimableAmount,
         milestones,
         initialUnlock,
+        revocable,
+        revoked,
+        revokedAt,
+        revocationEarnedAmount,
         decimals,
         symbol,
         balance,
