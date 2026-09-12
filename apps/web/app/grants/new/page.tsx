@@ -324,6 +324,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
               args: [factory, 0n],
               chainId: 133,
               account: assertTestnetWallet(account),
+              gas: 60_000n,
             }),
           );
         }
@@ -335,6 +336,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             args: [factory, config.totalAllocation],
             chainId: 133,
             account: assertTestnetWallet(account),
+            gas: 80_000n,
           }),
         );
       }
@@ -354,6 +356,9 @@ export function NewGrant({ organizationId }: NewGrantProps) {
           args: [config, items],
           chainId: 133,
           account: assertTestnetWallet(account),
+          gas: simulation.request.gas
+            ? (simulation.request.gas * 130n) / 100n
+            : undefined,
         }),
       );
       const events = parseEventLogs({
