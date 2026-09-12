@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { GrantDetail } from "@/components/grant-detail";
 import { Notice } from "@/components/grant-ui";
-import { normalizeAddress } from "@/lib/grants";
+import { normalizeAddress } from "@/lib/protocol/grants";
 
 export default async function GrantPage({
   params,

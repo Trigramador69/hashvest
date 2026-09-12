@@ -5,15 +5,18 @@ import { zeroAddress, type Address } from "viem";
 import { useAccount } from "wagmi";
 
 import { useGrant } from "@/hooks/use-grant";
-import {
-  findMemberByWallet,
-  resolveProtocolRoles,
-} from "@/lib/organizations/permissions";
+import { findMemberByWallet } from "@/lib/cloud/members";
+import { resolveProtocolRoles } from "@/lib/protocol/roles";
 import type {
   OrganizationGrant,
   OrganizationMember,
-} from "@/lib/organizations/types";
-import { errorMessage, percent, strategies, tokenAmount } from "@/lib/grants";
+} from "@/lib/cloud/organizations/types";
+import {
+  errorMessage,
+  percent,
+  strategies,
+  tokenAmount,
+} from "@/lib/protocol/grants";
 
 import { AddressDisplay, Notice, Progress } from "./grant-ui";
 import { Button } from "./ui/button";

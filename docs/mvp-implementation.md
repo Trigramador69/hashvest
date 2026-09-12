@@ -2,6 +2,8 @@
 
 The supplied hackathon specification is the implementation scope. This document keeps the integration decisions and verification boundaries inspectable while the implementation spans contracts and the browser.
 
+> **Historical baseline.** This document describes the original MVP, before the organizations product layer existed. Statements below about Supabase being unused were true of that baseline only. For the current layering, per-field authority, and scope rules, see [`architecture.md`](architecture.md).
+
 ## Product behavior
 
 An issuer creates and atomically funds an immutable ERC20 grant vault. Its beneficiary claims unlocked tokens. A fixed reviewer approves fixed milestones when applicable. Wallet dashboards discover grants from role arrays on the factory. No database, indexer, native-token grants, revocation, or production deployment is part of this change.

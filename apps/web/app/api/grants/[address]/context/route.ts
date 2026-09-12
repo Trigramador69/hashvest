@@ -1,6 +1,6 @@
-import { apiErrorResponse } from "@/lib/api-server";
-import { getGrantContext } from "@/lib/organizations/server";
-import { normalizeWalletAddress } from "@/lib/organizations/validation";
+import { apiErrorResponse } from "@/lib/cloud/api-server";
+import { getGrantContext } from "@/lib/cloud/organizations/server";
+import { normalizeWalletAddress } from "@/lib/cloud/organizations/validation";
 
 export const runtime = "nodejs";
 

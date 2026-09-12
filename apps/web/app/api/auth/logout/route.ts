@@ -1,5 +1,5 @@
-import { clearSessionCookie } from "@/lib/auth/session";
-import { apiErrorResponse, assertSameOrigin } from "@/lib/api-server";
+import { clearSessionCookie } from "@/lib/cloud/auth/session";
+import { apiErrorResponse, assertSameOrigin } from "@/lib/cloud/api-server";
 
 export const runtime = "nodejs";
 

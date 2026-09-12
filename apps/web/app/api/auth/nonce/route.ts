@@ -3,11 +3,11 @@ import {
   assertSameOrigin,
   apiErrorResponse,
   readJson,
-} from "@/lib/api-server";
-import { createSiweChallenge, getApplicationOrigin } from "@/lib/auth/siwe";
-import { createSupabaseAdmin } from "@/lib/supabase-server";
-import { normalizeWalletAddress } from "@/lib/organizations/validation";
-import { HASHVEST_CHAIN_ID } from "@/lib/auth/constants";
+} from "@/lib/cloud/api-server";
+import { createSiweChallenge, getApplicationOrigin } from "@/lib/cloud/auth/siwe";
+import { createSupabaseAdmin } from "@/lib/cloud/supabase-server";
+import { normalizeWalletAddress } from "@/lib/cloud/organizations/validation";
+import { HASHVEST_CHAIN_ID } from "@/lib/cloud/auth/constants";
 
 export const runtime = "nodejs";
 

@@ -11,7 +11,7 @@ import { GrantCard } from "@/components/grant-card";
 import { SessionControl } from "@/components/session-control";
 import { useOrganizations } from "@/hooks/use-organizations";
 import { useSession } from "@/hooks/use-session";
-import { errorMessage } from "@/lib/grants";
+import { errorMessage } from "@/lib/protocol/grants";
 
 const tabs = ["Issued", "Received", "Review"] as const;
 const methods = [

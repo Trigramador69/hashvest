@@ -7,10 +7,10 @@ import { useAccount, useSignMessage } from "wagmi";
 import { getAccount } from "wagmi/actions";
 
 import { Button } from "@/components/ui/button";
-import { errorMessage } from "@/lib/grants";
-import { organizationApi } from "@/lib/organizations/client";
+import { errorMessage } from "@/lib/protocol/grants";
+import { organizationApi } from "@/lib/cloud/organizations/client";
 import { useSession, useSessionActions } from "@/hooks/use-session";
-import { wagmiConfig } from "@/lib/wagmi";
+import { wagmiConfig } from "@/lib/protocol/wagmi";
 
 export function SessionControl({ compact = false }: { compact?: boolean }) {
   const router = useRouter();

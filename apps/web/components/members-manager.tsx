@@ -11,7 +11,7 @@ import {
   useUpdateMember,
 } from "@/hooks/use-organizations";
 import { useSession } from "@/hooks/use-session";
-import { errorMessage } from "@/lib/grants";
+import { errorMessage } from "@/lib/protocol/grants";
 
 import { AddressDisplay, Notice } from "./grant-ui";
 import { MemberIdentity } from "./organization-ui";

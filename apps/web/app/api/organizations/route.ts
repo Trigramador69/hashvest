@@ -1,9 +1,9 @@
-import { apiErrorResponse, assertSameOrigin, readJson } from "@/lib/api-server";
+import { apiErrorResponse, assertSameOrigin, readJson } from "@/lib/cloud/api-server";
 import {
   createOrganization,
   listOrganizations,
-} from "@/lib/organizations/server";
-import { parseOrganizationInput } from "@/lib/organizations/validation";
+} from "@/lib/cloud/organizations/server";
+import { parseOrganizationInput } from "@/lib/cloud/organizations/validation";
 
 export const runtime = "nodejs";
 

@@ -27,9 +27,9 @@ import {
   strategies,
   strategyDescriptions,
   tokenAmount,
-} from "@/lib/grants";
+} from "@/lib/protocol/grants";
 import { ParticipantIdentity } from "./grant-card";
-import { resolveProtocolRoles } from "@/lib/organizations/permissions";
+import { resolveProtocolRoles } from "@/lib/protocol/roles";
 
 export function GrantDetail({ address }: { address: Address }) {
   const grant = useGrant(address);

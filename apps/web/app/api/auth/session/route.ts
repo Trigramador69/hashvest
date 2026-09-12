@@ -1,4 +1,4 @@
-import { readSession } from "@/lib/auth/session";
+import { readSession } from "@/lib/cloud/auth/session";
 
 export const runtime = "nodejs";
 

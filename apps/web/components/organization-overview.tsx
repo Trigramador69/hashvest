@@ -14,15 +14,13 @@ import {
 } from "@/hooks/use-organizations";
 import { useSession } from "@/hooks/use-session";
 import { useGrant } from "@/hooks/use-grant";
-import { errorMessage, tokenAmount } from "@/lib/grants";
-import {
-  findMemberByWallet,
-  resolveProtocolRoles,
-} from "@/lib/organizations/permissions";
+import { errorMessage, tokenAmount } from "@/lib/protocol/grants";
+import { findMemberByWallet } from "@/lib/cloud/members";
+import { resolveProtocolRoles } from "@/lib/protocol/roles";
 import type {
   OrganizationGrant,
   OrganizationMember,
-} from "@/lib/organizations/types";
+} from "@/lib/cloud/organizations/types";
 
 import { GrantCard } from "./grant-card";
 import { MembersPreview } from "./organization-ui";

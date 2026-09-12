@@ -1,6 +1,6 @@
-import { apiErrorResponse } from "@/lib/api-server";
-import { getOrganization } from "@/lib/organizations/server";
-import { validateUuid } from "@/lib/organizations/validation";
+import { apiErrorResponse } from "@/lib/cloud/api-server";
+import { getOrganization } from "@/lib/cloud/organizations/server";
+import { validateUuid } from "@/lib/cloud/organizations/validation";
 
 export const runtime = "nodejs";
 
