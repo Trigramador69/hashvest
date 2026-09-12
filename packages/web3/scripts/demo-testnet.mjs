@@ -190,6 +190,11 @@ async function main() {
     "approve",
     [deployment.factory, allocation * 4n],
   );
+  await waitForValue(
+    "Factory allowance after approval",
+    () => tokenRead("allowance", [issuer.account.address, deployment.factory]),
+    allocation * 4n,
+  );
   for (const [name, strategy] of [
     ["TIME", 0],
     ["MILESTONE", 1],
