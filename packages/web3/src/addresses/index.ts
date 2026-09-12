@@ -13,7 +13,8 @@ export const testnetDeployment: {
   chainId: 133,
   factory: (deployment.factory ?? undefined) as Address | undefined,
   demoToken: (deployment.demoToken ?? undefined) as Address | undefined,
-  eligibilityProvider: (deployment.eligibilityProvider ?? undefined) as Address | undefined,
+  eligibilityProvider: (deployment.eligibilityProvider ?? undefined) as
+    Address | undefined,
   deployer: (deployment.deployer ?? undefined) as Address | undefined,
   transactionHashes: deployment.transactionHashes as Record<string, Hash>,
 };
