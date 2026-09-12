@@ -18,6 +18,7 @@ struct GrantConfig {
     uint256 cliff;
     uint256 duration;
     address eligibilityProvider;
+    bool revocable;
 }
 
 struct MilestoneInput {

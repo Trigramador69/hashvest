@@ -101,8 +101,14 @@ export function GrantCard({
           <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-primary">
             {strategies[g.strategy]}
           </span>
-          <span className="text-xs text-muted-foreground">
-            {g.claimedAmount === g.totalAllocation ? "Completed" : "Active"}
+          <span
+            className={`text-xs ${g.revoked ? "font-semibold text-destructive" : "text-muted-foreground"}`}
+          >
+            {g.revoked
+              ? "Revoked"
+              : g.claimedAmount === g.totalAllocation
+                ? "Completed"
+                : "Active"}
           </span>
         </div>
         {organization && (

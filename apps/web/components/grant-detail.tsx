@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { getAddress, zeroAddress, type Address } from "viem";
@@ -32,6 +33,7 @@ import { ParticipantIdentity } from "./grant-card";
 import { resolveProtocolRoles } from "@/lib/organizations/permissions";
 
 export function GrantDetail({ address }: { address: Address }) {
+  const [showRevokeModal, setShowRevokeModal] = useState(false);
   const grant = useGrant(address);
   const grantContext = useGrantContext(address);
   const organizationMembers = useOrganizationMembers(
@@ -77,11 +79,13 @@ export function GrantDetail({ address }: { address: Address }) {
   const roles = resolveProtocolRoles(wallet.address, g);
   const isBeneficiary = roles.isBeneficiary;
   const isReviewer = roles.isReviewer;
+  const isIssuer = roles.isIssuer;
   const canWrite =
     wallet.isConnected &&
     wallet.chainId === 133 &&
     !tx.pending &&
     !grant.isRefetchError;
+  const canRevoke = isIssuer && g.revocable && !g.revoked && canWrite;
   const showTime = g.strategy !== 1;
   const showMilestones = g.strategy !== 0;
   const amount = (value: bigint) =>
@@ -89,7 +93,13 @@ export function GrantDetail({ address }: { address: Address }) {
 
   let claimReason = "Connect the beneficiary wallet to claim tokens.";
   if (isBeneficiary) {
-    if (g.eligibility.error)
+    if (g.revoked && g.claimableAmount === 0n)
+      claimReason =
+        "The grant was revoked. All earned tokens have already been claimed.";
+    else if (g.revoked)
+      claimReason =
+        "The grant was revoked by the issuer. You can claim all remaining earned tokens.";
+    else if (g.eligibility.error)
       claimReason =
         "The eligibility provider could not be read. Claims remain blocked until it is available.";
     else if (!g.eligibility.eligible)
@@ -111,6 +121,29 @@ export function GrantDetail({ address }: { address: Address }) {
     else
       claimReason =
         "Claim the currently unlocked amount directly to your beneficiary wallet.";
+  }
+
+  async function handleRevoke() {
+    await tx.run(async () => {
+      if (!client) throw new Error("HSK Testnet RPC is unavailable.");
+      const account = assertTestnetWallet(g.issuer);
+      await client.simulateContract({
+        address,
+        abi: grantVaultAbi,
+        functionName: "revoke",
+        account,
+      });
+      await tx.confirm("Revoke grant and recover unearned tokens", () =>
+        writeContractAsync({
+          address,
+          abi: grantVaultAbi,
+          functionName: "revoke",
+          chainId: 133,
+          account: assertTestnetWallet(g.issuer),
+        }),
+      );
+      setShowRevokeModal(false);
+    });
   }
 
   async function claim() {
@@ -183,9 +216,29 @@ export function GrantDetail({ address }: { address: Address }) {
         eyebrow="Grant vault · HSK Testnet"
         title={g.title}
         action={
-          <span className="rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary">
-            {strategies[g.strategy]}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary">
+              {strategies[g.strategy]}
+            </span>
+            <span className="rounded-full border border-primary/20 bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
+              {g.revocable ? "Revocable" : "Non-revocable"}
+            </span>
+            {g.revoked && (
+              <span className="rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-destructive">
+                Revoked
+              </span>
+            )}
+            {canRevoke && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-destructive/40 text-destructive hover:bg-destructive/10"
+                onClick={() => setShowRevokeModal(true)}
+              >
+                Revoke grant
+              </Button>
+            )}
+          </div>
         }
       >
         <AddressDisplay address={address} full />
@@ -206,6 +259,21 @@ export function GrantDetail({ address }: { address: Address }) {
         </div>
       </PageHeading>
       <NetworkNotice />
+      {g.revoked && (
+        <Notice title={`Grant Revoked on ${dateLabel(g.revokedAt)}`}>
+          <p>
+            This grant was revoked by the issuer. The beneficiary’s earned
+            entitlement was locked at{" "}
+            <strong>{amount(g.revocationEarnedAmount)}</strong> at the time of
+            revocation. Unearned tokens (
+            {amount(g.totalAllocation - g.revocationEarnedAmount)}) were
+            recovered by the issuer.
+            {g.claimableAmount > 0n
+              ? ` The beneficiary preserves the remaining ${amount(g.claimableAmount)} of earned value and can claim it below.`
+              : " All earned tokens have been claimed."}
+          </p>
+        </Notice>
+      )}
       {grant.isRefetchError && (
         <Notice title="Live refresh is interrupted" error>
           <p>
@@ -341,14 +409,20 @@ export function GrantDetail({ address }: { address: Address }) {
                           {milestone.approved ? "Approved" : "Pending"}
                         </span>
                         {isReviewer && !milestone.approved && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={!canWrite}
-                            onClick={() => void approve(index)}
-                          >
-                            Approve milestone
-                          </Button>
+                          g.revoked ? (
+                            <span className="text-xs text-muted-foreground">
+                              Locked (Revoked)
+                            </span>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={!canWrite}
+                              onClick={() => void approve(index)}
+                            >
+                              Approve milestone
+                            </Button>
+                          )
                         )}
                       </div>
                     </li>
@@ -363,11 +437,23 @@ export function GrantDetail({ address }: { address: Address }) {
             </CardHeader>
             <CardContent className="space-y-5 text-sm">
               <p className="leading-7 text-muted-foreground">
-                {strategyDescriptions[g.strategy]} Terms and allocation are
-                fixed. This grant cannot be revoked.
+                {strategyDescriptions[g.strategy]}{" "}
+                {g.revocable
+                  ? g.revoked
+                    ? `Revocable grant: revoked on ${dateLabel(g.revokedAt)}. Beneficiary earned entitlement is strictly preserved.`
+                    : "This grant is revocable by the issuer for unearned tokens."
+                  : "Terms and allocation are fixed. This grant cannot be revoked."}
               </p>
               <dl className="space-y-4">
                 {[
+                  [
+                    "Terms",
+                    g.revocable
+                      ? g.revoked
+                        ? "Revocable (Revoked)"
+                        : "Revocable"
+                      : "Non-revocable (Immutable)",
+                  ],
                   ["Issuer", g.issuer],
                   ["Beneficiary", g.beneficiary],
                   ...(g.reviewer !== zeroAddress
@@ -483,6 +569,79 @@ export function GrantDetail({ address }: { address: Address }) {
           </p>
         </aside>
       </div>
+      {showRevokeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <Card className="w-full max-w-lg border-destructive/30 shadow-2xl">
+            <CardHeader>
+              <CardTitle className="text-xl text-destructive">
+                Confirm Grant Revocation
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Preview the clawback and preserved entitlements before confirming.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="divide-y rounded-lg border text-sm">
+                <div className="flex justify-between p-3">
+                  <span className="text-muted-foreground">Total Allocation:</span>
+                  <span className="font-semibold">{amount(g.totalAllocation)}</span>
+                </div>
+                <div className="flex justify-between p-3">
+                  <span className="text-muted-foreground">
+                    Already Claimed by Beneficiary:
+                  </span>
+                  <span className="font-semibold">{amount(g.claimedAmount)}</span>
+                </div>
+                <div className="flex justify-between p-3">
+                  <span className="text-muted-foreground">
+                    Beneficiary Earned Entitlement:
+                  </span>
+                  <span className="font-semibold text-primary">
+                    {amount(g.unlockedAmount)}
+                  </span>
+                </div>
+                <div className="flex justify-between p-3">
+                  <span className="text-muted-foreground">
+                    Earned but Unclaimed:
+                  </span>
+                  <span className="font-semibold">{amount(g.claimableAmount)}</span>
+                </div>
+                <div className="flex justify-between bg-secondary/50 p-3">
+                  <span className="font-medium">Issuer Treasury Clawback:</span>
+                  <span className="font-bold text-destructive">
+                    {amount(g.totalAllocation - g.unlockedAmount)}
+                  </span>
+                </div>
+              </div>
+              <div className="rounded-lg bg-destructive/10 p-3 text-xs leading-5 text-destructive">
+                <strong>Irreversible Action:</strong> Revoking stops all future
+                vesting and milestone approvals permanently. Tokens already
+                earned or claimed by the beneficiary remain strictly in their
+                custody or claimable. Unearned tokens (
+                {amount(g.totalAllocation - g.unlockedAmount)}) will return
+                immediately to your connected wallet.
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  disabled={tx.pending}
+                  onClick={() => setShowRevokeModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="default"
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  disabled={!canWrite || tx.pending}
+                  onClick={() => void handleRevoke()}
+                >
+                  {tx.pending ? "Clawing back…" : "Confirm Clawback"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
