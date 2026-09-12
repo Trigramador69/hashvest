@@ -12,7 +12,7 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "test": "pnpm contracts:test && node --test packages/web3/scripts/*.test.mjs",
+    "test": "pnpm contracts:test && node --test packages/web3/scripts/*.test.mjs && pnpm --filter @hashvest/web test",
     "format": "prettier --write . && pnpm --dir packages/contracts exec forge fmt",
     "format:check": "prettier --check . && pnpm --dir packages/contracts exec forge fmt --check",
     "contracts:build": "pnpm --dir packages/contracts build",

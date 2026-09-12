@@ -22,6 +22,14 @@ packages/contracts/out/
 packages/contracts/broadcast/
 packages/contracts/lib/
 
+# Supabase CLI state is local; tracked SQL migrations remain versioned.
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+!supabase/migrations/
+!supabase/migrations/**/
+!supabase/migrations/*.sql
+
 # Tooling
 *.tsbuildinfo
 .turbo/
