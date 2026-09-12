@@ -50,10 +50,25 @@ export function dateLabel(timestamp: bigint) {
 }
 
 export function errorMessage(error: unknown) {
-  if (error instanceof BaseError) return error.shortMessage;
-  return error instanceof Error
-    ? error.message
-    : "The request failed. Please try again.";
+  const message =
+    error instanceof BaseError
+      ? [error.shortMessage, error.details, error.message]
+          .filter(Boolean)
+          .join(" ")
+      : error instanceof Error
+        ? error.message
+        : "The request failed. Please try again.";
+  const fallback =
+    error instanceof BaseError
+      ? error.shortMessage
+      : error instanceof Error
+        ? error.message
+        : "The request failed. Please try again.";
+  if (
+    /eth_getBlockByNumber|thirdweb support|custom eth_getblock/i.test(message)
+  )
+    return "Your wallet's HSK Testnet RPC could not read a block. The token contract did not reject this request. Set the wallet RPC to https://testnet.hsk.xyz on chain 133, or use the canonical RPC repair button, then retry.";
+  return fallback;
 }
 
 export function validParty(value: string) {

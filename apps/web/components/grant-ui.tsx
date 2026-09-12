@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useSwitchChain } from "wagmi";
 import { addressExplorerUrl, transactionExplorerUrl } from "@hashvest/web3";
@@ -8,10 +8,78 @@ import type { Address } from "viem";
 import { Button } from "@/components/ui/button";
 import { errorMessage, shortAddress } from "@/lib/grants";
 import type { TransactionRecord } from "@/hooks/use-transaction";
+import {
+  hskTestnetAddChainParameter,
+  hskTestnetSwitchParameter,
+  isBrowserProvider,
+  probeWalletRpc,
+} from "@/lib/network";
 
 export function NetworkNotice() {
-  const { isConnected, chainId } = useAccount();
-  const { switchChain, isPending, error } = useSwitchChain();
+  const { isConnected, chainId, connector } = useAccount();
+  const { switchChain, switchChainAsync, isPending, error } = useSwitchChain();
+  const connectionKey = `${connector?.uid ?? connector?.id ?? "none"}:${isConnected ? (chainId ?? "unknown") : "disconnected"}`;
+  const [rpcProbe, setRpcProbe] = useState<{
+    key: string;
+    status: "checking" | "healthy" | "unavailable";
+  }>({ key: "", status: "checking" });
+  const [repairState, setRepairState] = useState({ key: "", error: "" });
+  const [repairPending, setRepairPending] = useState(false);
+  const rpcHealth =
+    rpcProbe.key === connectionKey ? rpcProbe.status : "checking";
+  const repairError =
+    repairState.key === connectionKey ? repairState.error : "";
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!isConnected || chainId !== 133 || !connector) {
+      return () => {
+        cancelled = true;
+      };
+    }
+    void (async () => {
+      try {
+        const provider = await connector.getProvider();
+        if (!isBrowserProvider(provider))
+          throw new Error("Wallet provider unavailable.");
+        await probeWalletRpc(provider);
+        if (!cancelled) setRpcProbe({ key: connectionKey, status: "healthy" });
+      } catch {
+        if (!cancelled)
+          setRpcProbe({ key: connectionKey, status: "unavailable" });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [chainId, connectionKey, connector, isConnected]);
+
+  async function repairRpc() {
+    if (!connector) return;
+    setRepairPending(true);
+    setRepairState({ key: connectionKey, error: "" });
+    try {
+      const provider = await connector.getProvider();
+      if (!isBrowserProvider(provider))
+        throw new Error("Your wallet provider is unavailable.");
+      await provider.request({
+        method: "wallet_addEthereumChain",
+        params: [hskTestnetAddChainParameter],
+      });
+      await switchChainAsync({
+        chainId: 133,
+        addEthereumChainParameter: hskTestnetSwitchParameter,
+      });
+      await probeWalletRpc(provider);
+      setRpcProbe({ key: connectionKey, status: "healthy" });
+    } catch (cause) {
+      setRpcProbe({ key: connectionKey, status: "unavailable" });
+      setRepairState({ key: connectionKey, error: errorMessage(cause) });
+    } finally {
+      setRepairPending(false);
+    }
+  }
+
   if (!isConnected)
     return (
       <Notice title="Connect a wallet to get started">
@@ -24,23 +92,55 @@ export function NetworkNotice() {
         </div>
       </Notice>
     );
-  if (chainId === 133) return null;
+  if (chainId !== 133)
+    return (
+      <Notice title="Switch to HSK Testnet">
+        <p>
+          Your wallet is on another network. Transactions are enabled only on
+          chain 133.
+        </p>
+        <Button
+          className="mt-4"
+          onClick={() =>
+            switchChain({
+              chainId: 133,
+              addEthereumChainParameter: hskTestnetSwitchParameter,
+            })
+          }
+          disabled={isPending}
+        >
+          {isPending ? "Switching…" : "Switch to HSK Testnet"}
+        </Button>
+        {error && (
+          <p role="alert" className="mt-2 text-destructive">
+            {errorMessage(error)}
+          </p>
+        )}
+      </Notice>
+    );
+  if (rpcHealth !== "unavailable") return null;
   return (
-    <Notice title="Switch to HSK Testnet">
+    <Notice title="Your HSK Testnet wallet RPC is unavailable" error>
       <p>
-        Your wallet is on another network. Transactions are enabled only on
-        chain 133.
+        The wallet reports chain 133, but its RPC cannot read the latest block.
+        HashVest uses the canonical HSK endpoint at{" "}
+        <code>https://testnet.hsk.xyz</code>. A stale third-party RPC can make a
+        valid token approval look like a contract revert.
       </p>
       <Button
         className="mt-4"
-        onClick={() => switchChain({ chainId: 133 })}
-        disabled={isPending}
+        onClick={() => void repairRpc()}
+        disabled={repairPending}
       >
-        {isPending ? "Switching…" : "Switch to HSK Testnet"}
+        {repairPending ? "Updating wallet RPC…" : "Use canonical HSK RPC"}
       </Button>
-      {error && (
-        <p role="alert" className="mt-2 text-destructive">
-          {errorMessage(error)}
+      <p className="mt-3 text-xs">
+        If your wallet rejects the update, edit HSK Testnet manually: RPC URL{" "}
+        <code>https://testnet.hsk.xyz</code>, chain ID <code>133</code>.
+      </p>
+      {repairError && (
+        <p role="alert" className="mt-3 break-words text-destructive">
+          {repairError}
         </p>
       )}
     </Notice>
