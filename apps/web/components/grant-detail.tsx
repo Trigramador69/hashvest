@@ -74,7 +74,7 @@ export function GrantDetail({ address }: { address: Address }) {
             variant="outline"
             onClick={() => void grant.refetch()}
           >
-            Retry
+            {t("detail.retry")}
           </Button>
         </Notice>
       </div>
@@ -96,7 +96,7 @@ export function GrantDetail({ address }: { address: Address }) {
             variant="outline"
             onClick={() => void grant.refetch()}
           >
-            Retry
+            {t("detail.retry")}
           </Button>
         </Notice>
       </div>

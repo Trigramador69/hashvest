@@ -93,7 +93,7 @@ export function GrantCard({
           className="mt-3"
           onClick={() => void grant.refetch()}
         >
-          Retry
+          {t("card.retry")}
         </Button>
       </Notice>
     );
@@ -108,7 +108,7 @@ export function GrantCard({
           className="mt-3"
           onClick={() => void grant.refetch()}
         >
-          Retry
+          {t("card.retry")}
         </Button>
       </Notice>
     );
