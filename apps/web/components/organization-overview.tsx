@@ -292,7 +292,15 @@ export function OrganizationOverview({
                 appear here.
               </p>
             </div>
-            {grantsData.length ? (
+            {stats.isPending ? (
+              <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
+                Reading live reviewer assignments…
+              </p>
+            ) : stats.hasError ? (
+              <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
+                Live reviewer assignments are temporarily unavailable.
+              </p>
+            ) : stats.pendingReviews > 0 ? (
               grantsData.map((grant) => (
                 <ReviewQueueItem
                   key={`review:${grant.vaultAddress}`}
@@ -316,7 +324,15 @@ export function OrganizationOverview({
                 Supabase.
               </p>
             </div>
-            {grantsData.length ? (
+            {stats.isPending ? (
+              <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
+                Reading live beneficiary claimability…
+              </p>
+            ) : stats.hasError ? (
+              <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
+                Live claimable amounts are temporarily unavailable.
+              </p>
+            ) : stats.claimableGrants > 0 ? (
               grantsData.map((grant) => (
                 <ClaimableQueueItem
                   key={`claim:${grant.vaultAddress}`}
@@ -326,7 +342,7 @@ export function OrganizationOverview({
               ))
             ) : (
               <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
-                No associated grants yet.
+                No claimable grants for this wallet.
               </p>
             )}
           </section>

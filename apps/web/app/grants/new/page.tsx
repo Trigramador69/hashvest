@@ -143,10 +143,35 @@ export function NewGrant({ organizationId }: NewGrantProps) {
       (session.walletMatches && organization.data?.membership.isOwner)),
   );
 
+  function validateMemberSelection(
+    memberId: string,
+    selectedAddress: string,
+    external: boolean,
+    label: string,
+  ) {
+    if (!organizationId || external) return;
+    const member = organizationMembers.data?.find(
+      (item) => item.id === memberId,
+    );
+    if (
+      !member ||
+      member.walletAddress.toLowerCase() !== selectedAddress.toLowerCase()
+    )
+      throw new Error(
+        `Choose a ${label} from the organization directory or use an external wallet.`,
+      );
+  }
+
   function validateGrant() {
     if (!title.trim()) throw new Error("Give your grant a title.");
     if (organizationId && !beneficiaryExternal && !beneficiaryMemberId)
       throw new Error("Choose a beneficiary member or use an external wallet.");
+    validateMemberSelection(
+      beneficiaryMemberId,
+      beneficiary,
+      beneficiaryExternal,
+      "beneficiary",
+    );
     if (!validParty(beneficiary))
       throw new Error("Enter a valid, nonzero beneficiary address.");
     if (!validParty(token))
@@ -203,6 +228,12 @@ export function NewGrant({ organizationId }: NewGrantProps) {
     if (strategy !== 0) {
       if (organizationId && !reviewerExternal && !reviewerMemberId)
         throw new Error("Choose a reviewer member or use an external wallet.");
+      validateMemberSelection(
+        reviewerMemberId,
+        reviewer,
+        reviewerExternal,
+        "reviewer",
+      );
       if (!validParty(reviewer))
         throw new Error(
           "Milestone and hybrid grants require a reviewer address.",

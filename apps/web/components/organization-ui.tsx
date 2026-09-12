@@ -108,7 +108,14 @@ export function MemberPicker({
       <button
         type="button"
         className="text-xs font-medium text-primary underline underline-offset-4"
-        onClick={() => onExternalChange(!external)}
+        onClick={() => {
+          const nextExternal = !external;
+          onExternalChange(nextExternal);
+          if (!nextExternal) {
+            const member = members?.find((item) => item.id === memberId);
+            if (member) onAddressChange(member.walletAddress);
+          }
+        }}
       >
         {external ? "Choose from organization members" : "Use external wallet"}
       </button>
