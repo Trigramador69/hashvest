@@ -1,4 +1,4 @@
-import { getAddress, isAddress, zeroAddress } from "viem";
+import { getAddress, isAddress, zeroAddress, type Address } from "viem";
 
 export const ORGANIZATION_NAME_MAX_LENGTH = 120;
 export const MEMBER_DISPLAY_NAME_MAX_LENGTH = 100;
@@ -43,13 +43,13 @@ export function requiredText(value: unknown, field: string, maxLength: number) {
 export function normalizeWalletAddress(
   value: unknown,
   field = "Wallet address",
-) {
+): Address {
   const input = stringValue(value, field);
   if (!isAddress(input) || input.toLowerCase() === zeroAddress)
     throw new InputValidationError(
       `${field} must be a valid nonzero EVM address.`,
     );
-  return getAddress(input).toLowerCase();
+  return getAddress(input).toLowerCase() as Address;
 }
 
 export function validateUuid(value: unknown, field = "Organization ID") {

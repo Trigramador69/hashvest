@@ -27,7 +27,15 @@ import {
   TransactionStatus,
 } from "@/components/grant-ui";
 import { DemoFaucet } from "@/components/demo-faucet";
+import { MemberPicker } from "@/components/organization-ui";
+import { ParticipantIdentity } from "@/components/grant-card";
 import { useToken } from "@/hooks/use-grant";
+import {
+  useLinkOrganizationGrant,
+  useOrganization,
+  useOrganizationMembers,
+} from "@/hooks/use-organizations";
+import { useSession } from "@/hooks/use-session";
 import { assertTestnetWallet, useTransaction } from "@/hooks/use-transaction";
 import {
   dateLabel,
@@ -83,14 +91,26 @@ function Field({
   );
 }
 
-export default function NewGrant() {
+export type NewGrantProps = {
+  organizationId?: string;
+};
+
+export function NewGrant({ organizationId }: NewGrantProps) {
   const { address, chainId } = useAccount();
   const client = usePublicClient({ chainId: 133 });
   const { writeContractAsync } = useWriteContract();
   const tx = useTransaction();
+  const session = useSession();
+  const organization = useOrganization(organizationId);
+  const organizationMembers = useOrganizationMembers(organizationId);
+  const linkGrant = useLinkOrganizationGrant(organizationId ?? "direct");
   const [step, setStep] = useState(0);
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [beneficiary, setBeneficiary] = useState("");
+  const [beneficiaryMemberId, setBeneficiaryMemberId] = useState("");
+  const [beneficiaryExternal, setBeneficiaryExternal] =
+    useState(!organizationId);
   const [token, setToken] = useState<string>(testnetDeployment.demoToken ?? "");
   const [allocation, setAllocation] = useState("");
   const [strategy, setStrategy] = useState<0 | 1 | 2>(0);
@@ -99,6 +119,8 @@ export default function NewGrant() {
   const [duration, setDuration] = useState("5");
   const [unit, setUnit] = useState("60");
   const [reviewer, setReviewer] = useState("");
+  const [reviewerMemberId, setReviewerMemberId] = useState("");
+  const [reviewerExternal, setReviewerExternal] = useState(!organizationId);
   const [milestones, setMilestones] = useState<MilestoneInput[]>([
     { title: "", amount: "" },
   ]);
@@ -107,12 +129,24 @@ export default function NewGrant() {
   const [prepared, setPrepared] = useState<PreparedGrant>();
   const [createdAddress, setCreatedAddress] = useState<Address>();
   const [creationConfirmed, setCreationConfirmed] = useState(false);
+  const [metadataSync, setMetadataSync] = useState<
+    "idle" | "pending" | "saved" | "failed"
+  >("idle");
+  const [metadataError, setMetadataError] = useState("");
   const tokenMetadata = useToken(normalizeAddress(token));
   const factory = testnetDeployment.factory;
-  const canWrite = Boolean(address && chainId === 133 && factory);
+  const canWrite = Boolean(
+    address &&
+    chainId === 133 &&
+    factory &&
+    (!organizationId ||
+      (session.walletMatches && organization.data?.membership.isOwner)),
+  );
 
   function validateGrant() {
     if (!title.trim()) throw new Error("Give your grant a title.");
+    if (organizationId && !beneficiaryExternal && !beneficiaryMemberId)
+      throw new Error("Choose a beneficiary member or use an external wallet.");
     if (!validParty(beneficiary))
       throw new Error("Enter a valid, nonzero beneficiary address.");
     if (!validParty(token))
@@ -167,6 +201,8 @@ export default function NewGrant() {
             };
           });
     if (strategy !== 0) {
+      if (organizationId && !reviewerExternal && !reviewerMemberId)
+        throw new Error("Choose a reviewer member or use an external wallet.");
       if (!validParty(reviewer))
         throw new Error(
           "Milestone and hybrid grants require a reviewer address.",
@@ -286,7 +322,6 @@ export default function NewGrant() {
           account: assertTestnetWallet(account),
         }),
       );
-      setCreationConfirmed(true);
       const events = parseEventLogs({
         abi: hashVestFactoryAbi,
         eventName: "GrantCreated",
@@ -431,8 +466,31 @@ export default function NewGrant() {
           await new Promise((resolve) => setTimeout(resolve, 1000));
       }
       const created = indexedAddress;
-      if (created) setCreatedAddress(created);
+      if (created) {
+        setCreatedAddress(created);
+        setCreationConfirmed(true);
+        await syncWorkspaceGrant(created);
+      } else {
+        setCreationConfirmed(true);
+      }
     });
+  }
+
+  async function syncWorkspaceGrant(vaultAddress: Address) {
+    if (!organizationId) return;
+    setMetadataSync("pending");
+    setMetadataError("");
+    try {
+      await linkGrant.mutateAsync({
+        chainId: 133,
+        vaultAddress,
+        description: description.trim() || null,
+      });
+      setMetadataSync("saved");
+    } catch (error) {
+      setMetadataSync("failed");
+      setMetadataError(errorMessage(error));
+    }
   }
 
   function updateMilestone(
@@ -460,6 +518,15 @@ export default function NewGrant() {
         </p>
       </PageHeading>
       <NetworkNotice />
+      {organizationId && organization.data && (
+        <Notice title={`Creating for ${organization.data.organization.name}`}>
+          <p>
+            Onchain title, allocation, participants, and permissions remain in
+            the GrantVault. The optional description is saved as workspace
+            metadata after the confirmed transaction.
+          </p>
+        </Notice>
+      )}
       {!factory && (
         <Notice title="Testnet deployment is not configured">
           <p>
@@ -478,6 +545,40 @@ export default function NewGrant() {
             {createdAddress ? (
               <>
                 <AddressDisplay address={createdAddress} full />
+                {organizationId && metadataSync === "pending" && (
+                  <Notice title="Saving workspace metadata">
+                    <p>
+                      The HSK transaction is confirmed. Linking this grant to
+                      the workspace…
+                    </p>
+                  </Notice>
+                )}
+                {organizationId && metadataSync === "saved" && (
+                  <p className="text-sm text-primary">
+                    Workspace metadata saved. The grant is now visible in this
+                    organization.
+                  </p>
+                )}
+                {organizationId && metadataSync === "failed" && (
+                  <Notice title="Grant created successfully onchain" error>
+                    <p>
+                      Workspace metadata could not be saved. The GrantVault and
+                      its funds remain live; retry the workspace sync without
+                      creating another grant.
+                    </p>
+                    <p className="mt-2 break-words">{metadataError}</p>
+                    <Button
+                      className="mt-4"
+                      variant="outline"
+                      disabled={linkGrant.isPending}
+                      onClick={() => void syncWorkspaceGrant(createdAddress)}
+                    >
+                      {linkGrant.isPending
+                        ? "Retrying sync…"
+                        : "Retry workspace sync"}
+                    </Button>
+                  </Notice>
+                )}
                 <div>
                   <Link
                     className={buttonVariants()}
@@ -552,21 +653,57 @@ export default function NewGrant() {
                           autoComplete="off"
                         />
                       </Field>
-                      <Field
-                        label="Beneficiary wallet"
-                        hint="Only this address can claim unlocked tokens. Double-check it."
-                      >
-                        <input
-                          className="field font-mono"
-                          value={beneficiary}
-                          onChange={(event) =>
-                            setBeneficiary(event.target.value.trim())
-                          }
-                          placeholder="0x…"
-                          autoComplete="off"
-                          spellCheck={false}
+                      {organizationId ? (
+                        <MemberPicker
+                          label="Beneficiary"
+                          hint="The selected member's exact wallet becomes the onchain beneficiary. Only that wallet can claim."
+                          members={organizationMembers.data}
+                          memberId={beneficiaryMemberId}
+                          addressValue={beneficiary}
+                          onMemberChange={setBeneficiaryMemberId}
+                          onAddressChange={setBeneficiary}
+                          external={beneficiaryExternal}
+                          onExternalChange={setBeneficiaryExternal}
                         />
-                      </Field>
+                      ) : (
+                        <Field
+                          label="Beneficiary wallet"
+                          hint="Only this address can claim unlocked tokens. Double-check it."
+                        >
+                          <input
+                            className="field font-mono"
+                            value={beneficiary}
+                            onChange={(event) =>
+                              setBeneficiary(event.target.value.trim())
+                            }
+                            placeholder="0x…"
+                            autoComplete="off"
+                            spellCheck={false}
+                          />
+                        </Field>
+                      )}
+                      {organizationId && organizationMembers.isError && (
+                        <p className="text-xs text-destructive">
+                          The member directory is unavailable. You can still use
+                          an external wallet while workspace metadata recovers.
+                        </p>
+                      )}
+                      {organizationId && (
+                        <Field
+                          label="Workspace description"
+                          hint="Optional product context. It does not replace the onchain title."
+                        >
+                          <textarea
+                            className="field min-h-24 resize-y"
+                            value={description}
+                            onChange={(event) =>
+                              setDescription(event.target.value)
+                            }
+                            maxLength={1000}
+                            placeholder="Support for the HSK developer ecosystem."
+                          />
+                        </Field>
+                      )}
                       <Field
                         label="ERC20 token address"
                         hint="Use a normal ERC20 on HSK Testnet. Native HSK and fee-on-transfer tokens are unsupported."
@@ -711,20 +848,34 @@ export default function NewGrant() {
                       )}
                       {strategy !== 0 && (
                         <div className="space-y-5">
-                          <Field
-                            label="Reviewer wallet"
-                            hint="This wallet may approve milestones. Amounts and terms cannot be edited."
-                          >
-                            <input
-                              className="field font-mono"
-                              value={reviewer}
-                              onChange={(event) =>
-                                setReviewer(event.target.value.trim())
-                              }
-                              placeholder="0x…"
-                              spellCheck={false}
+                          {organizationId ? (
+                            <MemberPicker
+                              label="Reviewer"
+                              hint="The selected member's exact wallet becomes the onchain reviewer for milestone approvals."
+                              members={organizationMembers.data}
+                              memberId={reviewerMemberId}
+                              addressValue={reviewer}
+                              onMemberChange={setReviewerMemberId}
+                              onAddressChange={setReviewer}
+                              external={reviewerExternal}
+                              onExternalChange={setReviewerExternal}
                             />
-                          </Field>
+                          ) : (
+                            <Field
+                              label="Reviewer wallet"
+                              hint="This wallet may approve milestones. Amounts and terms cannot be edited."
+                            >
+                              <input
+                                className="field font-mono"
+                                value={reviewer}
+                                onChange={(event) =>
+                                  setReviewer(event.target.value.trim())
+                                }
+                                placeholder="0x…"
+                                spellCheck={false}
+                              />
+                            </Field>
+                          )}
                           <div>
                             <h3 className="font-semibold">Milestones</h3>
                             <p className="mt-1 text-sm text-muted-foreground">
@@ -869,10 +1020,18 @@ export default function NewGrant() {
                           >
                             <dt className="text-muted-foreground">{label}</dt>
                             <dd>
-                              <AddressDisplay
-                                address={getAddress(party)}
-                                full
-                              />
+                              {organizationId && label !== "Token" ? (
+                                <ParticipantIdentity
+                                  label=""
+                                  address={getAddress(party)}
+                                  members={organizationMembers.data}
+                                />
+                              ) : (
+                                <AddressDisplay
+                                  address={getAddress(party)}
+                                  full
+                                />
+                              )}
                             </dd>
                           </div>
                         ))}
@@ -999,4 +1158,8 @@ export default function NewGrant() {
       )}
     </div>
   );
+}
+
+export default function NewGrantPage() {
+  return <NewGrant />;
 }
