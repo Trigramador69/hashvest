@@ -309,26 +309,32 @@ async function main() {
     ["reviewer", reviewer],
     ["beneficiary", beneficiary],
   ]) {
-    const gas = await client.estimateGas({
-      account: signer.account.address,
-      to: issuer.account.address,
-      value: 1n,
-    });
-    const price = (await client.getGasPrice()) * 2n;
-    const balance = await client.getBalance({
-      address: signer.account.address,
-    });
-    if (balance > gas * price)
-      await confirm(
-        `Return remaining ${role} gas`,
-        await signer.sendTransaction({
-          to: issuer.account.address,
-          value: balance - gas * price,
-          gas,
-          gasPrice: price,
-          type: "legacy",
-        }),
-      );
+    try {
+      const gas = await client.estimateGas({
+        account: signer.account.address,
+        to: issuer.account.address,
+        value: 1n,
+      });
+      const price = (await client.getGasPrice()) * 2n;
+      const balance = await client.getBalance({
+        address: signer.account.address,
+      });
+      if (balance > gas * price)
+        await confirm(
+          `Return remaining ${role} gas`,
+          await signer.sendTransaction({
+            to: issuer.account.address,
+            value: balance - gas * price,
+            gas,
+            gasPrice: price,
+            type: "legacy",
+          }),
+        );
+    } catch {
+      // Returning tiny demo-wallet gas is best effort and must not invalidate
+      // the already-verified grant lifecycle evidence.
+      console.log(`Could not return residual ${role} demo gas.`);
+    }
   }
   evidence.verifiedAt = new Date().toISOString();
   evidence.results = [
