@@ -65,7 +65,9 @@ export function assertValidPreset(preset: GrantPreset): void {
   const needsMilestones = strategy !== 0;
 
   if (needsTiming && !timing)
-    throw new InvalidPresetError(`${key}: this strategy requires a vesting schedule.`);
+    throw new InvalidPresetError(
+      `${key}: this strategy requires a vesting schedule.`,
+    );
   if (!needsTiming && timing)
     throw new InvalidPresetError(
       `${key}: milestone grants have no vesting schedule; set timing to null.`,
@@ -119,9 +121,13 @@ export function assertValidPreset(preset: GrantPreset): void {
         `${key}: unit must be one of ${SCHEDULE_UNITS.join(", ")} seconds.`,
       );
     if (!/^\d+$/.test(timing.duration) || timing.duration === "0")
-      throw new InvalidPresetError(`${key}: duration must be a positive whole number.`);
+      throw new InvalidPresetError(
+        `${key}: duration must be a positive whole number.`,
+      );
     if (!/^\d+$/.test(timing.cliff))
-      throw new InvalidPresetError(`${key}: cliff must be a nonnegative whole number.`);
+      throw new InvalidPresetError(
+        `${key}: cliff must be a nonnegative whole number.`,
+      );
     if (BigInt(timing.cliff) > BigInt(timing.duration))
       throw new InvalidPresetError(
         `${key}: cliff cannot be longer than the total duration.`,

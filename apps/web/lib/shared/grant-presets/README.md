@@ -14,11 +14,11 @@ it should never require touching the wizard.
 
 ## Where things live
 
-| File                | Role                                                              |
-| ------------------- | ----------------------------------------------------------------- |
-| `presets.ts`        | The catalog: types + the four global presets                      |
-| `apply-preset.ts`   | Pure mapping (`applyPresetToDraft`) and rules (`assertValidPreset`) |
-| `*.test.ts`         | Catalog integrity, mapping, and invalid-combination coverage       |
+| File              | Role                                                                |
+| ----------------- | ------------------------------------------------------------------- |
+| `presets.ts`      | The catalog: types + the four global presets                        |
+| `apply-preset.ts` | Pure mapping (`applyPresetToDraft`) and rules (`assertValidPreset`) |
+| `*.test.ts`       | Catalog integrity, mapping, and invalid-combination coverage        |
 
 `lib/shared` is layer-neutral: this module must import **neither** `@/lib/cloud`
 nor `@/lib/protocol` (`scripts/check-boundary.mjs` fails CI otherwise). That is
@@ -32,11 +32,11 @@ import would slip past it — that is still a boundary violation
 Strategy is a number because it mirrors the onchain `UnlockStrategy` enum in
 `packages/contracts/src/GrantTypes.sol`:
 
-| `strategy` | Meaning        | `timing`  | `milestones`      | `reviewerRequired` |
-| ---------- | -------------- | --------- | ----------------- | ------------------ |
-| `0`        | Time vesting   | required  | must be `null`    | must be `false`    |
-| `1`        | Milestone grant| must be `null` | 1–20, percentages sum to 100 | must be `true` |
-| `2`        | Hybrid         | required  | 1–20, sum to 100  | must be `true`     |
+| `strategy` | Meaning         | `timing`       | `milestones`                 | `reviewerRequired` |
+| ---------- | --------------- | -------------- | ---------------------------- | ------------------ |
+| `0`        | Time vesting    | required       | must be `null`               | must be `false`    |
+| `1`        | Milestone grant | must be `null` | 1–20, percentages sum to 100 | must be `true`     |
+| `2`        | Hybrid          | required       | 1–20, sum to 100             | must be `true`     |
 
 Also enforced: `duration` is a positive whole number, `cliff` is nonnegative and
 never longer than `duration`, every milestone has a title and a positive percent.
@@ -84,7 +84,7 @@ prose.** Two things it cannot check for you:
 
 ### Worked example — and the unit trap
 
-Request: *"add a Community Ambassador preset, monthly vesting over a year."*
+Request: _"add a Community Ambassador preset, monthly vesting over a year."_
 
 Reasoning: time vesting only → `strategy: 0` → `timing` required, `milestones: null`,
 `reviewerRequired: false`.
@@ -92,7 +92,7 @@ Reasoning: time vesting only → `strategy: 0` → `timing` required, `milestone
 Now the trap. Every shipped preset uses `unit: "60"` (minutes) because those four
 are **demo-compressed on purpose**, at roughly one demo minute per real year. Do
 not copy that convention onto a new preset without deciding: the schedule is
-whatever `cliff` and `duration` mean *in the unit you choose*. "Over a year" is
+whatever `cliff` and `duration` mean _in the unit you choose_. "Over a year" is
 `unit: "86400"` (Days) with `duration: "365"` — it is **not** `duration: "365"` in
 minutes, and it is not "12 months" either, because the contract vests linearly and
 has no notion of a month. Pick the real schedule first, then decide whether this

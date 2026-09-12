@@ -62,7 +62,11 @@ export const GRANT_PRESETS = [
     tagline: "Every payment is a reviewer's signature.",
     description:
       "A milestone grant for an external contributor or hackathon builder. Funds unlock only as a reviewer approves each deliverable, so nothing moves without sign-off.",
-    bestFor: ["Open-source contributors", "Hackathon builders", "Fixed-scope deliverables"],
+    bestFor: [
+      "Open-source contributors",
+      "Hackathon builders",
+      "Fixed-scope deliverables",
+    ],
     strategy: 1,
     titleSuggestion: "Builder grant",
     descriptionSuggestion: "Milestone-based grant for a scoped build.",

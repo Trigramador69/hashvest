@@ -18,7 +18,10 @@ const timePreset = getGrantPreset("employee-vesting");
 const milestonePreset = getGrantPreset("builder-grant");
 const hybridPreset = getGrantPreset("ecosystem-grant");
 
-function mutate(preset: GrantPreset, changes: Partial<GrantPreset>): GrantPreset {
+function mutate(
+  preset: GrantPreset,
+  changes: Partial<GrantPreset>,
+): GrantPreset {
   return { ...preset, ...changes };
 }
 
@@ -100,15 +103,19 @@ describe("preset to wizard mapping", () => {
   });
 
   it("falls back to the preset's suggestion when no allocation is entered", () => {
-    expect(applyPresetToDraft(milestonePreset, { allocationDecimal: "" }).allocation).toBe(
-      milestonePreset.allocationSuggestion,
-    );
+    expect(
+      applyPresetToDraft(milestonePreset, { allocationDecimal: "" }).allocation,
+    ).toBe(milestonePreset.allocationSuggestion);
   });
 });
 
 describe("milestone allocation splitting", () => {
   it("always sums back to exactly the allocation", () => {
-    const cases: { allocation: string; decimals: number; percentages: number[] }[] = [
+    const cases: {
+      allocation: string;
+      decimals: number;
+      percentages: number[];
+    }[] = [
       { allocation: "1000", decimals: 18, percentages: [20, 50, 30] },
       { allocation: "1", decimals: 6, percentages: [40, 60] },
       // 10 / 3 does not divide evenly: the remainder must not vanish.
@@ -117,7 +124,11 @@ describe("milestone allocation splitting", () => {
       { allocation: "7", decimals: 0, percentages: [50, 50] },
     ];
     for (const { allocation, decimals, percentages } of cases) {
-      const amounts = splitAllocationByPercent(allocation, decimals, percentages);
+      const amounts = splitAllocationByPercent(
+        allocation,
+        decimals,
+        percentages,
+      );
       expect(amounts).toHaveLength(percentages.length);
       const total = amounts.reduce(
         (sum, amount) => sum + parseUnits(amount, decimals),
@@ -129,13 +140,20 @@ describe("milestone allocation splitting", () => {
 
   it("returns blank amounts for an unusable allocation instead of guessing", () => {
     expect(splitAllocationByPercent("", 18, [50, 50])).toEqual(["", ""]);
-    expect(splitAllocationByPercent("not a number", 18, [50, 50])).toEqual(["", ""]);
+    expect(splitAllocationByPercent("not a number", 18, [50, 50])).toEqual([
+      "",
+      "",
+    ]);
     expect(splitAllocationByPercent("0", 18, [50, 50])).toEqual(["", ""]);
   });
 
   it("never rounds a milestone up past the allocation", () => {
     // 1 base unit across three milestones: only the remainder-holder gets it.
-    expect(splitAllocationByPercent("1", 0, [33, 33, 34])).toEqual(["0", "0", "1"]);
+    expect(splitAllocationByPercent("1", 0, [33, 33, 34])).toEqual([
+      "0",
+      "0",
+      "1",
+    ]);
   });
 });
 
@@ -154,17 +172,19 @@ describe("invalid preset combinations", () => {
   });
 
   it("rejects a TIME or HYBRID preset without a schedule", () => {
-    expect(() => assertValidPreset(mutate(timePreset, { timing: null }))).toThrow(
-      /requires a vesting schedule/,
-    );
-    expect(() => assertValidPreset(mutate(hybridPreset, { timing: null }))).toThrow(
-      /requires a vesting schedule/,
-    );
+    expect(() =>
+      assertValidPreset(mutate(timePreset, { timing: null })),
+    ).toThrow(/requires a vesting schedule/);
+    expect(() =>
+      assertValidPreset(mutate(hybridPreset, { timing: null })),
+    ).toThrow(/requires a vesting schedule/);
   });
 
   it("rejects a MILESTONE preset that carries a schedule", () => {
     expect(() =>
-      assertValidPreset(mutate(milestonePreset, { timing: hybridPreset.timing })),
+      assertValidPreset(
+        mutate(milestonePreset, { timing: hybridPreset.timing }),
+      ),
     ).toThrow(/no vesting schedule/);
   });
 
@@ -216,7 +236,9 @@ describe("invalid preset combinations", () => {
     ).toThrow(/cliff cannot be longer/);
     expect(() =>
       assertValidPreset(
-        mutate(timePreset, { timing: { ...timePreset.timing!, duration: "0" } }),
+        mutate(timePreset, {
+          timing: { ...timePreset.timing!, duration: "0" },
+        }),
       ),
     ).toThrow(/duration must be a positive/);
   });
