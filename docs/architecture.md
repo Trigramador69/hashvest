@@ -39,6 +39,7 @@ The Cloud is the product layer. It makes the Protocol usable — workspaces, nam
 | `apps/web/lib/cloud/organizations/**`   | Validation, server authorization, browser API client, types |
 | `apps/web/lib/cloud/supabase-server.ts` | The only service-role Supabase client; server-only          |
 | `apps/web/lib/shared/i18n/**`           | Locale selection and the typed translation boundary         |
+| `apps/web/lib/shared/grant-presets/**`  | Grant preset catalog, wizard mapping, and field ownership   |
 | `supabase/migrations/**`                | Organizations, members, grant associations, auth nonces     |
 
 Cloud authority stops at workspace access. The SIWE statement in `apps/web/lib/cloud/auth/constants.ts` says so explicitly: the signature _"authenticates workspace access only; it does not authorize onchain actions."_

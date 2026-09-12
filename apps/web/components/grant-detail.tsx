@@ -35,6 +35,7 @@ import { deriveGrantState } from "@/lib/protocol/grant-state";
 import { deriveRevocationPreview } from "@/lib/protocol/revocation";
 import { ParticipantIdentity } from "./grant-card";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
+import { findGrantPreset } from "@/lib/shared/grant-presets/presets";
 
 export function GrantDetail({ address }: { address: Address }) {
   const [showRevokeModal, setShowRevokeModal] = useState(false);
@@ -117,6 +118,9 @@ export function GrantDetail({ address }: { address: Address }) {
     revoked: g.revoked,
   });
   const roles = resolveProtocolRoles(wallet.address, g);
+  // Workspace metadata: which preset this grant started from. An unknown or
+  // retired key simply shows nothing; the vault's own terms are authoritative.
+  const template = findGrantPreset(grantContext.data?.grant.templateKey);
   const isBeneficiary = roles.isBeneficiary;
   const isReviewer = roles.isReviewer;
   const isIssuer = roles.isIssuer;
@@ -281,6 +285,11 @@ export function GrantDetail({ address }: { address: Address }) {
         {grantContext.data?.grant.description && (
           <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
             {grantContext.data.grant.description}
+          </p>
+        )}
+        {template && (
+          <p className="mt-3 text-sm text-muted-foreground">
+            From the {template.name} template · workspace metadata only
           </p>
         )}
         <div className="mt-3 flex flex-wrap gap-2">

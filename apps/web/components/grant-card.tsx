@@ -17,6 +17,7 @@ import {
   strategies,
   tokenAmount,
 } from "@/lib/protocol/grants";
+import { findGrantPreset } from "@/lib/shared/grant-presets/presets";
 
 import {
   AddressDisplay,
@@ -125,6 +126,9 @@ export function GrantCard({
     revoked: g.revoked,
   });
   const roles = resolveProtocolRoles(walletAddress, g);
+  // Workspace metadata: which preset this grant started from. An unknown or
+  // retired key simply shows nothing; the vault's own terms are above.
+  const template = findGrantPreset(metadata?.templateKey);
   const pendingMilestones = g.milestones.filter(
     (item) => !item.approved,
   ).length;
@@ -157,6 +161,11 @@ export function GrantCard({
         {metadata?.description && (
           <p className="pt-2 text-sm leading-6 text-muted-foreground">
             {metadata.description}
+          </p>
+        )}
+        {template && (
+          <p className="pt-2 text-xs text-muted-foreground">
+            From the {template.name} template
           </p>
         )}
         {roles.roles.length > 0 && (
