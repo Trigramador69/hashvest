@@ -73,13 +73,14 @@ export function useOrganizationGrants(organizationId: string | undefined) {
 }
 
 export function useGrantContext(vaultAddress: string | undefined) {
+  const { walletMatches } = useSession();
   return useQuery({
     queryKey: vaultAddress
       ? grantContextQueryKey(vaultAddress)
       : ["grant-context", "missing"],
     queryFn: async () =>
       (await organizationApi.getGrantContext(vaultAddress as string)).context,
-    enabled: Boolean(vaultAddress),
+    enabled: Boolean(vaultAddress && walletMatches),
     retry: false,
     staleTime: 15_000,
   });

@@ -85,6 +85,12 @@ export function createSiweChallenge(
   };
 }
 
+function sameInstant(left: string, right: string) {
+  const leftTime = Date.parse(left);
+  const rightTime = Date.parse(right);
+  return Number.isFinite(leftTime) && leftTime === rightTime;
+}
+
 export async function verifySiweSignature({
   message,
   signature,
@@ -122,8 +128,8 @@ export async function verifySiweSignature({
   )
     throw new Error("The sign-in message does not match the issued challenge.");
   if (
-    parsed.issuedAt !== expected.issuedAt ||
-    parsed.expirationTime !== expected.expiresAt
+    !sameInstant(parsed.issuedAt ?? "", expected.issuedAt) ||
+    !sameInstant(parsed.expirationTime ?? "", expected.expiresAt)
   )
     throw new Error("The sign-in message timestamps are invalid.");
   const result = await parsed.verify(

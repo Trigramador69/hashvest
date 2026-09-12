@@ -12,6 +12,7 @@ import {
   useOrganizationGrants,
   useOrganizationMembers,
 } from "@/hooks/use-organizations";
+import { useSession } from "@/hooks/use-session";
 import { useGrant } from "@/hooks/use-grant";
 import { errorMessage, tokenAmount } from "@/lib/grants";
 import { findMemberByWallet } from "@/lib/organizations/permissions";
@@ -192,10 +193,12 @@ export function OrganizationOverview({
 }: {
   organizationId: string;
 }) {
+  const session = useSession();
   const organization = useOrganization(organizationId);
   const grants = useOrganizationGrants(organizationId);
   const members = useOrganizationMembers(organizationId);
   const stats = useOrganizationGrantStats(grants.data);
+  if (!session.walletMatches) return null;
   if (organization.isPending || grants.isPending || members.isPending)
     return (
       <Notice title="Loading organization overview">
@@ -359,9 +362,11 @@ export function OrganizationGrants({
 }: {
   organizationId: string;
 }) {
+  const session = useSession();
   const organization = useOrganization(organizationId);
   const grants = useOrganizationGrants(organizationId);
   const members = useOrganizationMembers(organizationId);
+  if (!session.walletMatches) return null;
   if (organization.isPending || grants.isPending || members.isPending)
     return (
       <Notice title="Loading workspace grants">
