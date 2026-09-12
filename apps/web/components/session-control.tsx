@@ -6,7 +6,9 @@ import { getAddress } from "viem";
 import { useAccount, useSignMessage } from "wagmi";
 import { getAccount } from "wagmi/actions";
 
+import { hskTestnet } from "@hashvest/web3";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "@/lib/shared/i18n/provider";
 import { errorMessage } from "@/lib/protocol/grants";
 import { organizationApi } from "@/lib/cloud/organizations/client";
 import { useSession, useSessionActions } from "@/hooks/use-session";
@@ -18,6 +20,10 @@ export function SessionControl({ compact = false }: { compact?: boolean }) {
   const session = useSession();
   const { signMessageAsync } = useSignMessage();
   const { clearSession } = useSessionActions();
+  const t = useTranslations();
+  // Network name and chain id are protocol literals; only the sentence around
+  // them is translated.
+  const network = { network: hskTestnet.name, chainId: hskTestnet.id };
   const [pending, setPending] = useState(false);
   const [actionError, setActionError] = useState("");
 
@@ -27,7 +33,7 @@ export function SessionControl({ compact = false }: { compact?: boolean }) {
     setActionError("");
     try {
       if (chainId !== 133)
-        throw new Error("Switch your wallet to HSK Testnet (chain 133) first.");
+        throw new Error(t("session.switchNetworkChain", network));
       const requestedWallet = address.toLowerCase();
       const challenge = await organizationApi.requestNonce(address, 133);
       const signature = await signMessageAsync({ message: challenge.message });
@@ -36,7 +42,7 @@ export function SessionControl({ compact = false }: { compact?: boolean }) {
         !currentAccount.address ||
         currentAccount.address.toLowerCase() !== requestedWallet
       )
-        throw new Error("Wallet changed. Sign in again to continue.");
+        throw new Error(t("session.walletChanged"));
       await organizationApi.verifySignature(challenge.message, signature);
       await session.refetch();
       router.refresh();
@@ -71,7 +77,7 @@ export function SessionControl({ compact = false }: { compact?: boolean }) {
       {session.isAuthenticated && walletMatches ? (
         <>
           <p className="text-xs font-medium text-primary">
-            Workspace access enabled
+            {t("session.enabled")}
           </p>
           {!compact && (
             <p className="font-mono text-xs text-muted-foreground">
@@ -84,15 +90,15 @@ export function SessionControl({ compact = false }: { compact?: boolean }) {
             onClick={() => void logout()}
             disabled={pending}
           >
-            {pending ? "Signing out…" : "Sign out of workspace"}
+            {pending ? t("session.signingOut") : t("session.signOut")}
           </button>
         </>
       ) : (
         <>
           <p className="text-xs text-muted-foreground">
             {session.isAuthenticated && !walletMatches
-              ? "Wallet changed. Sign in again to continue."
-              : "Wallet connected, workspace sign-in required."}
+              ? t("session.walletChanged")
+              : t("session.required")}
           </p>
           <Button
             size="sm"
@@ -100,18 +106,18 @@ export function SessionControl({ compact = false }: { compact?: boolean }) {
             onClick={() => void signIn()}
             disabled={pending || chainId !== 133}
           >
-            {pending ? "Signing in…" : "Sign in to workspace"}
+            {pending ? t("session.signingIn") : t("session.signIn")}
           </Button>
           {chainId !== 133 && (
             <p className="text-[11px] text-muted-foreground">
-              Switch to HSK Testnet first.
+              {t("session.switchNetwork", network)}
             </p>
           )}
         </>
       )}
       {session.isError && (
         <p className="max-w-64 text-[11px] leading-4 text-destructive">
-          Workspace auth is not configured on this server yet.
+          {t("session.notConfigured")}
         </p>
       )}
       {actionError && (
