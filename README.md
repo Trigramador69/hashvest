@@ -4,6 +4,30 @@ HashVest is a programmable grant and vesting protocol for HashKey Chain. An issu
 
 This is a hackathon MVP for HSK Testnet. It is unaudited, uses demo assets, and is not production custody software.
 
+## Agent-assisted development
+
+The shared agent contract is [`AGENTS.md`](AGENTS.md). Canonical project skills live in [`.agents/skills/`](.agents/skills/), and generated Claude adapters live in [`.claude/skills/`](.claude/skills/). The compatibility and maintenance rules are in [`docs/agents/`](docs/agents/README.md).
+
+Before creating or updating a PR, agents must run `pnpm agents:sync`, `pnpm agents:check`, and `pnpm ci:check`. Work should be tied to a Linear issue and delivered in small, logically grouped commits. Changes to commands, paths, APIs, schemas, locales, architecture, deployments, CI, or user flows must update the affected skills, this README, `AGENTS.md`, and relevant docs in the same change.
+
+<!-- BEGIN:hashvest-agent-catalog -->
+
+### Agent workflow catalog
+
+Canonical skills live in `.agents/skills/`; Claude adapters are generated in `.claude/skills/`.
+
+- [`agent-maintenance`](.agents/skills/agent-maintenance/SKILL.md) — Keep HashVest agent instructions, skills, generated adapters, README, architecture docs, and CI contracts synchronized whenever repository behavior or references change.
+- [`architecture`](.agents/skills/architecture/SKILL.md) — Design or review HashVest changes while preserving the Cloud, web3, Protocol, Supabase, and HSK authority boundaries documented by the repository.
+- [`ci-preflight`](.agents/skills/ci-preflight/SKILL.md) — Reproduce the HashVest GitHub CI validation locally, diagnose failures without hiding them, and produce exact evidence before a pull request is created or updated.
+- [`deployment`](.agents/skills/deployment/SKILL.md) — Plan, rehearse, execute, or verify HashVest HSK Testnet operations with chain guards, explicit transaction authority, safe secrets, and evidence-backed state changes.
+- [`localization`](.agents/skills/localization/SKILL.md) — Add or update HashVest localized strings for selected languages using the typed English source dictionary, safe fallbacks, preserved technical literals, and focused validation.
+- [`pr-delivery`](.agents/skills/pr-delivery/SKILL.md) — Deliver focused HashVest work through Linear-linked branches, incremental commits, evidence-backed review, and a validated pull-request workflow.
+- [`ui-ux`](.agents/skills/ui-ux/SKILL.md) — Make small, accessible, responsive UI improvements on the current HashVest surface while preserving wallet, session, transaction, and localization behavior before the planned redesign.
+- [`workspace-setup`](.agents/skills/workspace-setup/SKILL.md) — Set up or diagnose the HashVest monorepo safely, including Node, pnpm, Foundry, package-local environment templates, and reproducible dependencies.
+
+After changing a skill, run `pnpm agents:sync` and `pnpm agents:check`.
+<!-- END:hashvest-agent-catalog -->
+
 ## MVP features
 
 - Time vesting with a start timestamp, cliff, and linear duration.
