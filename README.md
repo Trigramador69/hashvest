@@ -89,7 +89,7 @@ pnpm contracts:smoke:testnet
 
 The current deployment is written to `packages/web3/src/addresses/hsk-testnet.json` after a successful broadcast. The canonical explorer is [HSK Testnet Explorer](https://testnet-explorer.hskchain.net). The generated deployment artifact remains the source of truth; the current values are repeated below for demo convenience.
 
-Current verified HSK Testnet deployment (chain 133):
+Current HSK Testnet deployment (chain 133; bytecode and read-only smoke verified):
 
 | Contract                | Address                                                                                                                                  | Deployment transaction                                                                                                                                                              |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
