@@ -24,7 +24,8 @@
     "contracts:deploy:testnet": "dotenv -e packages/contracts/.env -- node packages/web3/scripts/deploy-testnet.mjs",
     "contracts:smoke:testnet": "dotenv -e packages/contracts/.env -- node packages/web3/scripts/smoke-testnet.mjs",
     "contracts:verify:testnet": "dotenv -e packages/contracts/.env -- node packages/web3/scripts/verify-testnet.mjs",
-    "demo:testnet": "dotenv -e packages/contracts/.env -- node packages/web3/scripts/demo-testnet.mjs"
+    "demo:testnet": "dotenv -e packages/contracts/.env -- node packages/web3/scripts/demo-testnet.mjs",
+    "rehearsal:check": "node packages/web3/scripts/rehearsal-check.mjs"
   },
   "devDependencies": {
     "dotenv-cli": "11.0.0",

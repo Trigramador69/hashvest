@@ -170,6 +170,8 @@ The direct protocol flow remains available at `/grants/new`: enter raw beneficia
 
 Every approval, creation, milestone, faucet, and claim transaction exposes an HSK Testnet explorer link. Use `/app` to move between role-specific grants.
 
+For the controlled-wallet browser rehearsal, copy the public-address-only fixture and follow [`docs/browser-rehearsal.md`](docs/browser-rehearsal.md). `pnpm rehearsal:check` performs a read-only HSK/deployment/wallet readiness check; live browser execution and evidence are tracked separately in HAS-20.
+
 ## Security boundary
 
 HashVest MVP has not been professionally audited. It targets HSK Testnet only, uses a faucet-mintable demo token, and should not hold production funds. The contracts have no revocation or emergency issuer withdrawal path by design. `DemoEligibilityProvider` is an adapter demonstration, not KYC or compliance.
