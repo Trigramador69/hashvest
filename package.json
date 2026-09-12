@@ -17,7 +17,7 @@
     "format:check": "prettier --check .",
     "contracts:build": "pnpm --dir packages/contracts build",
     "contracts:test": "pnpm --dir packages/contracts test",
-    "contracts:deploy:testnet": "dotenv -e .env -- forge script --root packages/contracts script/DeployDevelopmentRegistry.s.sol:DeployDevelopmentRegistry --rpc-url hsk_testnet --broadcast"
+    "contracts:deploy:testnet": "dotenv -e .env -- pnpm --dir packages/contracts run deploy:testnet"
   },
   "devDependencies": {
     "dotenv-cli": "11.0.0",
