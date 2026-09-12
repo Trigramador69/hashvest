@@ -481,6 +481,19 @@ export function NewGrant({ organizationId }: NewGrantProps) {
     setMetadataSync("pending");
     setMetadataError("");
     try {
+      if (!prepared)
+        throw new Error(
+          "Review the grant again before syncing workspace metadata.",
+        );
+      const currentWallet = assertTestnetWallet(prepared.issuer);
+      if (
+        !session.walletMatches ||
+        session.session?.walletAddress.toLowerCase() !==
+          currentWallet.toLowerCase()
+      )
+        throw new Error(
+          "Wallet changed. Sign in again with the issuing wallet before syncing workspace metadata.",
+        );
       await linkGrant.mutateAsync({
         chainId: 133,
         vaultAddress,

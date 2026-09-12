@@ -75,7 +75,7 @@ export function useOrganizationGrants(organizationId: string | undefined) {
 
 export function useGrantContext(vaultAddress: string | undefined) {
   const { walletMatches } = useSession();
-  return useQuery({
+  const query = useQuery({
     queryKey: vaultAddress
       ? grantContextQueryKey(vaultAddress)
       : ["grant-context", "missing"],
@@ -85,6 +85,7 @@ export function useGrantContext(vaultAddress: string | undefined) {
     retry: false,
     staleTime: 15_000,
   });
+  return { ...query, data: walletMatches ? query.data : undefined };
 }
 
 function invalidateOrganization(
