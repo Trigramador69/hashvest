@@ -141,17 +141,21 @@ export function useGrant(address: Address) {
                   () => ({ enabled: true, eligible: false, error: true }),
                 ),
         ]);
-      const sponsoredClaim = await (async () => {
+      const sponsoredActions = await (async () => {
         try {
           const supported = await client.readContract({
             address,
             abi: sponsoredGrantVaultAbi,
-            functionName: "supportsSponsoredClaims",
+            functionName: "supportsSponsoredActions",
             blockNumber,
           });
           if (!supported)
-            return { supported: false as const, nonce: 0n, used: false };
-          const [nonce, used] = await Promise.all([
+            return {
+              supported: false as const,
+              claimNonce: 0n,
+              reviewNonce: 0n,
+            };
+          const [claimNonce, reviewNonce] = await Promise.all([
             client.readContract({
               address,
               abi: sponsoredGrantVaultAbi,
@@ -161,14 +165,18 @@ export function useGrant(address: Address) {
             client.readContract({
               address,
               abi: sponsoredGrantVaultAbi,
-              functionName: "sponsoredClaimUsed",
+              functionName: "sponsoredReviewNonce",
               blockNumber,
             }),
           ]);
-          return { supported: true as const, nonce, used };
+          return { supported: true as const, claimNonce, reviewNonce };
         } catch {
-          // Legacy GrantVaults do not expose the sponsored-claim extension.
-          return { supported: false as const, nonce: 0n, used: false };
+          // Legacy GrantVaults do not expose the generalized v2 extension.
+          return {
+            supported: false as const,
+            claimNonce: 0n,
+            reviewNonce: 0n,
+          };
         }
       })();
       return {
@@ -199,7 +207,7 @@ export function useGrant(address: Address) {
         balance,
         beneficiaryBalance,
         eligibility,
-        sponsoredClaim,
+        sponsoredActions,
         blockNumber,
       };
     },

@@ -14,8 +14,11 @@
     "HskChain",
     "testnetDeployment",
     "transactionExplorerUrl",
+    "SPONSORED_ACTION_DOMAIN",
     "SPONSORED_CLAIM_DOMAIN",
     "SPONSORED_CLAIM_TYPES",
-    "SponsoredClaimMessage"
+    "SPONSORED_REVIEW_TYPES",
+    "SponsoredClaimMessage",
+    "SponsoredReviewMessage"
   ]
 }

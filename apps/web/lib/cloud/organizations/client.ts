@@ -10,8 +10,9 @@ import type {
   OrganizationNotificationReadInput,
   OrganizationSummary,
   OrganizationTemplate,
-  SponsoredClaimPolicy,
-  SponsoredClaimRequest,
+  SponsoredActionRequest,
+  SponsoredActionType,
+  SponsorshipPolicy,
   SessionResponse,
 } from "./types";
 import type { OrganizationTemplateContent } from "../../shared/grant-presets/organization-template";
@@ -199,17 +200,24 @@ export const organizationApi = {
     ),
   getSponsorshipPolicy: (organizationId: string) =>
     request<
-      SponsoredClaimPolicy & {
+      SponsorshipPolicy & {
         relayerAddress: string | null;
         relayerConfigured: boolean;
       }
     >(`/api/organizations/${organizationId}/sponsorship`),
   updateSponsorshipPolicy: (
     organizationId: string,
-    input: { enabled: boolean; maxClaims: number },
+    input: {
+      enabled: boolean;
+      allowedActions: SponsoredActionType[];
+      allowedVaults: string[];
+      maxActions: number;
+      maxActionsPerWalletPerDay: number;
+      maxGasBudgetWei: string;
+    },
   ) =>
     request<
-      SponsoredClaimPolicy & {
+      SponsorshipPolicy & {
         relayerAddress: string | null;
         relayerConfigured: boolean;
       }
@@ -217,35 +225,38 @@ export const organizationApi = {
       method: "PATCH",
       body: JSON.stringify(input),
     }),
-  submitSponsoredClaim: (
+  submitSponsoredAction: (
     organizationId: string,
     vaultAddress: string,
     input: {
-      amount: string;
+      actionType: SponsoredActionType;
+      amount?: string;
+      milestoneIndex?: number;
       nonce: string;
       deadline: string;
       relayerAddress: string;
       signature: string;
     },
   ) =>
-    request<{ request: SponsoredClaimRequest }>(
-      `/api/organizations/${organizationId}/grants/${vaultAddress}/sponsored-claim`,
+    request<{ request: SponsoredActionRequest }>(
+      `/api/organizations/${organizationId}/grants/${vaultAddress}/sponsored-action`,
       { method: "POST", body: JSON.stringify(input) },
     ),
-  getSponsoredClaimStatus: (
+  getSponsoredActionStatus: (
     organizationId: string,
     vaultAddress: string,
     requestId: string,
   ) =>
-    request<{ request: SponsoredClaimRequest }>(
-      `/api/organizations/${organizationId}/grants/${vaultAddress}/sponsored-claim?requestId=${encodeURIComponent(requestId)}`,
+    request<{ request: SponsoredActionRequest }>(
+      `/api/organizations/${organizationId}/grants/${vaultAddress}/sponsored-action?requestId=${encodeURIComponent(requestId)}`,
     ),
-  getSponsoredClaimByNonce: (
+  getSponsoredActionByNonce: (
     organizationId: string,
     vaultAddress: string,
+    actionType: SponsoredActionType,
     nonce: string,
   ) =>
-    request<{ request: SponsoredClaimRequest | null }>(
-      `/api/organizations/${organizationId}/grants/${vaultAddress}/sponsored-claim?nonce=${encodeURIComponent(nonce)}`,
+    request<{ request: SponsoredActionRequest | null }>(
+      `/api/organizations/${organizationId}/grants/${vaultAddress}/sponsored-action?actionType=${actionType}&nonce=${encodeURIComponent(nonce)}`,
     ),
 };

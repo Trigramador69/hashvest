@@ -15,7 +15,7 @@ Use this skill for new modules, data flows, APIs, persistence, contracts, cross-
 3. Preserve the one-way integration path: Cloud → `@hashvest/web3` → Protocol → HSK. `packages/contracts`, `packages/web3`, `apps/web/lib/protocol`, and `apps/web/lib/shared` must not acquire Cloud dependencies.
 4. Prefer an existing seam and the smallest change. Record material alternatives, invariants, and migration or rollback implications in the relevant design document or ADR before implementation.
 5. Respect the hackathon scope: do not split the repository or add deferred P1/P2/P3 product functionality. Use a Linear issue for ideas outside the active milestone unless the requester explicitly asks to defer issue tracking.
-6. For relayed claims, bind every beneficiary intent field (vault, beneficiary, amount, nonce, deadline, relayer) in the protocol, keep the relayer key server-only, make policy/request state idempotent, and preserve a manual beneficiary-paid fallback.
+6. For relayed actions, bind every actor intent field (vault, beneficiary or reviewer, amount or milestone, nonce, deadline, relayer) in the protocol, keep the relayer key server-only, make policy/request state idempotent, and preserve a manual wallet-paid fallback.
 7. Treat product packaging as a display-only Cloud concern. A Protocol / Cloud or Free / Team / Enterprise presentation may describe capabilities, but must not introduce billing, metering, entitlements, plan limits, or a permission path.
 8. Treat milestone evidence as private Cloud/Supabase metadata associated with `(chain_id, vault_address, milestone_index)`. It must not change reviewer, approval, beneficiary, allocation, or any other HSK authority, and the public GrantDetail context endpoint must not return it.
 9. Treat a protocol fee as a future Protocol create-time surplus only. Read [`docs/protocol-fee-spec.md`](../../../docs/protocol-fee-spec.md) before changing factory funding. Never reduce `totalAllocation` to pay a fee, never add a Cloud-only or `/plans` fee, and do not implement or deploy a fee-aware factory without a separately approved issue and review.
@@ -27,7 +27,7 @@ Use this skill for new modules, data flows, APIs, persistence, contracts, cross-
 - Does any presentation label accidentally become permission?
 - Is a value derived live from HSK rather than cached as authoritative Cloud data?
 - Are authentication, signing, persistence, and external inputs validated at their boundaries?
-- Does a sponsored operation prove beneficiary intent onchain, prevent replay/duplicate broadcast, and expose a safe fallback when the relayer or Cloud is unavailable?
+- Does a sponsored operation prove actor intent onchain, prevent replay/duplicate broadcast, and expose a safe fallback when the relayer or Cloud is unavailable?
 - Does the proposed path match the extraction boundary recorded in `packages/web3/protocol-surface.json`?
 - If any fee is involved, is it a factory-quoted create-time surplus that leaves allocation exact, or is it leaking into Cloud billing or claim math?
 

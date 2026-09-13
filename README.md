@@ -26,7 +26,7 @@ This is a hackathon MVP deployed on **HSK Chain Testnet**. It is unaudited, uses
 - Hybrid grants where both conditions constrain the claim: `unlocked = min(time vested, approved milestone amount)`.
 - Optional `IEligibilityProvider` adapter, including a clearly labeled administrator-controlled demo allowlist.
 - Optional one-way issuer revocation that recovers only unearned allocation while preserving earned and claimed beneficiary value.
-- Organization-sponsored first claims: organization-created grants use a versioned `SponsoredGrantVault`; the beneficiary signs the exact first claim and a server-only relayer pays HSK gas.
+- Organization-sponsored claims and reviews: organization-created grants use a versioned `SponsoredGrantVault`; the actor signs the exact claim or milestone approval and a server-only relayer pays HSK gas.
 - One fully funded vault per grant; SafeERC20 rejects underfunded fee-on-transfer funding.
 - Optional protocol fee: designed as a later create-time issuer surplus that never reduces allocation; not implemented. See [`docs/protocol-fee-spec.md`](docs/protocol-fee-spec.md).
 - Beneficiary-only claims, role dashboards, explorer links, and real HSK Testnet transactions.
@@ -39,7 +39,7 @@ This is a hackathon MVP deployed on **HSK Chain Testnet**. It is unaudited, uses
 - Editable grant presets — Builder Grant, Employee Vesting, Advisor Vesting, and Ecosystem Grant — in a five-step creation wizard (Template, Grant, Strategy, Conditions, Review).
 - Review and claim queues, plus lifecycle and funding health computed from live HSK reads.
 - Bounded batch grant creation for cohorts and a human-reviewed AI Grant Builder that produces editable drafts.
-- Organization-sponsored first claims are implemented behind a deployment gate; a beneficiary signature and server-only relayer pay HSK gas, with the beneficiary-paid claim always available as fallback.
+- Organization-sponsored claims and reviews are implemented behind a deployment gate; an actor signature and server-only relayer pay HSK gas, with the wallet-paid claim or approval always available as fallback.
 - Private milestone evidence for organization members: a URL, type, and optional note attached to the canonical grant identity and milestone index. Reviewers still approve only through the existing onchain `approveMilestone` action.
 - A wallet dashboard with grants by role, strategy, and lifecycle and a six-month activity timeline from HSK events, as a read-only projection of chain state.
 - Bounded organization reporting from live vault reads: lifecycle counts, allocations grouped by token identity, and upcoming cliffs. Every figure names its vault field, and there is no cross-token total, price, or conversion.
@@ -104,7 +104,7 @@ The page also explains optional sponsored gas, AI credits, and compliance
 checks. This is product communication only: it has no prices, checkout,
 invoicing, billing webhooks, metering, entitlements, or enforced plan limits.
 Each capability is marked **Available in demo** or **Roadmap**. The sponsored
-first-claim implementation is present on the current branch, but the checked-in
+action implementation is present on the current branch, but the checked-in
 testnet deployment predates `createSponsoredGrant`, so the product page keeps
 that capability roadmap-labeled until an authorized redeploy. The demo path
 continues to work independently through `/grants/new` and `/app`.
@@ -121,7 +121,7 @@ The workspace Reports tab derives an operational report from the same live vault
 
 Organization writes go through authenticated Next.js Route Handlers. The browser never uses the Supabase service-role key or writes organization tables directly. Workspace grant cards and queues join organization metadata with fresh GrantVault reads; they do not aggregate token balances or invent USD values.
 
-Organization sponsorship is an opt-in Cloud policy around a protocol operation. The beneficiary wallet signs an EIP-712 intent binding the exact vault, beneficiary, amount, nonce, deadline, and relayer; `SponsoredGrantVault` enforces those fields and the one-time first-claim rule on HSK. Supabase tracks policy reservations and request/receipt status only. If the relayer is unavailable, the policy is disabled, the grant is legacy, or the request fails, the beneficiary-paid claim remains available. See [`docs/sponsored-claims.md`](docs/sponsored-claims.md) for the decision, threat model, and deployment gate.
+Organization sponsorship is an opt-in Cloud policy around two protocol operations: beneficiary claims and reviewer milestone approvals. The actor wallet signs an EIP-712 intent binding the exact vault, role, payload, nonce, deadline, and relayer; `SponsoredGrantVault` enforces those fields on HSK. Supabase tracks policy, vault/action allowlists, quotas, gas budget, and request/receipt status only. If the relayer is unavailable, the policy is disabled, the grant is legacy, or the request fails, the wallet-paid action remains available. See [`docs/sponsored-claims.md`](docs/sponsored-claims.md) for the decision, threat model, costs, and deployment gate.
 
 ### AI Grant Builder
 
@@ -204,10 +204,10 @@ supabase db push
 `supabase db push` applies all tracked migrations in order. The base migration
 [`supabase/migrations/20260912000000_hashvest_organizations.sql`](supabase/migrations/20260912000000_hashvest_organizations.sql)
 creates `organizations`, `organization_members`, `organization_grants`, and
-server-only `auth_nonces`. The sponsorship migration
+server-only `auth_nonces`. The first-claim prototype migration
 [`supabase/migrations/20260913000000_hashvest_sponsored_claims.sql`](supabase/migrations/20260913000000_hashvest_sponsored_claims.sql)
-adds `sponsored_claim_policies`, `sponsored_claim_requests`, and server-only
-reservation/lease functions. The organization-template migration
+adds the historical `sponsored_claim_policies` and `sponsored_claim_requests`
+tables and is not mutated after apply. The organization-template migration
 [`supabase/migrations/20260913010000_hashvest_organization_templates.sql`](supabase/migrations/20260913010000_hashvest_organization_templates.sql)
 adds `organization_templates` with database constraints for every grant
 strategy rule; it requires PostgreSQL 15 or later. The milestone-evidence
@@ -221,7 +221,10 @@ migration
 adds `organization_notification_reads`, keyed by
 `(organization_id, member_wallet, notification_key)`, holding only whether a
 member has seen a derived notification; the notifications themselves are never
-stored. All product tables use the
+stored. The HAS-28 migration
+[`supabase/migrations/20260913040000_hashvest_sponsored_actions.sql`](supabase/migrations/20260913040000_hashvest_sponsored_actions.sql)
+adds `organization_sponsorship_policies`, `sponsored_action_requests`, and
+server-only reservation, lease, settle, and expiry functions. All product tables use the
 same closed RLS posture and intentionally grant no public/anon/authenticated
 table policies. The application uses the service role only from server Route
 Handlers, while business authorization still checks the verified session and
@@ -326,7 +329,7 @@ The current Blockscout endpoint returned HTTP 413 (`Request Entity Too Large`) f
 6. Switch to the reviewer wallet, connect, sign in explicitly, and open the organization review queue. The next pending milestone shows any private workspace evidence. **Review grant** opens the existing GrantDetail page, where the reviewer still approves only through the onchain `approveMilestone` action.
 7. Switch to the beneficiary wallet, connect, sign in explicitly, and open the organization workspace from **Settings**. The grant appears with its live claimable amount; open GrantDetail and claim the real hvUSD.
 
-To use the sponsored-first-claim path after the new factory is deployed, the owner enables **Sponsored first claims** in the organization overview and sets a reservation limit. On the beneficiary's GrantDetail, **Sponsor my first claim** shows the exact amount and relayer, asks for an EIP-712 signature, and displays the request/receipt state. The normal **Claim** action remains the fallback and is always beneficiary-paid.
+To use the sponsored-action path after the new factory is deployed, the owner enables **Sponsored protocol actions** in the organization overview, allowlists vaults, chooses claim and/or review, and sets action, daily, and HSK gas limits. Members can see usage and remaining budget. On GrantDetail, **Sponsor this claim** or **Sponsor approval** shows the exact payload and relayer, asks for an EIP-712 signature, and displays the request/receipt state. The normal **Claim** and **Approve** actions remain the fallback and are always wallet-paid.
 
 The direct protocol flow remains available at `/grants/new`: enter raw beneficiary/reviewer addresses and create TIME, MILESTONE, or HYBRID grants without organization metadata. Existing GrantVaults can be attached later by an organization owner from the overview using **Link an existing GrantVault**. The server verifies bytecode, GrantVault reads, and the actual onchain issuer before association.
 
@@ -342,7 +345,7 @@ HashVest MVP has not been professionally audited. It targets HSK Testnet only, u
 
 ## Roadmap
 
-The product roadmap after the buildathon — remaining Cloud additions, AI-assisted review, reviewer quorum, protocol extraction, and a separately reviewed protocol-fee implementation — is described in [`docs/submission.md`](docs/submission.md#future-roadmap). Organization templates, sponsored first claims, the human-reviewed AI Grant Builder, TGE unlock semantics, private milestone evidence, and organization reporting and lifecycle notifications (HAS-41/HAS-37) have already landed as Cloud context. The HAS-40 fee model is specified, not deployed. A professional audit is the precondition for any mainnet deployment.
+The product roadmap after the buildathon — remaining Cloud additions, AI-assisted review, reviewer quorum, protocol extraction, and a separately reviewed protocol-fee implementation — is described in [`docs/submission.md`](docs/submission.md#future-roadmap). Organization templates, sponsored protocol actions, the human-reviewed AI Grant Builder, TGE unlock semantics, private milestone evidence, and organization reporting and lifecycle notifications (HAS-41/HAS-37) have already landed as Cloud context. The HAS-40 fee model is specified, not deployed. A professional audit is the precondition for any mainnet deployment.
 
 Hackathon P0 work, by milestone and owning layer:
 
@@ -354,7 +357,7 @@ Hackathon P0 work, by milestone and owning layer:
 | M3 — Lifecycle & funding health         | Cloud            |
 | M4 — i18n, browser E2E & submission     | Cloud + Protocol |
 
-Post-hackathon milestones M5–M7 cover P1–P3 work: AI-assisted review, reviewer quorum, analytics, notifications, compliance and attestation adapters, an embedded SDK, extraction of the protocol into a public `hashvest-protocol` repository, and a separately reviewed protocol-fee implementation. The HAS-40 fee model is specified in [`docs/protocol-fee-spec.md`](docs/protocol-fee-spec.md) and is not deployed. Organization templates, bounded batch creation, sponsored first claims, the human-reviewed AI Grant Builder, TGE unlock semantics, and private milestone evidence (HAS-15/HAS-14) have landed as Cloud context; HSK remains authoritative for reviewer, approval, and value. New scope during the hackathon is a swap, never an addition — see the stop-adding-features rule in [`docs/architecture.md`](docs/architecture.md).
+Post-hackathon milestones M5–M7 cover P1–P3 work: AI-assisted review, reviewer quorum, analytics, notifications, compliance and attestation adapters, an embedded SDK, extraction of the protocol into a public `hashvest-protocol` repository, and a separately reviewed protocol-fee implementation. The HAS-40 fee model is specified in [`docs/protocol-fee-spec.md`](docs/protocol-fee-spec.md) and is not deployed. Organization templates, bounded batch creation, sponsored protocol actions, the human-reviewed AI Grant Builder, TGE unlock semantics, and private milestone evidence (HAS-15/HAS-14) have landed as Cloud context; HSK remains authoritative for reviewer, approval, and value. New scope during the hackathon is a swap, never an addition — see the stop-adding-features rule in [`docs/architecture.md`](docs/architecture.md).
 
 ## Contributing with agents
 

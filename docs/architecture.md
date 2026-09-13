@@ -12,18 +12,18 @@ The single rule everything else follows:
 
 The Protocol is the trust boundary. It holds funds, enforces unlock math, and decides who may approve and who may claim. It runs entirely onchain and works without any part of the Cloud layer.
 
-| Path                                                 | Role                                                                                |
-| ---------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `packages/contracts/src/HashVestFactory.sol`         | Creates vaults; keeps role discovery arrays                                         |
-| `packages/contracts/src/GrantVault.sol`              | Immutable terms, milestone approval, beneficiary claims, optional issuer revocation |
-| `packages/contracts/src/SponsoredGrantVault.sol`     | Versioned beneficiary-signed first claim with an exact relayer binding              |
-| `packages/contracts/src/GrantTypes.sol`              | Shared strategy and schedule types                                                  |
-| `packages/contracts/src/IEligibilityProvider.sol`    | Optional eligibility adapter interface                                              |
-| `packages/contracts/src/DemoToken.sol`               | Faucet-mintable demo ERC20 (`hvUSD`); demo only                                     |
-| `packages/contracts/src/DemoEligibilityProvider.sol` | Administrator-controlled demo allowlist; demo only                                  |
-| `packages/contracts/script/DeployHashVest.s.sol`     | Chain-guarded deployment (aborts unless `block.chainid == 133`)                     |
-| `packages/web3/src/protocol.ts`                      | The protocol-facing export surface (chains, ABIs, addresses, explorer URLs)         |
-| `packages/web3/scripts/`                             | Deployment, ABI/address synchronization, smoke, verification                        |
+| Path                                                 | Role                                                                                   |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `packages/contracts/src/HashVestFactory.sol`         | Creates vaults; keeps role discovery arrays                                            |
+| `packages/contracts/src/GrantVault.sol`              | Immutable terms, milestone approval, beneficiary claims, optional issuer revocation    |
+| `packages/contracts/src/SponsoredGrantVault.sol`     | Versioned beneficiary-signed claims and reviewer-signed approvals with relayer binding |
+| `packages/contracts/src/GrantTypes.sol`              | Shared strategy and schedule types                                                     |
+| `packages/contracts/src/IEligibilityProvider.sol`    | Optional eligibility adapter interface                                                 |
+| `packages/contracts/src/DemoToken.sol`               | Faucet-mintable demo ERC20 (`hvUSD`); demo only                                        |
+| `packages/contracts/src/DemoEligibilityProvider.sol` | Administrator-controlled demo allowlist; demo only                                     |
+| `packages/contracts/script/DeployHashVest.s.sol`     | Chain-guarded deployment (aborts unless `block.chainid == 133`)                        |
+| `packages/web3/src/protocol.ts`                      | The protocol-facing export surface (chains, ABIs, addresses, explorer URLs)            |
+| `packages/web3/scripts/`                             | Deployment, ABI/address synchronization, smoke, verification                           |
 
 `packages/web3` is the **integration layer**, not a second protocol. It carries no business logic: it re-exports generated ABIs, the chain definitions, the confirmed deployment addresses, and explorer URL helpers. Its exports are generated from Foundry artifacts by `pnpm contracts:sync` and held in step by `pnpm contracts:sync:check`.
 
@@ -82,7 +82,7 @@ a Cloud price, and must not be added to this catalog as billing.
 
 Each capability is explicitly classified as `demo` or `roadmap`. Roadmap labels
 are required for work that is not available in the current demo. Sponsored
-first-claim code exists behind the deployment gate documented in
+sponsored-action code exists behind the deployment gate documented in
 [`sponsored-claims.md`](sponsored-claims.md); until an authorized factory
 redeploy and artifact sync, its product-model label remains roadmap rather than
 claiming live availability. The landing and `/plans` copy is localized through
@@ -107,7 +107,7 @@ HashVest Protocol
         |
         v
 HSK Testnet (chain 133)
-  SponsoredGrantVault  signed first claim + native HSK gas
+  SponsoredGrantVault  signed claims/reviews + native HSK gas
 ```
 
 Inside `apps/web/lib`, the same direction holds between three trees:
@@ -141,13 +141,14 @@ Two consequences that have already shaped the code:
 
 Amounts are never cached in Supabase. Dashboard counts in `apps/web/hooks/use-organizations.ts` come from live vault reads.
 
-Sponsored first claims split authority deliberately. `SponsoredGrantVault`
-owns the beneficiary, exact amount, nonce, deadline, relayer binding, and
-one-time settlement. Cloud owns only the organization opt-in, reservation
-limit, request lease, and receipt projection. `apps/web/lib/cloud/sponsored-claims/relayer.ts`
+Sponsored actions split authority deliberately. `SponsoredGrantVault`
+owns the beneficiary, reviewer, exact amount or milestone, per-action nonce,
+deadline, relayer binding, and settlement. Cloud owns only the organization
+opt-in, vault/action allowlists, quotas, gas budget, request lease, and
+receipt projection. `apps/web/lib/cloud/sponsored-claims/relayer.ts`
 is the only module allowed to read `SPONSORED_CLAIM_RELAYER_PRIVATE_KEY`.
 Organization-created grants call `HashVestFactory.createSponsoredGrant`; the
-direct wizard calls `createGrant` and retains the legacy manual-claim surface.
+direct wizard calls `createGrant` and retains the legacy wallet-paid surface.
 The complete threat model and deployment gate are in
 [`sponsored-claims.md`](sponsored-claims.md).
 
@@ -165,7 +166,7 @@ The Protocol is usable without this application. Anyone integrating should depen
 
 - **Alternative frontends** — consume `@hashvest/web3`'s protocol surface (or the raw ABIs) and read role discovery from `HashVestFactory`. No Supabase, no session, no Route Handler required.
 - **Grant workflows** — build vaults through `HashVestFactory` directly. The shared five-step wizard at `/grants/new` is one client, not the interface; its template choice and localized suggestions are Cloud presentation metadata, while submitted terms remain onchain truth.
-- **Sponsored first claims** — integrations may use `SponsoredGrantVault.claimWithSignature` with the published EIP-712 field set. The beneficiary signature must bind the exact vault, beneficiary, amount, nonce, deadline, and relayer; organization policy and request tracking are optional Cloud behavior, not protocol authority.
+- **Sponsored actions** — integrations may use `SponsoredGrantVault.claimWithSignature` or `approveMilestoneWithSignature` with the published EIP-712 field sets. The actor signature must bind the exact vault, role, payload, nonce, deadline, and relayer; organization policy and request tracking are optional Cloud behavior, not protocol authority.
 - **Eligibility and compliance adapters** — implement `IEligibilityProvider` and pass the address at creation. `DemoEligibilityProvider` is a reference implementation, not KYC.
 - **Third-party integrations** — read-only indexing, reporting, and notification services can be built entirely from chain state and explorer data.
 
@@ -217,23 +218,23 @@ P0 work only. Everything else is post-hackathon.
 In force from the moment this document merges until submission:
 
 1. **Nothing enters hackathon scope without something leaving it.** Scope is a swap, never an addition.
-2. **No untracked protocol functionality.** The explicitly requested Linear P1 slice HAS-23/HAS-24 is the recorded exception; any other protocol change still needs its own issue and scope decision.
+2. **No untracked protocol functionality.** The explicitly requested Linear slices HAS-23/HAS-24 and HAS-28 are the recorded exceptions; any other protocol change still needs its own issue and scope decision.
 3. **No repository split.** Deferred to HAS-38.
-4. **Unrequested P1/P2/P3 stay in M5–M7.** HAS-23/HAS-24 are the active requested P1 exception; other ideas remain Linear issues, not commits.
+4. **Unrequested P1/P2/P3 stay in M5–M7.** HAS-23/HAS-24 and HAS-28 are the requested sponsorship exceptions; other ideas remain Linear issues, not commits.
 5. **M4 is reserved.** Demo, regression, and submission work is not a source of slack for feature work.
 
 ## Roadmap ownership
 
-| Milestone                                             | Owner                                                                     | Status         |
-| ----------------------------------------------------- | ------------------------------------------------------------------------- | -------------- |
-| M0 — Protocol/Cloud boundary & baseline               | Cloud + Protocol                                                          | Hackathon P0   |
-| M1 — Global grant templates                           | Cloud                                                                     | Hackathon P0   |
-| M2 — Revocation & protocol safety                     | Protocol                                                                  | Hackathon P0   |
-| M3 — Lifecycle & funding health                       | Cloud                                                                     | Hackathon P0   |
-| M4 — i18n, browser E2E & submission                   | Cloud + Protocol                                                          | Hackathon P0   |
-| M5 — P1 Cloud additions after P0                      | Cloud (HAS-23, HAS-24, HAS-27, HAS-30 are Cloud + Protocol)               | Post-hackathon |
-| M6 — P2 intelligence, operations & protocol readiness | Mixed; includes HAS-38 extraction and a blocked HAS-40 fee implementation | Post-hackathon |
-| M7 — P3 long-term protocol, Cloud & ecosystem         | Mixed                                                                     | Post-hackathon |
+| Milestone                                             | Owner                                                                                                 | Status         |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | -------------- |
+| M0 — Protocol/Cloud boundary & baseline               | Cloud + Protocol                                                                                      | Hackathon P0   |
+| M1 — Global grant templates                           | Cloud                                                                                                 | Hackathon P0   |
+| M2 — Revocation & protocol safety                     | Protocol                                                                                              | Hackathon P0   |
+| M3 — Lifecycle & funding health                       | Cloud                                                                                                 | Hackathon P0   |
+| M4 — i18n, browser E2E & submission                   | Cloud + Protocol                                                                                      | Hackathon P0   |
+| M5 — P1 Cloud additions after P0                      | Cloud (HAS-23, HAS-24, HAS-27, HAS-30 are Cloud + Protocol)                                           | Post-hackathon |
+| M6 — P2 intelligence, operations & protocol readiness | Mixed; includes HAS-28 sponsorship policy, HAS-38 extraction, and a blocked HAS-40 fee implementation | Post-hackathon |
+| M7 — P3 long-term protocol, Cloud & ecosystem         | Mixed                                                                                                 | Post-hackathon |
 
 ## Organization reporting and notifications
 

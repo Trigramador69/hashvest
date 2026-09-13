@@ -20,7 +20,10 @@ export {
 export { testnetDeployment } from "./addresses";
 export { addressExplorerUrl, transactionExplorerUrl } from "./explorer";
 export {
+  SPONSORED_ACTION_DOMAIN,
   SPONSORED_CLAIM_DOMAIN,
   SPONSORED_CLAIM_TYPES,
+  SPONSORED_REVIEW_TYPES,
   type SponsoredClaimMessage,
+  type SponsoredReviewMessage,
 } from "./sponsored-claims";

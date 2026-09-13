@@ -8,15 +8,21 @@ import {
   sponsoredGrantVaultAbi,
 } from "@hashvest/web3";
 
-export type SponsoredClaimSnapshot =
+export type SponsoredActionSnapshot =
   | { supported: false }
   | {
       supported: true;
       beneficiary: Address;
-      claimedAmount: bigint;
+      reviewer: Address;
       claimableAmount: bigint;
-      nonce: bigint;
-      used: boolean;
+      claimNonce: bigint;
+      reviewNonce: bigint;
+      revoked: boolean;
+      milestones: readonly {
+        title: string;
+        amount: bigint;
+        approved: boolean;
+      }[];
     };
 
 export function createHskPublicClient() {
@@ -35,7 +41,7 @@ function isMissingSponsoredExtension(error: unknown) {
   );
 }
 
-export async function readSponsoredClaimSnapshot(address: Address) {
+export async function readSponsoredActionSnapshot(address: Address) {
   const client = createHskPublicClient();
   const blockNumber = await client.getBlockNumber();
   let supported: boolean;
@@ -43,7 +49,7 @@ export async function readSponsoredClaimSnapshot(address: Address) {
     supported = await client.readContract({
       address,
       abi: sponsoredGrantVaultAbi,
-      functionName: "supportsSponsoredClaims",
+      functionName: "supportsSponsoredActions",
       blockNumber,
     });
   } catch (error) {
@@ -52,36 +58,47 @@ export async function readSponsoredClaimSnapshot(address: Address) {
   }
   if (!supported)
     return { client, blockNumber, snapshot: { supported: false as const } };
-  const contract = { address, abi: sponsoredGrantVaultAbi, blockNumber };
-  const [beneficiary, claimedAmount, claimableAmount, nonce, used] =
-    await Promise.all([
-      client.readContract({
-        address,
-        abi: grantVaultAbi,
-        functionName: "beneficiary",
-        blockNumber,
-      }),
-      client.readContract({ ...contract, functionName: "claimedAmount" }),
-      client.readContract({ ...contract, functionName: "claimableAmount" }),
-      client.readContract({
-        ...contract,
-        functionName: "sponsoredClaimNonce",
-      }),
-      client.readContract({
-        ...contract,
-        functionName: "sponsoredClaimUsed",
-      }),
-    ]);
+  const sponsoredContract = {
+    address,
+    abi: sponsoredGrantVaultAbi,
+    blockNumber,
+  };
+  const grantContract = { address, abi: grantVaultAbi, blockNumber };
+  const [
+    beneficiary,
+    reviewer,
+    claimableAmount,
+    claimNonce,
+    reviewNonce,
+    revoked,
+    milestones,
+  ] = await Promise.all([
+    client.readContract({ ...grantContract, functionName: "beneficiary" }),
+    client.readContract({ ...grantContract, functionName: "reviewer" }),
+    client.readContract({ ...grantContract, functionName: "claimableAmount" }),
+    client.readContract({
+      ...sponsoredContract,
+      functionName: "sponsoredClaimNonce",
+    }),
+    client.readContract({
+      ...sponsoredContract,
+      functionName: "sponsoredReviewNonce",
+    }),
+    client.readContract({ ...grantContract, functionName: "revoked" }),
+    client.readContract({ ...grantContract, functionName: "getMilestones" }),
+  ]);
   return {
     client,
     blockNumber,
     snapshot: {
       supported: true as const,
-      beneficiary: beneficiary as Address,
-      claimedAmount,
+      beneficiary,
+      reviewer,
       claimableAmount,
-      nonce,
-      used,
+      claimNonce,
+      reviewNonce,
+      revoked,
+      milestones,
     },
   };
 }

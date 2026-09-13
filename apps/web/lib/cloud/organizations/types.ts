@@ -44,67 +44,107 @@ export type OrganizationTemplate = OrganizationTemplateDefinition & {
   archivedAt: string | null;
 };
 
-export type SponsoredClaimPolicy = {
+export type SponsoredActionType = "claim" | "review";
+
+export type SponsorshipPolicy = {
   organizationId: string;
   enabled: boolean;
-  maxClaims: number;
-  usedClaims: number;
-  remainingClaims: number;
+  allowedActions: SponsoredActionType[];
+  allowedVaults: string[];
+  maxActions: number;
+  usedActions: number;
+  remainingActions: number;
+  maxActionsPerWalletPerDay: number;
+  maxGasBudgetWei: string;
+  reservedGasWei: string;
+  spentGasWei: string;
+  remainingGasWei: string;
   updatedByWallet: string | null;
   createdAt: string;
   updatedAt: string;
 };
 
-export type SponsoredClaimPolicyRow = {
+export type SponsorshipPolicyRow = {
   organization_id: string;
   enabled: boolean;
-  max_claims: number;
-  used_claims: number;
+  allowed_actions: SponsoredActionType[];
+  allowed_vaults: string[];
+  max_actions: number;
+  used_actions: number;
+  max_actions_per_wallet_per_day: number;
+  max_gas_budget_wei: string;
+  reserved_gas_wei: string;
+  spent_gas_wei: string;
   updated_by_wallet: string | null;
   created_at: string;
   updated_at: string;
 };
 
-export type SponsoredClaimRequestStatus =
-  "requested" | "processing" | "submitted" | "confirmed" | "failed";
+export type SponsoredActionRequestStatus =
+  | "requested"
+  | "processing"
+  | "submitted"
+  | "confirmed"
+  | "failed"
+  | "abandoned";
 
-export type SponsoredClaimRequestRow = {
+export type SponsoredActionRequestRow = {
   id: string;
   organization_id: string;
   chain_id: 133;
   vault_address: string;
-  beneficiary_wallet: string;
-  amount: string;
+  action_type: SponsoredActionType;
+  actor_wallet: string;
+  claim_amount: string | null;
+  milestone_index: number | null;
   nonce: string;
   deadline: string;
   relayer_address: string;
   signature: string;
-  status: SponsoredClaimRequestStatus;
+  gas_limit: string;
+  gas_price: string;
+  estimated_gas_cost_wei: string;
+  actual_gas_cost_wei: string | null;
+  gas_used: string | null;
+  effective_gas_price: string | null;
+  block_number: string | null;
+  status: SponsoredActionRequestStatus;
   attempts: number;
   processing_at: string | null;
   tx_hash: string | null;
   failure_code: string | null;
   failure_message: string | null;
+  confirmed_at: string | null;
   created_at: string;
   updated_at: string;
 };
 
-export type SponsoredClaimRequest = {
+export type SponsoredActionRequest = {
   id: string;
   organizationId: string;
   chainId: 133;
   vaultAddress: string;
-  beneficiaryWallet: string;
-  amount: string;
+  actionType: SponsoredActionType;
+  actorWallet: string;
+  claimAmount: string | null;
+  milestoneIndex: number | null;
   nonce: string;
   deadline: string;
   relayerAddress: string;
-  status: SponsoredClaimRequestStatus;
+  gasLimit: string;
+  gasPrice: string;
+  estimatedGasCostWei: string;
+  actualGasCostWei: string | null;
+  gasUsed: string | null;
+  effectiveGasPrice: string | null;
+  blockNumber: string | null;
+  status: SponsoredActionRequestStatus;
   attempts: number;
   processingAt: string | null;
   txHash: string | null;
   failureCode: string | null;
   failureMessage: string | null;
+  confirmedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -365,38 +405,50 @@ export type Database = {
             >
         >
       >;
-      sponsored_claim_policies: TableDefinition<
-        SponsoredClaimPolicyRow,
-        Omit<SponsoredClaimPolicyRow, "created_at" | "updated_at"> &
-          Partial<Pick<SponsoredClaimPolicyRow, "created_at" | "updated_at">>,
+      organization_sponsorship_policies: TableDefinition<
+        SponsorshipPolicyRow,
+        Omit<SponsorshipPolicyRow, "created_at" | "updated_at"> &
+          Partial<Pick<SponsorshipPolicyRow, "created_at" | "updated_at">>,
         Partial<
           Pick<
-            SponsoredClaimPolicyRow,
-            "enabled" | "max_claims" | "updated_by_wallet" | "updated_at"
+            SponsorshipPolicyRow,
+            | "enabled"
+            | "allowed_actions"
+            | "allowed_vaults"
+            | "max_actions"
+            | "max_actions_per_wallet_per_day"
+            | "max_gas_budget_wei"
+            | "updated_by_wallet"
+            | "updated_at"
           >
         >
       >;
-      sponsored_claim_requests: TableDefinition<
-        SponsoredClaimRequestRow,
+      sponsored_action_requests: TableDefinition<
+        SponsoredActionRequestRow,
         Omit<
-          SponsoredClaimRequestRow,
+          SponsoredActionRequestRow,
           "id" | "created_at" | "updated_at" | "attempts" | "processing_at"
         > &
           Partial<
             Pick<
-              SponsoredClaimRequestRow,
+              SponsoredActionRequestRow,
               "id" | "created_at" | "updated_at" | "attempts" | "processing_at"
             >
           >,
         Partial<
           Pick<
-            SponsoredClaimRequestRow,
+            SponsoredActionRequestRow,
             | "status"
             | "attempts"
             | "processing_at"
             | "tx_hash"
+            | "actual_gas_cost_wei"
+            | "gas_used"
+            | "effective_gas_price"
+            | "block_number"
             | "failure_code"
             | "failure_message"
+            | "confirmed_at"
             | "updated_at"
           >
         >
@@ -404,23 +456,45 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
-      reserve_sponsored_claim: {
+      reserve_sponsored_action: {
         Args: {
           p_organization_id: string;
           p_chain_id: 133;
           p_vault_address: string;
-          p_beneficiary_wallet: string;
-          p_amount: string;
+          p_action_type: SponsoredActionType;
+          p_actor_wallet: string;
+          p_claim_amount: string | null;
+          p_milestone_index: number | null;
           p_nonce: string;
           p_deadline: string;
           p_relayer_address: string;
           p_signature: string;
+          p_gas_limit: string;
+          p_gas_price: string;
+          p_estimated_gas_cost_wei: string;
         };
-        Returns: SponsoredClaimRequestRow[];
+        Returns: SponsoredActionRequestRow[];
       };
-      claim_sponsored_request: {
+      lease_sponsored_action: {
         Args: { p_request_id: string };
-        Returns: SponsoredClaimRequestRow[];
+        Returns: SponsoredActionRequestRow[];
+      };
+      settle_sponsored_action: {
+        Args: {
+          p_request_id: string;
+          p_status: "confirmed" | "failed";
+          p_gas_used: string;
+          p_effective_gas_price: string;
+          p_actual_gas_cost_wei: string;
+          p_block_number: string;
+          p_failure_code: string | null;
+          p_failure_message: string | null;
+        };
+        Returns: SponsoredActionRequestRow[];
+      };
+      expire_sponsored_actions: {
+        Args: { p_organization_id: string };
+        Returns: number;
       };
     };
     Enums: Record<string, never>;

@@ -293,25 +293,35 @@ export const en = {
   "overview.claim.item.fallbackDescription": "Organization grant",
   "overview.claim.item.amount": "{amount} claimable",
   "overview.claim.item.action": "Open grant",
-  "overview.sponsorship.title": "Sponsored first claims",
+  "overview.sponsorship.title": "Sponsored protocol actions",
   "overview.sponsorship.lede":
-    "Organization grants can pay the HSK transaction fee for one beneficiary-authorized first claim.",
+    "Set an explicit HSK gas policy for beneficiary claims and reviewer milestone approvals.",
   "overview.sponsorship.loading": "Reading sponsorship policy…",
   "overview.sponsorship.error":
     "The sponsorship policy is temporarily unavailable.",
-  "overview.sponsorship.enabled": "Enable sponsored first claims",
+  "overview.sponsorship.enabled": "Enable sponsored actions",
   "overview.sponsorship.enabledHint":
-    "The beneficiary still signs the exact vault claim; the organization only pays the relayer fee.",
-  "overview.sponsorship.maxClaims": "Organization claim limit",
-  "overview.sponsorship.maxClaimsHint":
-    "Reserved claims count toward this limit. Maximum: {max}.",
+    "Each actor signs the exact action. The organization policy only authorizes the relayer to pay gas.",
+  "overview.sponsorship.allowedActions": "Allowed actions",
+  "overview.sponsorship.action.claim": "Beneficiary claims",
+  "overview.sponsorship.action.review": "Reviewer approvals",
+  "overview.sponsorship.allowedVaults": "Vault allowlist",
+  "overview.sponsorship.allowedVaultsHint":
+    "Enter one associated GrantVault address per line. Maximum: {max}.",
+  "overview.sponsorship.maxActions": "Organization action limit",
+  "overview.sponsorship.maxActionsHint":
+    "Reserved actions count toward this lifetime limit. Maximum: {max}.",
+  "overview.sponsorship.dailyLimit": "Daily actions per wallet",
+  "overview.sponsorship.gasBudget": "Maximum gas budget (HSK)",
   "overview.sponsorship.usage": "Reserved",
   "overview.sponsorship.remaining": "Remaining",
+  "overview.sponsorship.gasSpent": "Gas spent",
+  "overview.sponsorship.gasReserved": "Gas reserved",
   "overview.sponsorship.relayer": "Relayer",
   "overview.sponsorship.relayerReady": "Configured",
   "overview.sponsorship.relayerMissing": "Not configured",
   "overview.sponsorship.manualFallback":
-    "Beneficiaries can always use the normal wallet-paid claim if sponsorship is unavailable.",
+    "Beneficiaries and reviewers can always use the normal wallet-paid actions if sponsorship is unavailable.",
   "overview.sponsorship.save": "Save policy",
   "overview.sponsorship.saving": "Saving policy…",
   "overview.sponsorship.saved": "Sponsorship policy saved.",
@@ -858,50 +868,55 @@ export const en = {
   "detail.claim.pending": "Transaction in progress…",
   "detail.claim.action": "Claim {amount}",
   "detail.claim.beneficiaryBalance": "Beneficiary token balance",
-  "detail.sponsor.title": "Organization-paid first claim",
+  "detail.sponsor.title": "Organization-paid claim",
   "detail.sponsor.lede":
-    "You authorize this exact vault, amount, and relayer with your wallet signature. The organization pays the HSK fee; it never chooses a different beneficiary or amount.",
-  "detail.sponsor.action": "Sponsor my first claim",
-  "detail.sponsor.confirmTitle": "Confirm sponsored first claim",
+    "You authorize this exact vault, amount, nonce, deadline, and relayer. The organization pays the HSK fee; it never chooses the beneficiary or amount.",
+  "detail.sponsor.action": "Sponsor this claim",
+  "detail.sponsor.reviewAction": "Sponsor approval",
+  "detail.sponsor.confirmTitle": "Confirm sponsored claim",
   "detail.sponsor.confirmBody":
-    "Your signature authorizes a one-time claim of {amount} from this vault. The organization relayer will pay the HSK transaction fee.",
+    "Your signature authorizes a claim of {amount} from this vault. The organization relayer will pay the HSK transaction fee.",
+  "detail.sponsor.reviewConfirmTitle": "Confirm sponsored approval",
+  "detail.sponsor.reviewConfirmBody":
+    "Your reviewer signature authorizes approval of “{milestone}” only. The organization relayer will pay the HSK transaction fee.",
   "detail.sponsor.confirm": "Sign and submit",
   "detail.sponsor.cancel": "Cancel",
   "detail.sponsor.signing": "Waiting for wallet signature…",
-  "detail.sponsor.submitting": "Submitting sponsored claim…",
-  "detail.sponsor.retry": "Retry sponsored claim",
+  "detail.sponsor.submitting": "Submitting sponsored action…",
+  "detail.sponsor.retry": "Retry sponsored action",
   "detail.sponsor.gasPayer": "Gas payer",
   "detail.sponsor.transaction": "Sponsored transaction",
   "detail.sponsor.status.requested": "Sponsorship request recorded",
   "detail.sponsor.status.processing": "Relayer is preparing the transaction…",
   "detail.sponsor.status.submitted": "Sponsored transaction submitted",
-  "detail.sponsor.status.confirmed": "Sponsored first claim confirmed",
-  "detail.sponsor.status.failed": "Sponsored claim failed",
+  "detail.sponsor.status.confirmed": "Sponsored action confirmed",
+  "detail.sponsor.status.failed": "Sponsored action failed",
+  "detail.sponsor.status.abandoned": "Signed intent expired before broadcast",
   "detail.sponsor.statusUnavailable":
-    "The sponsored claim status could not be refreshed. The request remains tracked; the normal claim is still available.",
+    "The sponsored action status could not be refreshed. The request remains tracked; the wallet-paid action is still available.",
   "detail.sponsor.expired":
-    "This signed request has expired. Start a new sponsored claim or use the normal claim.",
+    "This signed request has expired. Start a new sponsored action or use the wallet-paid action.",
   "detail.sponsor.failedFallback":
-    "The relayer could not complete this request. Use the normal wallet-paid claim or retry while the request is still valid.",
+    "The relayer could not complete this request. Use the wallet-paid action or retry the same intent while it is valid.",
   "detail.sponsor.manualFallback":
-    "The normal wallet-paid claim remains available at all times.",
+    "The normal wallet-paid claim or approval remains available at all times.",
   "detail.sponsor.error":
-    "The sponsored claim could not be completed. Your wallet was not charged by HashVest; use the normal claim or try again.",
+    "The sponsored action could not be completed. Your wallet was not charged by HashVest; use the wallet-paid action or try again.",
   "detail.sponsor.unavailable":
-    "Sponsored claims are temporarily unavailable. The normal claim remains available.",
+    "Sponsored actions are temporarily unavailable. The wallet-paid action remains available.",
   "detail.sponsor.legacy":
-    "This GrantVault uses the legacy manual-claim contract. Use the normal claim below.",
-  "detail.sponsor.firstClaimOnly":
-    "Sponsorship is limited to the first claim. Use the normal claim for this grant.",
+    "This GrantVault predates sponsored actions. Use the wallet-paid action.",
   "detail.sponsor.noClaimable":
     "There is no currently claimable amount to sponsor.",
   "detail.sponsor.checking": "Checking the organization sponsorship policy…",
   "detail.sponsor.policyDisabled":
-    "The organization has not enabled sponsored claims. The normal claim remains available.",
+    "The organization policy does not allow this sponsored action. The wallet-paid action remains available.",
+  "detail.sponsor.vaultNotAllowed":
+    "This GrantVault is not in the organization sponsorship allowlist.",
   "detail.sponsor.limitReached":
-    "The organization sponsorship limit has been reached. The normal claim remains available.",
+    "The action limit or HSK gas budget has been reached. The wallet-paid action remains available.",
   "detail.sponsor.relayerMissing":
-    "The organization relayer is not configured or funded yet. Use the normal claim.",
+    "The organization relayer is not configured or funded yet. Use the wallet-paid action.",
   "detail.eligibility.title": "Eligibility",
   "detail.eligibility.none":
     "No provider configured. Claims do not require an eligibility check.",

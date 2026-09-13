@@ -12,7 +12,10 @@ export {
   testnetDeployment,
   addressExplorerUrl,
   transactionExplorerUrl,
+  SPONSORED_ACTION_DOMAIN,
   SPONSORED_CLAIM_DOMAIN,
   SPONSORED_CLAIM_TYPES,
+  SPONSORED_REVIEW_TYPES,
   type SponsoredClaimMessage,
+  type SponsoredReviewMessage,
 } from "./protocol";
