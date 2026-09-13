@@ -1,4 +1,3 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
 
 import { ApiError } from "../../shared/api-error";
@@ -11,7 +10,11 @@ import {
   updateOrganizationTemplate,
   type TemplateAccess,
 } from "./templates";
-import type { Database } from "./types";
+import {
+  createFakeSupabase,
+  templateRowDefaults,
+  type FakeRow,
+} from "./fake-supabase.test-helper";
 import { InputValidationError } from "./validation";
 
 const ORG_A = "0a0a0a0a-0000-4000-8000-00000000000a";
@@ -23,127 +26,12 @@ const TEMPLATE_A2 = "a2a2a2a2-0000-4000-8000-0000000000a2";
 const TEMPLATE_A_ARCHIVED = "a3a3a3a3-0000-4000-8000-0000000000a3";
 const TEMPLATE_B1 = "b1b1b1b1-0000-4000-8000-0000000000b1";
 
-type Row = Record<string, unknown>;
-type Filter = { column: string; value: unknown };
-
-/**
- * A minimal in-memory stand-in for the Supabase query builder. Filters are
- * applied for real, so a query that forgot its organization filter would see
- * or change another organization's rows and fail the isolation tests.
- */
-function fakeSupabase(seed: Row[]) {
-  const state = {
-    rows: seed.map((row) => ({ ...row })),
-    writes: [] as { op: "insert" | "update"; payload: Row; matched: number }[],
-    nextError: null as { code: string } | null,
-  };
-
-  function from(table: string) {
-    expect(table).toBe("organization_templates");
-    let op: "select" | "insert" | "update" = "select";
-    let payload: Row = {};
-    const filters: Filter[] = [];
-    let order: { column: string; ascending: boolean } | undefined;
-
-    const matches = (row: Row) =>
-      filters.every((filter) => row[filter.column] === filter.value);
-
-    function run(): { data: Row[] | null; error: { code: string } | null } {
-      if (state.nextError) {
-        const error = state.nextError;
-        state.nextError = null;
-        return { data: null, error };
-      }
-      if (op === "insert") {
-        const now = new Date().toISOString();
-        const row: Row = {
-          id: crypto.randomUUID(),
-          version: 1,
-          created_at: now,
-          updated_at: now,
-          archived_at: null,
-          ...payload,
-        };
-        state.rows.push(row);
-        state.writes.push({ op, payload, matched: 1 });
-        return { data: [row], error: null };
-      }
-      if (op === "update") {
-        const hits = state.rows.filter(matches);
-        for (const row of hits) Object.assign(row, payload);
-        state.writes.push({ op, payload, matched: hits.length });
-        return { data: hits, error: null };
-      }
-      const data = state.rows.filter(matches);
-      if (order) {
-        const { column, ascending } = order;
-        data.sort(
-          (left, right) =>
-            String(left[column]).localeCompare(String(right[column])) *
-            (ascending ? 1 : -1),
-        );
-      }
-      return { data, error: null };
-    }
-
-    const builder = {
-      select: () => builder,
-      insert(value: Row) {
-        op = "insert";
-        payload = value;
-        return builder;
-      },
-      update(value: Row) {
-        op = "update";
-        payload = value;
-        return builder;
-      },
-      eq(column: string, value: unknown) {
-        filters.push({ column, value });
-        return builder;
-      },
-      is(column: string, value: unknown) {
-        filters.push({ column, value });
-        return builder;
-      },
-      order(column: string, options?: { ascending?: boolean }) {
-        order = { column, ascending: options?.ascending ?? true };
-        return builder;
-      },
-      single: async () => {
-        const result = run();
-        return result.error
-          ? result
-          : { data: result.data?.[0] ?? null, error: null };
-      },
-      maybeSingle: async () => {
-        const result = run();
-        return result.error
-          ? result
-          : { data: result.data?.[0] ?? null, error: null };
-      },
-      then<Result>(
-        resolve: (value: ReturnType<typeof run>) => Result,
-        reject?: (reason: unknown) => Result,
-      ) {
-        return Promise.resolve(run()).then(resolve, reject);
-      },
-    };
-    return builder;
-  }
-
-  return {
-    client: { from } as unknown as SupabaseClient<Database>,
-    state,
-  };
-}
-
 function row(
   id: string,
   organizationId: string,
   name: string,
-  extra: Row = {},
-): Row {
+  extra: FakeRow = {},
+): FakeRow {
   return {
     id,
     organization_id: organizationId,
@@ -167,14 +55,19 @@ function row(
 }
 
 function setup() {
-  const fake = fakeSupabase([
-    row(TEMPLATE_A2, ORG_A, "Zeta vesting"),
-    row(TEMPLATE_A1, ORG_A, "Alpha vesting"),
-    row(TEMPLATE_A_ARCHIVED, ORG_A, "Old vesting", {
-      archived_at: "2026-09-12T00:00:00.000Z",
-    }),
-    row(TEMPLATE_B1, ORG_B, "Other organization"),
-  ]);
+  const fake = createFakeSupabase(
+    {
+      organization_templates: [
+        row(TEMPLATE_A2, ORG_A, "Zeta vesting"),
+        row(TEMPLATE_A1, ORG_A, "Alpha vesting"),
+        row(TEMPLATE_A_ARCHIVED, ORG_A, "Old vesting", {
+          archived_at: "2026-09-12T00:00:00.000Z",
+        }),
+        row(TEMPLATE_B1, ORG_B, "Other organization"),
+      ],
+    },
+    { organization_templates: templateRowDefaults },
+  );
   const access = (
     isOwner: boolean,
     organizationId = ORG_A,
@@ -189,7 +82,9 @@ function setup() {
     owner: access(true),
     member: access(false),
     find: (id: string) =>
-      fake.state.rows.find((candidate) => candidate.id === id),
+      fake.tables.organization_templates.find(
+        (candidate) => candidate.id === id,
+      ),
   };
 }
 
@@ -271,7 +166,7 @@ describe("owner authorization", () => {
   });
 
   it("lets a member read but refuses every mutation before any write", async () => {
-    const { member, state } = setup();
+    const { member, writes } = setup();
     await expect(
       getOrganizationTemplate(member, TEMPLATE_A1),
     ).resolves.toMatchObject({
@@ -283,13 +178,13 @@ describe("owner authorization", () => {
       403,
     );
     await expectStatus(archiveOrganizationTemplate(member, TEMPLATE_A1), 403);
-    expect(state.writes).toEqual([]);
+    expect(writes).toEqual([]);
   });
 });
 
 describe("stored content", () => {
   it("takes authorship from the session and stores only designed columns", async () => {
-    const { owner, state } = setup();
+    const { owner, writes } = setup();
     // An untyped caller smuggling authoritative or identity fields.
     const smuggled = {
       ...CONTENT,
@@ -300,7 +195,7 @@ describe("stored content", () => {
     } as unknown as OrganizationTemplateContent;
     await createOrganizationTemplate(owner, smuggled);
 
-    const [write] = state.writes;
+    const [write] = writes;
     expect(Object.keys(write.payload).sort()).toEqual(
       [
         "allocation_suggestion",
@@ -392,8 +287,8 @@ describe("failures", () => {
       ["23514", 400],
       ["08006", 503],
     ] as const) {
-      const { owner, state } = setup();
-      state.nextError = { code };
+      const { owner, failNext } = setup();
+      failNext(code);
       await expectStatus(createOrganizationTemplate(owner, CONTENT), status);
     }
   });
