@@ -946,12 +946,14 @@ export const zhCN: TranslationDictionary = {
   "ai.field.prompt.placeholder":
     "给一位开发者的六个月赠款，500 代币，按三个里程碑释放。",
   "ai.field.prompt.counter": "{count} / {max} 个字符",
+  "ai.field.prompt.hintApply": "按 Enter 应用此草稿",
   "ai.field.prompt.hint": "按 Enter 生成草稿 · Shift+Enter 换行",
   "ai.action.draft": "生成草稿",
   "ai.action.drafting": "正在起草",
   "ai.action.apply": "应用到向导",
   "ai.action.discard": "放弃",
   "ai.action.retry": "重试",
+  "ai.action.redraft": "重新起草",
 
   "ai.progress.0": "正在读取请求",
   "ai.progress.1": "正在移除隐私内容",
@@ -959,6 +961,8 @@ export const zhCN: TranslationDictionary = {
   "ai.progress.3": "正在拆分分配额度",
   "ai.progress.4": "正在按协议规则校验",
 
+  "ai.notice.localeChanged":
+    "这份草稿是用你之前阅读的语言写的。它的措辞不会自动改变——请重新起草以获得当前语言的版本。",
   "ai.draft.name": "AI 草稿",
   "ai.draft.tagline": "一个起点。每个值都仍可编辑。",
   "ai.draft.sourceModel": "由已配置的提供方起草",
@@ -998,8 +1002,10 @@ export const zhCN: TranslationDictionary = {
     "已忽略 {count} 个赠款模板无法容纳的字段：{fields}。",
   "ai.adjustment.proseRedacted": "已移除草稿写进自身文本中的隐私内容。",
   "ai.adjustment.offlineDraft": "仅凭你的文字离线起草，未使用任何提供方。",
-  "ai.adjustment.scheduleCompressed":
-    "已把 {requested} 压缩为 {duration} 个演示单位，以便完整流程可以当场看到。",
+  "ai.adjustment.scheduleConverted":
+    "已将 {requested} 理解为 {duration} 天，这是向导提供的最接近的单位。",
+  "ai.adjustment.allocationAssumed":
+    "你没有指定金额，因此这里参考最接近的模板建议 {allocation}。注资前请修改。",
   "ai.adjustment.requestAddressIgnored":
     "已忽略你请求中的钱包地址。每个钱包都由你自己选择。",
   "ai.adjustment.requestSecretIgnored":

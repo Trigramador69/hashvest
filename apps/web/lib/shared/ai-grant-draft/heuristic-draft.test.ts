@@ -19,7 +19,12 @@ describe("heuristicDraft", () => {
     );
     expect(result.preset.key).toBe(GENERATED_PRESET_KEY);
     expect(result.preset.strategy).toBe(0);
-    expect(result.preset.timing).toMatchObject({ unit: "60", duration: "6" });
+    // Six months is 180 days, not six of anything else: the reader said a
+    // duration and the draft has to mean it.
+    expect(result.preset.timing).toMatchObject({
+      unit: "86400",
+      duration: "180",
+    });
     // 20,000 hvUSD is beyond what one faucet click can fund, so it is clamped
     // and reported rather than drafted into a grant that cannot be submitted.
     expect(result.preset.allocationSuggestion).toBe("1000");
@@ -28,7 +33,7 @@ describe("heuristicDraft", () => {
     ).toEqual(
       expect.arrayContaining([
         "offlineDraft",
-        "scheduleCompressed",
+        "scheduleConverted",
         "allocationClamped",
       ]),
     );
@@ -60,7 +65,10 @@ describe("heuristicDraft", () => {
       "Hybrid grant over 12 months with 2 milestones, 800 tokens",
     );
     expect(result.preset.strategy).toBe(2);
-    expect(result.preset.timing).toMatchObject({ unit: "60", duration: "12" });
+    expect(result.preset.timing).toMatchObject({
+      unit: "86400",
+      duration: "360",
+    });
     expect(result.preset.milestones).toHaveLength(2);
   });
 
@@ -69,7 +77,11 @@ describe("heuristicDraft", () => {
       "Employee vesting over 4 years with a 1 year cliff, 600 tokens",
     );
     expect(result.preset.strategy).toBe(0);
-    expect(result.preset.timing).toMatchObject({ duration: "4", cliff: "1" });
+    expect(result.preset.timing).toMatchObject({
+      unit: "86400",
+      duration: "1460",
+      cliff: "365",
+    });
   });
 
   it("keeps a unit the wizard can actually select", () => {
@@ -90,12 +102,12 @@ describe("heuristicDraft", () => {
   it("reads Spanish and Chinese requests from the same rules", () => {
     const spanish = draft("Vesting de 4 años para un empleado, 600 tokens");
     expect(spanish.preset.strategy).toBe(0);
-    expect(spanish.preset.timing).toMatchObject({ duration: "4" });
+    expect(spanish.preset.timing).toMatchObject({ duration: "1460" });
     expect(spanish.preset.allocationSuggestion).toBe("600");
 
     const chinese = draft("给顾问的 3 年归属，400 代币");
     expect(chinese.preset.strategy).toBe(0);
-    expect(chinese.preset.timing).toMatchObject({ duration: "3" });
+    expect(chinese.preset.timing).toMatchObject({ duration: "1095" });
   });
 
   it("lets keywords decide when the request settles no strategy", () => {
@@ -103,6 +115,39 @@ describe("heuristicDraft", () => {
     // not a default strategy — answers the question.
     expect(draft("A grant for an ecosystem partner").preset.strategy).toBe(2);
     expect(draft("Something for an advisor").preset.strategy).toBe(0);
+  });
+
+  it("says when it invented an amount the request never named", () => {
+    // Falling back to the closest template's allocation is reasonable; doing
+    // it silently is not, because the number looks like something the reader
+    // asked for.
+    const quiet = draft("a two month grant with milestones");
+    expect(quiet.adjustments).toContainEqual({
+      code: "allocationAssumed",
+      values: { allocation: quiet.preset.allocationSuggestion },
+    });
+
+    const stated = draft("a two month grant with milestones, 250 tokens");
+    expect(stated.preset.allocationSuggestion).toBe("250");
+    expect(stated.adjustments.map((entry) => entry.code)).not.toContain(
+      "allocationAssumed",
+    );
+  });
+
+  it("means what the reader said about time", () => {
+    // The catalog compresses a year into a demo minute and says so in its own
+    // note. A duration the reader typed is a statement of intent, so it is
+    // converted rather than substituted, and the inherited note is dropped.
+    const months = draft("a two month grant with milestones");
+    expect(months.preset.timing).toMatchObject({
+      unit: "86400",
+      duration: "60",
+      realWorldNote: "",
+    });
+    expect(months.adjustments).toContainEqual({
+      code: "scheduleConverted",
+      values: { requested: "two month", duration: 60 },
+    });
   });
 
   it("is deterministic for the same request", () => {

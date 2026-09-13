@@ -1046,12 +1046,14 @@ export const en = {
   "ai.field.prompt.placeholder":
     "A six-month grant for a developer, 500 tokens, released against three milestones.",
   "ai.field.prompt.counter": "{count} of {max} characters",
+  "ai.field.prompt.hintApply": "Enter applies this draft",
   "ai.field.prompt.hint": "Enter to draft · Shift+Enter for a new line",
   "ai.action.draft": "Draft it",
   "ai.action.drafting": "Drafting",
   "ai.action.apply": "Apply to the wizard",
   "ai.action.discard": "Discard",
   "ai.action.retry": "Try again",
+  "ai.action.redraft": "Draft again",
 
   // Progress steps. These name the real pipeline, not a loading animation.
   "ai.progress.0": "Reading the request",
@@ -1060,6 +1062,8 @@ export const en = {
   "ai.progress.3": "Splitting the allocation",
   "ai.progress.4": "Checking it against the protocol rules",
 
+  "ai.notice.localeChanged":
+    "This draft was written in the language you were reading before. Its wording will not change on its own — draft again to get it in this one.",
   "ai.draft.name": "AI draft",
   "ai.draft.tagline": "A starting point. Every value stays editable.",
   "ai.draft.sourceModel": "Drafted by the configured provider",
@@ -1106,8 +1110,10 @@ export const en = {
     "Removed something private the draft had written into its own text.",
   "ai.adjustment.offlineDraft":
     "Drafted offline from your words alone. No provider was used.",
-  "ai.adjustment.scheduleCompressed":
-    "Compressed {requested} into {duration} demo units so the whole cycle is watchable.",
+  "ai.adjustment.scheduleConverted":
+    "Read {requested} as {duration} days, the closest unit the wizard offers.",
+  "ai.adjustment.allocationAssumed":
+    "You did not name an amount, so this suggests {allocation} from the closest template. Change it before funding.",
   "ai.adjustment.requestAddressIgnored":
     "Ignored the wallet address in your request. You pick every wallet yourself.",
   "ai.adjustment.requestSecretIgnored":

@@ -15,6 +15,7 @@ import {
 import type { GrantPreset } from "@/lib/shared/grant-presets/presets";
 import type { TranslationKey } from "@/lib/shared/i18n/dictionaries/en";
 import { strategyKey } from "@/lib/shared/i18n/keys";
+import type { Locale } from "@/lib/shared/i18n/locales";
 import { useI18n } from "@/lib/shared/i18n/provider";
 import { cn } from "@/lib/shared/utils";
 
@@ -99,6 +100,10 @@ export function AiGrantBuilder({
   const [open, setOpen] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [draft, setDraft] = useState<AiGrantDraftResult | null>(null);
+  // The locale the draft's prose was written in. Chrome re-renders from the
+  // dictionary when the reader switches language; a model's sentences cannot,
+  // so a draft outlives the language it was written for.
+  const [draftLocale, setDraftLocale] = useState<Locale | null>(null);
   const [error, setError] = useState("");
   const [progress, setProgress] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -130,6 +135,7 @@ export function AiGrantBuilder({
     onMutate: () => setProgress(0),
     onSuccess: (result) => {
       setDraft(result);
+      setDraftLocale(locale);
       setError("");
     },
     onError: (cause) => {
@@ -188,6 +194,10 @@ export function AiGrantBuilder({
     trimmed.length >= AI_PROMPT_MIN_LENGTH &&
     trimmed.length <= AI_PROMPT_MAX_LENGTH &&
     !mutation.isPending;
+
+  // A draft written in a language the reader has since left behind.
+  const staleLocale =
+    draft !== null && draftLocale !== null && draftLocale !== locale;
 
   const state: PixelFieldState = mutation.isPending
     ? "thinking"
@@ -259,11 +269,20 @@ export function AiGrantBuilder({
                 // submit it is the kind of friction this panel exists to remove.
                 if (event.key !== "Enter" || event.shiftKey) return;
                 event.preventDefault();
-                if (canDraft) mutation.mutate();
+                // Once a draft is on screen, Enter applies it. Redrafting on
+                // the same key would silently swap the preset the reader is
+                // reading for a different one, which is the opposite of what
+                // pressing Enter again means.
+                if (draft) apply();
+                else if (canDraft) mutation.mutate();
               }}
             />
             <p className="mt-1.5 flex flex-wrap justify-between gap-x-3 font-mono text-[10px] text-muted-foreground">
-              <span>{t("ai.field.prompt.hint")}</span>
+              <span>
+                {t(
+                  draft ? "ai.field.prompt.hintApply" : "ai.field.prompt.hint",
+                )}
+              </span>
               <span>
                 {t("ai.field.prompt.counter", {
                   count: trimmed.length,
@@ -290,6 +309,11 @@ export function AiGrantBuilder({
 
             {draft && (
               <div className="mt-4 space-y-4 border-t border-border-soft pt-4">
+                {staleLocale && (
+                  <p className="border border-[rgba(233,131,45,.35)] bg-[rgba(233,131,45,.08)] px-3 py-2 text-xs leading-5 text-[#e9832d]">
+                    {t("ai.notice.localeChanged")}
+                  </p>
+                )}
                 <div>
                   <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
                     {draft.source === "model"
@@ -372,7 +396,20 @@ export function AiGrantBuilder({
             <div className="mt-3 flex flex-wrap gap-2">
               {draft ? (
                 <>
-                  <Button size="sm" onClick={apply}>
+                  {staleLocale && (
+                    <Button
+                      size="sm"
+                      disabled={!canDraft}
+                      onClick={() => mutation.mutate()}
+                    >
+                      {t("ai.action.redraft")}
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant={staleLocale ? "outline" : "default"}
+                    onClick={apply}
+                  >
                     {t("ai.action.apply")}
                   </Button>
                   <Button
@@ -380,6 +417,7 @@ export function AiGrantBuilder({
                     variant="outline"
                     onClick={() => {
                       setDraft(null);
+                      setDraftLocale(null);
                       setError("");
                       promptRef.current?.focus();
                     }}
