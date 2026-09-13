@@ -176,8 +176,8 @@ The complete record — all 19 transactions, the three wallets, and the revocati
 | 🟡 Manual           | One live provider run (Groq, `openai/gpt-oss-20b`): the example prompt drafts correctly in all three locales, and an injection prompt returns no address. Provider calls are not made in CI. |
 | 🟡 Manual           | The three-wallet **browser** flow — organization, named members, hybrid grant, review, claim. Wallet extension steps are performed by hand and are tracked in HAS-20.                        |
 | 🟡 Manual           | Blockscout source verification. The explorer returned HTTP 413 for the automated submission; deployment is unaffected.                                                                       |
-| ✅ Presentation     | `/plans`, the landing summary, and their English / Spanish / Simplified Chinese product-model copy; presentation-only and independent of billing.                     |
-| ⚪ Roadmap          | Unimplemented packaging capabilities are explicitly labeled in the product model; sponsored first claims still require the authorized factory redeploy gate.          |
+| ✅ Presentation     | `/plans`, the landing summary, and their English / Spanish / Simplified Chinese product-model copy; presentation-only and independent of billing.                                            |
+| ⚪ Roadmap          | Unimplemented packaging capabilities are explicitly labeled in the product model; sponsored first claims still require the authorized factory redeploy gate.                                 |
 
 ## Future roadmap
 
