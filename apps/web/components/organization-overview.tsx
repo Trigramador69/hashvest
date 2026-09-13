@@ -12,6 +12,8 @@ import {
   useOrganizationGrantStats,
   useOrganizationGrants,
   useOrganizationMembers,
+  useOrganizationSponsorshipPolicy,
+  useUpdateOrganizationSponsorshipPolicy,
 } from "@/hooks/use-organizations";
 import { useSession } from "@/hooks/use-session";
 import { useGrant } from "@/hooks/use-grant";
@@ -22,6 +24,7 @@ import { useTranslations } from "@/lib/shared/i18n/provider";
 import type {
   OrganizationGrant,
   OrganizationMember,
+  SponsoredClaimPolicy,
 } from "@/lib/cloud/organizations/types";
 
 import { GrantCard } from "./grant-card";
@@ -31,6 +34,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { MetricCard } from "./ui/metric-card";
 import { FundingHealthSummary, GrantLifecycleBadge, Notice } from "./grant-ui";
 import { deriveGrantState } from "@/lib/protocol/grant-state";
+import { MAX_ORGANIZATION_SPONSORED_CLAIMS } from "@/lib/shared/sponsored-claims";
 
 const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
@@ -276,6 +280,149 @@ function LinkExistingGrant({ organizationId }: { organizationId: string }) {
   );
 }
 
+type SponsorshipPolicyData = SponsoredClaimPolicy & {
+  relayerAddress: string | null;
+  relayerConfigured: boolean;
+};
+
+function SponsorshipPolicyForm({
+  organizationId,
+  policy,
+}: {
+  organizationId: string;
+  policy: SponsorshipPolicyData;
+}) {
+  const t = useTranslations();
+  const update = useUpdateOrganizationSponsorshipPolicy(organizationId);
+  const [enabled, setEnabled] = useState(policy.enabled);
+  const [maxClaims, setMaxClaims] = useState(policy.maxClaims.toString());
+
+  async function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    try {
+      await update.mutateAsync({ enabled, maxClaims: Number(maxClaims) });
+    } catch {
+      // The localized status below is sufficient; the API keeps the raw cause server-side.
+    }
+  }
+
+  return (
+    <form className="space-y-4" onSubmit={(event) => void save(event)}>
+      <label className="flex cursor-pointer items-start gap-3">
+        <input
+          checked={enabled}
+          className="mt-1 size-4 rounded border-gray-300 text-primary focus:ring-primary"
+          type="checkbox"
+          onChange={(event) => setEnabled(event.target.checked)}
+        />
+        <span>
+          <span className="block text-sm font-medium">
+            {t("overview.sponsorship.enabled")}
+          </span>
+          <span className="mt-1 block text-xs leading-5 text-muted-foreground">
+            {t("overview.sponsorship.enabledHint")}
+          </span>
+        </span>
+      </label>
+      <label className="block space-y-2">
+        <span className="text-sm font-medium">
+          {t("overview.sponsorship.maxClaims")}
+        </span>
+        <input
+          className="field"
+          inputMode="numeric"
+          max={MAX_ORGANIZATION_SPONSORED_CLAIMS}
+          min={0}
+          type="number"
+          value={maxClaims}
+          onChange={(event) => setMaxClaims(event.target.value)}
+        />
+        <span className="block text-xs leading-5 text-muted-foreground">
+          {t("overview.sponsorship.maxClaimsHint", {
+            max: MAX_ORGANIZATION_SPONSORED_CLAIMS,
+          })}
+        </span>
+      </label>
+      <div className="space-y-1 rounded-card border border-border bg-surface-1 p-3 text-xs">
+        <p>
+          <span className="text-muted-foreground">
+            {t("overview.sponsorship.usage")}:
+          </span>{" "}
+          {policy.usedClaims} / {policy.maxClaims}
+        </p>
+        <p>
+          <span className="text-muted-foreground">
+            {t("overview.sponsorship.remaining")}:
+          </span>{" "}
+          {policy.remainingClaims}
+        </p>
+        <p>
+          <span className="text-muted-foreground">
+            {t("overview.sponsorship.relayer")}:
+          </span>{" "}
+          {policy.relayerConfigured
+            ? t("overview.sponsorship.relayerReady")
+            : t("overview.sponsorship.relayerMissing")}
+        </p>
+      </div>
+      {!policy.relayerConfigured && (
+        <p className="text-xs leading-5 text-[#E9832D]">
+          {t("overview.sponsorship.manualFallback")}
+        </p>
+      )}
+      <Button type="submit" variant="outline" disabled={update.isPending}>
+        {update.isPending
+          ? t("overview.sponsorship.saving")
+          : t("overview.sponsorship.save")}
+      </Button>
+      {update.isError && (
+        <p className="text-xs text-destructive" role="alert">
+          {t("overview.sponsorship.updateError")}
+        </p>
+      )}
+      {update.isSuccess && (
+        <p className="text-xs text-primary">
+          {t("overview.sponsorship.saved")}
+        </p>
+      )}
+    </form>
+  );
+}
+
+function SponsorshipPolicyCard({ organizationId }: { organizationId: string }) {
+  const t = useTranslations();
+  const policy = useOrganizationSponsorshipPolicy(organizationId);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">
+          {t("overview.sponsorship.title")}
+        </CardTitle>
+        <p className="text-sm leading-6 text-muted-foreground">
+          {t("overview.sponsorship.lede")}
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {policy.isPending ? (
+          <p className="text-sm text-muted-foreground">
+            {t("overview.sponsorship.loading")}
+          </p>
+        ) : policy.isError || !policy.data ? (
+          <p className="text-sm text-destructive" role="alert">
+            {t("overview.sponsorship.error")}
+          </p>
+        ) : (
+          <SponsorshipPolicyForm
+            organizationId={organizationId}
+            policy={policy.data}
+          />
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export function OrganizationOverview({
   organizationId,
 }: {
@@ -456,7 +603,10 @@ export function OrganizationOverview({
             </CardContent>
           </Card>
           {organization.data.membership.isOwner && (
-            <LinkExistingGrant organizationId={organizationId} />
+            <>
+              <SponsorshipPolicyCard organizationId={organizationId} />
+              <LinkExistingGrant organizationId={organizationId} />
+            </>
           )}
         </aside>
       </div>

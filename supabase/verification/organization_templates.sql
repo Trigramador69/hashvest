@@ -1,6 +1,6 @@
--- Behavioral verification for 20260913000000_hashvest_organization_templates.sql.
+-- Behavioral verification for 20260913010000_hashvest_organization_templates.sql.
 --
--- Run against a disposable database after both migrations, for example:
+-- Run against a disposable database after all tracked migrations, for example:
 --
 --   docker run -d --rm --name hv-pg -e POSTGRES_PASSWORD=postgres postgres:15-alpine
 --   docker exec -i hv-pg psql -U postgres -v ON_ERROR_STOP=1 \

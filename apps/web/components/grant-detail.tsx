@@ -1,10 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useAccount, usePublicClient, useWriteContract } from "wagmi";
-import { getAddress, zeroAddress, type Address } from "viem";
-import { grantVaultAbi, hskTestnet } from "@hashvest/web3";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useAccount,
+  usePublicClient,
+  useSignTypedData,
+  useWriteContract,
+} from "wagmi";
+import {
+  getAddress,
+  isAddress,
+  zeroAddress,
+  type Address,
+  type Hash,
+} from "viem";
+import {
+  grantVaultAbi,
+  hskTestnet,
+  SPONSORED_CLAIM_DOMAIN,
+  SPONSORED_CLAIM_TYPES,
+  transactionExplorerUrl,
+} from "@hashvest/web3";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -21,6 +39,7 @@ import { useGrant } from "@/hooks/use-grant";
 import {
   useGrantContext,
   useOrganizationMembers,
+  useOrganizationSponsorshipPolicy,
 } from "@/hooks/use-organizations";
 import {
   assertTestnetWallet,
@@ -40,11 +59,363 @@ import { deriveRevocationPreview } from "@/lib/protocol/revocation";
 import { ParticipantIdentity } from "./grant-card";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
 import { useGrantPresets } from "@/lib/shared/grant-presets/use-grant-presets";
+import { organizationApi } from "@/lib/cloud/organizations/client";
+import type { SponsoredClaimRequest } from "@/lib/cloud/organizations/types";
+import { SPONSORED_CLAIM_SIGNING_WINDOW_SECONDS } from "@/lib/shared/sponsored-claims";
 
 /** Protocol literals: never translated, only interpolated into messages. */
 const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 /** Matches the refetch interval in useGrant. */
 const REFRESH_SECONDS = 7;
+
+type SponsoredGrant = {
+  claimableAmount: bigint;
+  claimedAmount: bigint;
+  beneficiary: Address;
+  decimals: number;
+  symbol: string;
+  eligibility: { eligible: boolean; error: boolean };
+  sponsoredClaim: {
+    supported: boolean;
+    nonce: bigint;
+    used: boolean;
+  };
+};
+
+type SignedSponsoredClaimInput = {
+  amount: string;
+  nonce: string;
+  deadline: string;
+  relayerAddress: string;
+  signature: string;
+};
+
+function sponsoredRequestStatusLabel(
+  request: SponsoredClaimRequest,
+  t: ReturnType<typeof useTranslations>,
+) {
+  switch (request.status) {
+    case "requested":
+      return t("detail.sponsor.status.requested");
+    case "processing":
+      return t("detail.sponsor.status.processing");
+    case "submitted":
+      return t("detail.sponsor.status.submitted");
+    case "confirmed":
+      return t("detail.sponsor.status.confirmed");
+    case "failed":
+      return t("detail.sponsor.status.failed");
+  }
+}
+
+function SponsoredClaimPanel({
+  address,
+  organizationId,
+  grant,
+  canWrite,
+}: {
+  address: Address;
+  organizationId: string;
+  grant: SponsoredGrant;
+  canWrite: boolean;
+}) {
+  const t = useTranslations();
+  const wallet = useAccount();
+  const policy = useOrganizationSponsorshipPolicy(organizationId);
+  const queryClient = useQueryClient();
+  const { signTypedDataAsync } = useSignTypedData();
+  const [confirming, setConfirming] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [request, setRequest] = useState<SponsoredClaimRequest | null>(null);
+  const [signedInput, setSignedInput] =
+    useState<SignedSponsoredClaimInput | null>(null);
+  const [error, setError] = useState("");
+
+  const relayerAddress =
+    policy.data?.relayerAddress && isAddress(policy.data.relayerAddress)
+      ? getAddress(policy.data.relayerAddress)
+      : undefined;
+
+  useEffect(() => {
+    let cancelled = false;
+    void organizationApi
+      .getSponsoredClaimByNonce(
+        organizationId,
+        address,
+        grant.sponsoredClaim.nonce.toString(),
+      )
+      .then(({ request: existing }) => {
+        if (!cancelled && existing) setRequest(existing);
+      })
+      .catch(() => {
+        if (!cancelled) setError(t("detail.sponsor.statusUnavailable"));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [address, grant.sponsoredClaim.nonce, organizationId, t]);
+
+  useEffect(() => {
+    if (
+      !request ||
+      request.status === "confirmed" ||
+      request.status === "failed"
+    )
+      return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const poll = async () => {
+      try {
+        const { request: updated } =
+          await organizationApi.getSponsoredClaimStatus(
+            organizationId,
+            address,
+            request.id,
+          );
+        if (cancelled) return;
+        setRequest(updated);
+        setError("");
+        if (updated.status === "confirmed")
+          void queryClient.invalidateQueries({
+            queryKey: ["grant", 133, address],
+          });
+        else timer = setTimeout(poll, 2000);
+      } catch {
+        if (cancelled) return;
+        setError(t("detail.sponsor.statusUnavailable"));
+        timer = setTimeout(poll, 4000);
+      }
+    };
+    timer = setTimeout(poll, 2000);
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [address, organizationId, queryClient, request, t]);
+
+  const sponsorshipReady =
+    grant.sponsoredClaim.supported &&
+    !grant.sponsoredClaim.used &&
+    grant.claimedAmount === 0n &&
+    grant.claimableAmount > 0n &&
+    grant.eligibility.eligible &&
+    !grant.eligibility.error &&
+    policy.data?.enabled === true &&
+    (policy.data.remainingClaims ?? 0) > 0 &&
+    relayerAddress !== undefined &&
+    canWrite &&
+    request === null;
+  const retryReady =
+    request?.status === "failed" && !request.txHash && signedInput !== null;
+
+  let availability = t("detail.sponsor.unavailable");
+  if (!grant.sponsoredClaim.supported)
+    availability = t("detail.sponsor.legacy");
+  else if (grant.sponsoredClaim.used || grant.claimedAmount !== 0n)
+    availability = t("detail.sponsor.firstClaimOnly");
+  else if (grant.claimableAmount === 0n)
+    availability = t("detail.sponsor.noClaimable");
+  else if (policy.isPending) availability = t("detail.sponsor.checking");
+  else if (policy.isError || !policy.data)
+    availability = t("detail.sponsor.unavailable");
+  else if (!policy.data.enabled)
+    availability = t("detail.sponsor.policyDisabled");
+  else if (policy.data.remainingClaims <= 0)
+    availability = t("detail.sponsor.limitReached");
+  else if (!relayerAddress || !policy.data.relayerConfigured)
+    availability = t("detail.sponsor.relayerMissing");
+
+  async function submit(input: SignedSponsoredClaimInput) {
+    if (BigInt(input.deadline) <= BigInt(Math.floor(Date.now() / 1000))) {
+      setError(t("detail.sponsor.expired"));
+      return;
+    }
+    setSubmitting(true);
+    setError("");
+    try {
+      const result = await organizationApi.submitSponsoredClaim(
+        organizationId,
+        address,
+        input,
+      );
+      setRequest(result.request);
+      if (result.request.status === "confirmed")
+        void queryClient.invalidateQueries({
+          queryKey: ["grant", 133, address],
+        });
+    } catch {
+      setError(t("detail.sponsor.error"));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function sponsorClaim() {
+    if (!wallet.address || !relayerAddress) return;
+    setConfirming(false);
+    setSubmitting(true);
+    setError("");
+    try {
+      const deadline = BigInt(
+        Math.floor(Date.now() / 1000) + SPONSORED_CLAIM_SIGNING_WINDOW_SECONDS,
+      );
+      const signature = await signTypedDataAsync({
+        account: wallet.address,
+        domain: {
+          ...SPONSORED_CLAIM_DOMAIN,
+          chainId: 133,
+          verifyingContract: address,
+        },
+        types: SPONSORED_CLAIM_TYPES,
+        primaryType: "SponsoredClaim",
+        message: {
+          vault: address,
+          beneficiary: grant.beneficiary,
+          amount: grant.claimableAmount,
+          nonce: grant.sponsoredClaim.nonce,
+          deadline,
+          relayer: relayerAddress,
+        },
+      });
+      const input = {
+        amount: grant.claimableAmount.toString(),
+        nonce: grant.sponsoredClaim.nonce.toString(),
+        deadline: deadline.toString(),
+        relayerAddress: relayerAddress as string,
+        signature,
+      };
+      setSignedInput(input);
+      const result = await organizationApi.submitSponsoredClaim(
+        organizationId,
+        address,
+        input,
+      );
+      setRequest(result.request);
+      if (result.request.status === "confirmed")
+        void queryClient.invalidateQueries({
+          queryKey: ["grant", 133, address],
+        });
+    } catch {
+      setError(t("detail.sponsor.error"));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <section className="space-y-4 rounded-card border border-primary/25 bg-[rgba(87,217,139,.04)] p-4">
+      <div>
+        <h3 className="font-medium">{t("detail.sponsor.title")}</h3>
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+          {t("detail.sponsor.lede")}
+        </p>
+      </div>
+      {request && (
+        <div
+          aria-live="polite"
+          className="space-y-3 rounded-card border border-border bg-surface-1 p-3 text-xs"
+        >
+          <p className="font-medium">
+            {sponsoredRequestStatusLabel(request, t)}
+          </p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-muted-foreground">
+              {t("detail.sponsor.gasPayer")}
+            </span>
+            <AddressDisplay address={request.relayerAddress as Address} />
+          </div>
+          {request.txHash && (
+            <a
+              className="block text-primary underline underline-offset-4"
+              href={transactionExplorerUrl(request.txHash as Hash)}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {t("detail.sponsor.transaction")} · {request.txHash.slice(0, 10)}…
+              ↗
+            </a>
+          )}
+          {request.status === "failed" && (
+            <p className="text-destructive">
+              {t("detail.sponsor.failedFallback")}
+            </p>
+          )}
+        </div>
+      )}
+      {!request && (
+        <>
+          <p className="text-xs leading-5 text-muted-foreground">
+            {availability}
+          </p>
+          {confirming ? (
+            <div
+              aria-labelledby="sponsored-claim-confirm-title"
+              className="space-y-3 rounded-card border border-primary/30 bg-surface-1 p-3"
+              role="dialog"
+            >
+              <h4 className="font-medium" id="sponsored-claim-confirm-title">
+                {t("detail.sponsor.confirmTitle")}
+              </h4>
+              <p className="text-xs leading-5 text-muted-foreground">
+                {t("detail.sponsor.confirmBody", {
+                  amount: `${tokenAmount(grant.claimableAmount, grant.decimals)} ${grant.symbol}`,
+                })}
+              </p>
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span className="text-muted-foreground">
+                  {t("detail.sponsor.gasPayer")}
+                </span>
+                <AddressDisplay address={relayerAddress as Address} />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  className="h-auto min-h-10 whitespace-normal py-2"
+                  disabled={!sponsorshipReady || submitting}
+                  onClick={() => void sponsorClaim()}
+                >
+                  {submitting
+                    ? t("detail.sponsor.signing")
+                    : t("detail.sponsor.confirm")}
+                </Button>
+                <Button
+                  variant="outline"
+                  disabled={submitting}
+                  onClick={() => setConfirming(false)}
+                >
+                  {t("detail.sponsor.cancel")}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button
+              className="h-auto min-h-10 w-full whitespace-normal py-2"
+              disabled={!sponsorshipReady}
+              onClick={() => setConfirming(true)}
+            >
+              {t("detail.sponsor.action")}
+            </Button>
+          )}
+        </>
+      )}
+      {retryReady && signedInput && (
+        <Button
+          className="h-auto min-h-10 w-full whitespace-normal py-2"
+          variant="outline"
+          disabled={submitting}
+          onClick={() => void submit(signedInput)}
+        >
+          {submitting
+            ? t("detail.sponsor.submitting")
+            : t("detail.sponsor.retry")}
+        </Button>
+      )}
+      {error && <p className="text-xs text-destructive">{error}</p>}
+      <p className="text-xs leading-5 text-muted-foreground">
+        {t("detail.sponsor.manualFallback")}
+      </p>
+    </section>
+  );
+}
 
 export function GrantDetail({ address }: { address: Address }) {
   const t = useTranslations();
@@ -580,6 +951,14 @@ export function GrantDetail({ address }: { address: Address }) {
               <p className="text-sm leading-7 text-muted-foreground">
                 {claimReason}
               </p>
+              {isBeneficiary && grantContext.data?.organization.id && (
+                <SponsoredClaimPanel
+                  address={address}
+                  organizationId={grantContext.data.organization.id}
+                  grant={g}
+                  canWrite={canWrite}
+                />
+              )}
               {isBeneficiary && (
                 <Button
                   className="h-auto min-h-11 w-full whitespace-normal break-all py-3"

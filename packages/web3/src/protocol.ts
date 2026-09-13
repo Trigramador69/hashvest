@@ -12,9 +12,15 @@ export { hskChains, hskMainnet, hskTestnet, type HskChain } from "./chains/hsk";
 export {
   hashVestFactoryAbi,
   grantVaultAbi,
+  sponsoredGrantVaultAbi,
   demoTokenAbi,
   demoEligibilityProviderAbi,
   eligibilityProviderAbi,
 } from "./abis";
 export { testnetDeployment } from "./addresses";
 export { addressExplorerUrl, transactionExplorerUrl } from "./explorer";
+export {
+  SPONSORED_CLAIM_DOMAIN,
+  SPONSORED_CLAIM_TYPES,
+  type SponsoredClaimMessage,
+} from "./sponsored-claims";

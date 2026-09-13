@@ -41,7 +41,7 @@ Deliberately **not** stored: beneficiary, token address, vesting start, any vaul
 
 ## Schema
 
-`supabase/migrations/20260913000000_hashvest_organization_templates.sql` adds one table and one supporting constraint. It changes no existing column.
+`supabase/migrations/20260913010000_hashvest_organization_templates.sql` adds one table and one supporting constraint. It changes no existing column. Its version follows the already-applied sponsorship migration, which uses `20260913000000`.
 
 ```text
 organization_templates

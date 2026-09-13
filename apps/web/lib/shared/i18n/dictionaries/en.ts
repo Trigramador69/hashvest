@@ -223,6 +223,30 @@ export const en = {
   "overview.claim.item.fallbackDescription": "Organization grant",
   "overview.claim.item.amount": "{amount} claimable",
   "overview.claim.item.action": "Open grant",
+  "overview.sponsorship.title": "Sponsored first claims",
+  "overview.sponsorship.lede":
+    "Organization grants can pay the HSK transaction fee for one beneficiary-authorized first claim.",
+  "overview.sponsorship.loading": "Reading sponsorship policy…",
+  "overview.sponsorship.error":
+    "The sponsorship policy is temporarily unavailable.",
+  "overview.sponsorship.enabled": "Enable sponsored first claims",
+  "overview.sponsorship.enabledHint":
+    "The beneficiary still signs the exact vault claim; the organization only pays the relayer fee.",
+  "overview.sponsorship.maxClaims": "Organization claim limit",
+  "overview.sponsorship.maxClaimsHint":
+    "Reserved claims count toward this limit. Maximum: {max}.",
+  "overview.sponsorship.usage": "Reserved",
+  "overview.sponsorship.remaining": "Remaining",
+  "overview.sponsorship.relayer": "Relayer",
+  "overview.sponsorship.relayerReady": "Configured",
+  "overview.sponsorship.relayerMissing": "Not configured",
+  "overview.sponsorship.manualFallback":
+    "Beneficiaries can always use the normal wallet-paid claim if sponsorship is unavailable.",
+  "overview.sponsorship.save": "Save policy",
+  "overview.sponsorship.saving": "Saving policy…",
+  "overview.sponsorship.saved": "Sponsorship policy saved.",
+  "overview.sponsorship.updateError":
+    "The policy could not be saved. Try again without changing the existing reservation limit.",
   "overview.members.title": "Members",
   "overview.members.manage": "Manage",
   "overview.link.summary": "Link an existing GrantVault",
@@ -570,6 +594,50 @@ export const en = {
   "detail.claim.pending": "Transaction in progress…",
   "detail.claim.action": "Claim {amount}",
   "detail.claim.beneficiaryBalance": "Beneficiary token balance",
+  "detail.sponsor.title": "Organization-paid first claim",
+  "detail.sponsor.lede":
+    "You authorize this exact vault, amount, and relayer with your wallet signature. The organization pays the HSK fee; it never chooses a different beneficiary or amount.",
+  "detail.sponsor.action": "Sponsor my first claim",
+  "detail.sponsor.confirmTitle": "Confirm sponsored first claim",
+  "detail.sponsor.confirmBody":
+    "Your signature authorizes a one-time claim of {amount} from this vault. The organization relayer will pay the HSK transaction fee.",
+  "detail.sponsor.confirm": "Sign and submit",
+  "detail.sponsor.cancel": "Cancel",
+  "detail.sponsor.signing": "Waiting for wallet signature…",
+  "detail.sponsor.submitting": "Submitting sponsored claim…",
+  "detail.sponsor.retry": "Retry sponsored claim",
+  "detail.sponsor.gasPayer": "Gas payer",
+  "detail.sponsor.transaction": "Sponsored transaction",
+  "detail.sponsor.status.requested": "Sponsorship request recorded",
+  "detail.sponsor.status.processing": "Relayer is preparing the transaction…",
+  "detail.sponsor.status.submitted": "Sponsored transaction submitted",
+  "detail.sponsor.status.confirmed": "Sponsored first claim confirmed",
+  "detail.sponsor.status.failed": "Sponsored claim failed",
+  "detail.sponsor.statusUnavailable":
+    "The sponsored claim status could not be refreshed. The request remains tracked; the normal claim is still available.",
+  "detail.sponsor.expired":
+    "This signed request has expired. Start a new sponsored claim or use the normal claim.",
+  "detail.sponsor.failedFallback":
+    "The relayer could not complete this request. Use the normal wallet-paid claim or retry while the request is still valid.",
+  "detail.sponsor.manualFallback":
+    "The normal wallet-paid claim remains available at all times.",
+  "detail.sponsor.error":
+    "The sponsored claim could not be completed. Your wallet was not charged by HashVest; use the normal claim or try again.",
+  "detail.sponsor.unavailable":
+    "Sponsored claims are temporarily unavailable. The normal claim remains available.",
+  "detail.sponsor.legacy":
+    "This GrantVault uses the legacy manual-claim contract. Use the normal claim below.",
+  "detail.sponsor.firstClaimOnly":
+    "Sponsorship is limited to the first claim. Use the normal claim for this grant.",
+  "detail.sponsor.noClaimable":
+    "There is no currently claimable amount to sponsor.",
+  "detail.sponsor.checking": "Checking the organization sponsorship policy…",
+  "detail.sponsor.policyDisabled":
+    "The organization has not enabled sponsored claims. The normal claim remains available.",
+  "detail.sponsor.limitReached":
+    "The organization sponsorship limit has been reached. The normal claim remains available.",
+  "detail.sponsor.relayerMissing":
+    "The organization relayer is not configured or funded yet. Use the normal claim.",
   "detail.eligibility.title": "Eligibility",
   "detail.eligibility.none":
     "No provider configured. Claims do not require an eligibility check.",

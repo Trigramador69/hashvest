@@ -5,6 +5,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {GrantVault} from "./GrantVault.sol";
+import {SponsoredGrantVault} from "./SponsoredGrantVault.sol";
 import {GrantConfig, MilestoneInput, UnlockStrategy} from "./GrantTypes.sol";
 
 /// @notice Deploys and atomically funds one immutable vault per grant.
@@ -32,8 +33,28 @@ contract HashVestFactory is ReentrancyGuard {
         nonReentrant
         returns (address vault)
     {
+        vault = _createGrant(config, milestones, false);
+    }
+
+    /// @notice Create a versioned vault that supports one signed first claim.
+    /// @dev Organization policy is enforced by Cloud; the beneficiary signature
+    /// remains the onchain authority for the sponsored operation.
+    function createSponsoredGrant(GrantConfig memory config, MilestoneInput[] memory milestones)
+        external
+        nonReentrant
+        returns (address vault)
+    {
+        vault = _createGrant(config, milestones, true);
+    }
+
+    function _createGrant(GrantConfig memory config, MilestoneInput[] memory milestones, bool sponsored)
+        internal
+        returns (address vault)
+    {
         if (config.start == 0) config.start = block.timestamp;
-        vault = address(new GrantVault(msg.sender, config, milestones));
+        vault = sponsored
+            ? address(new SponsoredGrantVault(msg.sender, config, milestones))
+            : address(new GrantVault(msg.sender, config, milestones));
         IERC20 asset = IERC20(config.token);
         uint256 beforeBalance = asset.balanceOf(vault);
         asset.safeTransferFrom(msg.sender, vault, config.totalAllocation);
