@@ -5,6 +5,7 @@ import {
   applyReviewerDefault,
   BLANK_PRESET_FIELDS,
   clearPreset,
+  isPresetEdited,
   resyncMilestoneAmounts,
   selectPreset,
   type AppliedPreset,
@@ -155,6 +156,51 @@ describe("switching presets", () => {
     const { fields } = apply("employee-vesting");
     expect(fields.milestones).toEqual([{ title: "", amount: "" }]);
     expect(fields.strategy).toBe(0);
+  });
+});
+
+describe("whether a preset still describes the form (HAS-47)", () => {
+  it("reports nothing edited when no preset was applied", () => {
+    // Nothing was attributed, so there is nothing that could diverge.
+    expect(isPresetEdited(BLANK_PRESET_FIELDS, undefined)).toBe(false);
+  });
+
+  it("reports an untouched preset as unedited", () => {
+    const { fields, applied } = apply("builder-grant");
+    expect(isPresetEdited(fields, applied)).toBe(false);
+  });
+
+  it("notices an edited scalar field", () => {
+    const { fields, applied } = apply("builder-grant");
+    expect(
+      isPresetEdited({ ...fields, title: "Something else" }, applied),
+    ).toBe(true);
+    expect(isPresetEdited({ ...fields, allocation: "42" }, applied)).toBe(true);
+    expect(isPresetEdited({ ...fields, strategy: 0 }, applied)).toBe(true);
+  });
+
+  it("notices an edited milestone split", () => {
+    const { fields, applied } = apply("builder-grant");
+    const milestones = fields.milestones.map((item, index) =>
+      index === 0 ? { ...item, amount: "1" } : item,
+    );
+    expect(isPresetEdited({ ...fields, milestones }, applied)).toBe(true);
+    expect(
+      isPresetEdited(
+        { ...fields, milestones: fields.milestones.slice(1) },
+        applied,
+      ),
+    ).toBe(true);
+  });
+
+  it("does not call a value the preset inherited from the user an edit", () => {
+    // The user typed the title first; the preset kept it. The form still holds
+    // exactly what was applied, so the preset still describes it honestly.
+    const typed = { ...BLANK_PRESET_FIELDS, title: "My own title" };
+    const applied = selectPreset("builder-grant", typed, undefined);
+    expect(applied.fields.title).toBe("My own title");
+    expect(applied.userOwned).toContain("title");
+    expect(isPresetEdited(applied.fields, applied)).toBe(false);
   });
 });
 

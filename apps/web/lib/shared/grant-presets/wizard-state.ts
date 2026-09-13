@@ -130,6 +130,38 @@ function isUserOwned(
   return value !== applied.fields[field];
 }
 
+/**
+ * Whether the form still holds exactly what the applied preset wrote.
+ *
+ * `applied.fields` is the snapshot taken at apply time, so any inequality is an
+ * edit the user made afterwards. This is deliberately *not* `userOwnedFields`:
+ * that reports a value the user typed *before* a preset inherited it, which is
+ * still faithfully described by the preset. Only a divergence from the snapshot
+ * means the form no longer matches what was applied.
+ *
+ * The review step uses it to avoid attributing an edited configuration to the
+ * AI draft or organization template it merely started from.
+ */
+export function isPresetEdited(
+  current: Pick<AppliedPresetDraft, UserOwnedField>,
+  applied: AppliedPreset | undefined,
+): boolean {
+  if (!applied) return false;
+  if (!sameMilestones(current.milestones, applied.fields.milestones))
+    return true;
+  return (
+    [
+      "title",
+      "description",
+      "allocation",
+      "strategy",
+      "unit",
+      "cliff",
+      "duration",
+    ] as const
+  ).some((field) => current[field] !== applied.fields[field]);
+}
+
 function userOwnedFields(
   current: Pick<AppliedPresetDraft, UserOwnedField>,
   applied: AppliedPreset | undefined,
