@@ -24,6 +24,7 @@ This file is the shared project contract for Codex, Claude Code, and Agy. Keep i
 - The shared grant wizard is a localized five-step flow (Template, Grant, Strategy, Conditions, Review); preset labels and editable suggestions must use the active locale while template keys and onchain values remain technical metadata. User-visible unknown errors use localized `errorMessage` fallbacks, while already-translated validation and wallet-guard errors are preserved.
 - Organization-created grants use `HashVestFactory.createSponsoredGrant` and `SponsoredGrantVault` for one beneficiary-signed first claim; direct and pre-existing grants retain the beneficiary-paid manual `claim()` fallback. The Cloud may track policy/request/receipt state, but HSK remains authoritative.
 - Milestone evidence is private Cloud/Supabase metadata associated with the canonical grant identity `(chain_id, vault_address)` and `milestone_index`. It never changes beneficiary, reviewer, approval, allocation, or any other HSK authority. The public GrantDetail context endpoint must not return it.
+- A protocol fee is specified in [`docs/protocol-fee-spec.md`](docs/protocol-fee-spec.md) and is not implemented. Do not add factory fee storage, reduce beneficiary allocation to pay a fee, invent a Cloud-only fee, or deploy a fee-aware factory without a separately approved implementation and review.
 - Prefer small, reversible changes and existing dependencies/tooling. Do not hide failed checks or weaken types.
 
 ## Delivery contract

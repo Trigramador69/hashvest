@@ -77,7 +77,7 @@ Supabase only holds product context: organization names, member labels, descript
 Without our frontend at all. The factory exposes role-discovery reads, so any app can list a wallet's grants with no indexer. Grants are created through `createGrant`, and the ABIs and chain config are exported from our integration package.
 
 **What's the business model?**
-Not built yet, and we won't pretend otherwise. The direction is a free, open protocol with a paid Cloud workspace for organizations. An optional, transparent protocol fee is a design question we haven't settled.
+Not built yet, and we won't pretend otherwise. The direction is a free, open protocol with a paid Cloud workspace for organizations. An optional, transparent protocol fee is specified as a create-time issuer surplus that never reduces beneficiary allocation; it is not implemented or deployed. See [`protocol-fee-spec.md`](protocol-fee-spec.md).
 
 **How is it tested?**
 Foundry unit, fuzz, and adversarial tests on the contracts, web unit tests, and a CI check that fails if the protocol layer ever depends on the Cloud layer or a server secret reaches the browser. The four lifecycles in our evidence ran as real testnet transactions.

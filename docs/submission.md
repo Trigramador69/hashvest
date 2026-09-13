@@ -202,7 +202,7 @@ Planned in the team's issue tracker, in delivery order. Each step must preserve 
 - AI Review Copilot for milestone evidence and reports.
 - Organization-level reporting and notifications, building on the wallet dashboard analytics shipped for the buildathon.
 - Multi-reviewer milestone quorum (1-of-N and M-of-N).
-- Design of a transparent, optional protocol fee.
+- Design of a transparent, optional protocol fee (specified in [`protocol-fee-spec.md`](protocol-fee-spec.md); not implemented, not deployed).
 - Extraction of the protocol into a public `hashvest-protocol` repository and `@hashvest/protocol` package.
 
 **Later — ecosystem (P3)**
