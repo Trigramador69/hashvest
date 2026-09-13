@@ -50,4 +50,38 @@ describe("protocol role resolution", () => {
       roles: [],
     });
   });
+
+  it("resolves isReviewer for any reviewer in a quorum grant", () => {
+    const rev1 = "0x0000000000000000000000000000000000000010";
+    const rev2 = "0x0000000000000000000000000000000000000020";
+    const rev3 = "0x0000000000000000000000000000000000000030";
+
+    const grant = {
+      issuer,
+      beneficiary,
+      reviewer: rev1,
+      reviewers: [rev1, rev2, rev3],
+    };
+
+    expect(resolveProtocolRoles(rev2, grant)).toEqual({
+      isIssuer: false,
+      isBeneficiary: false,
+      isReviewer: true,
+      roles: ["Reviewer"],
+    });
+
+    expect(resolveProtocolRoles(rev3.toUpperCase(), grant)).toEqual({
+      isIssuer: false,
+      isBeneficiary: false,
+      isReviewer: true,
+      roles: ["Reviewer"],
+    });
+
+    expect(resolveProtocolRoles(outsider, grant)).toEqual({
+      isIssuer: false,
+      isBeneficiary: false,
+      isReviewer: false,
+      roles: [],
+    });
+  });
 });

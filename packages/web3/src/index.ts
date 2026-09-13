@@ -5,6 +5,7 @@ export {
   type HskChain,
   hashVestFactoryAbi,
   grantVaultAbi,
+  quorumGrantVaultAbi,
   sponsoredGrantVaultAbi,
   demoTokenAbi,
   demoEligibilityProviderAbi,

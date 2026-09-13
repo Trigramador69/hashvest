@@ -1,6 +1,7 @@
 export {
   hashVestFactoryAbi,
   grantVaultAbi,
+  quorumGrantVaultAbi,
   sponsoredGrantVaultAbi,
   demoTokenAbi,
   demoEligibilityProviderAbi,

@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-query";
 import { useAccount, usePublicClient } from "wagmi";
 import { type Address } from "viem";
-import { grantVaultAbi, hskTestnet } from "@hashvest/web3";
+import { grantVaultAbi, quorumGrantVaultAbi, hskTestnet } from "@hashvest/web3";
 
 import { organizationApi } from "@/lib/cloud/organizations/client";
 import { deriveGrantLifecycle } from "@/lib/protocol/grant-state";
@@ -336,6 +336,7 @@ type GrantSummary = {
   claimableAmount: bigint;
   beneficiary: Address;
   reviewer: Address;
+  reviewers?: readonly Address[];
   milestones: readonly { approved: boolean }[];
   revoked: boolean;
 };
@@ -365,6 +366,7 @@ export function useOrganizationGrantStats(
           reviewer,
           milestones,
           revocationState,
+          reviewers,
         ] = await Promise.all([
           client.readContract({ ...contract, functionName: "issuer" }),
           client.readContract({ ...contract, functionName: "totalAllocation" }),
@@ -386,6 +388,14 @@ export function useOrganizationGrantStats(
                 functionName: "revocationEarnedAmount",
               }),
           }),
+          client
+            .readContract({
+              address,
+              abi: quorumGrantVaultAbi,
+              functionName: "getReviewers",
+              blockNumber,
+            })
+            .catch(() => undefined),
         ]);
         return {
           vaultAddress: address,
@@ -395,6 +405,7 @@ export function useOrganizationGrantStats(
           claimableAmount,
           beneficiary,
           reviewer,
+          reviewers,
           milestones,
           revoked: revocationState.revoked,
         };

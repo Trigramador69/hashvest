@@ -648,6 +648,7 @@ export const es: TranslationDictionary = {
   "party.issuer": "Emisor",
   "party.beneficiary": "Beneficiario",
   "party.reviewer": "Revisor",
+  "party.reviewers": "Revisores",
   "party.token": "Token",
   "ui.wallet.providerUnavailableRepair":
     "Tu proveedor de wallet no está disponible.",
@@ -748,6 +749,11 @@ export const es: TranslationDictionary = {
   "detail.milestone.approved": "Aprobado",
   "detail.milestone.pending": "Pendiente",
   "detail.milestone.approveAction": "Aprobar hito",
+  "detail.milestone.quorumProgress": "{approvals} de {threshold} aprobaciones",
+  "detail.milestone.approvedByYou": "Aprobado por ti ({approvals}/{threshold})",
+  "detail.milestone.waitingQuorum":
+    "Esperando quórum ({approvals}/{threshold})",
+  "detail.terms.quorumReviewers": "Revisores (Quórum {threshold} de {count})",
   "detail.evidence.title": "Evidencia del hito",
   "detail.evidence.loading": "Cargando evidencia del workspace…",
   "detail.evidence.error":
@@ -942,6 +948,20 @@ export const es: TranslationDictionary = {
   "wizard.field.reviewerWallet.label": "Wallet del revisor",
   "wizard.field.reviewerWallet.hint":
     "Esta wallet puede aprobar hitos. Los importes y los términos no se pueden editar.",
+  "wizard.quorum.modeLabel": "Configuración de revisores",
+  "wizard.quorum.singleReviewer": "Revisor único",
+  "wizard.quorum.multiReviewer": "Quórum multi-revisor (M-de-N)",
+  "wizard.quorum.multiReviewerHint":
+    "Requiere aprobaciones de múltiples revisores designados antes de que los hitos se desbloqueen.",
+  "wizard.quorum.thresholdLabel": "Umbral de aprobación (M de N)",
+  "wizard.quorum.thresholdHint":
+    "Número de aprobaciones de revisores independientes requeridas para desbloquear cada hito.",
+  "wizard.quorum.reviewersCount": "Revisores designados ({count}/10)",
+  "wizard.quorum.addReviewer": "Añadir revisor +",
+  "wizard.quorum.removeReviewer": "Eliminar",
+  "wizard.quorum.reviewerPlaceholder": "Dirección del revisor (0x…)",
+  "wizard.quorum.thresholdOption":
+    "{threshold} de {total} revisores requeridos",
   "wizard.milestones.title": "Hitos",
   "wizard.milestones.lede":
     "Los importes deben sumar exactamente {amount} {symbol}. Hasta {max} hitos.",
@@ -964,6 +984,7 @@ export const es: TranslationDictionary = {
   "wizard.review.beneficiary": "Beneficiario",
   "wizard.review.token": "Token",
   "wizard.review.reviewer": "Revisor",
+  "wizard.review.quorumReviewers": "Revisores (Quórum {threshold} de {count})",
   "wizard.review.start": "Inicio",
   "wizard.review.startCreation": "Timestamp de creación",
   "wizard.review.cliffDuration": "Cliff / duración total",
@@ -1013,6 +1034,14 @@ export const es: TranslationDictionary = {
     "Elige un miembro revisor o usa una wallet externa.",
   "wizard.error.reviewerRequired":
     "Las subvenciones por hitos e híbridas necesitan una dirección de revisor.",
+  "wizard.error.invalidQuorumCount":
+    "Añade entre 1 y 10 revisores para el quórum.",
+  "wizard.error.duplicateReviewer":
+    "No se permiten direcciones de revisores duplicadas.",
+  "wizard.error.invalidQuorumReviewer":
+    "El revisor {index} no es una dirección válida.",
+  "wizard.error.invalidThreshold":
+    "El umbral debe estar entre 1 y el número de revisores.",
   "wizard.error.milestoneCount": "Añade entre 1 y {max} hitos.",
   "wizard.error.milestoneSum":
     "Los importes de los hitos deben sumar exactamente la asignación total.",

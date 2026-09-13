@@ -22,11 +22,16 @@ export function resolveProtocolRoles(
     issuer: string;
     beneficiary: string;
     reviewer: string;
+    reviewers?: readonly string[] | string[];
   },
 ): ProtocolRoleResolution {
   const isIssuer = sameAddress(walletAddress, grant.issuer);
   const isBeneficiary = sameAddress(walletAddress, grant.beneficiary);
-  const isReviewer = sameAddress(walletAddress, grant.reviewer);
+  const isReviewer = Boolean(
+    sameAddress(walletAddress, grant.reviewer) ||
+    (grant.reviewers &&
+      grant.reviewers.some((rev) => sameAddress(walletAddress, rev))),
+  );
   return {
     isIssuer,
     isBeneficiary,

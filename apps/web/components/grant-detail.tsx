@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   useAccount,
   usePublicClient,
@@ -18,6 +18,7 @@ import {
 } from "viem";
 import {
   grantVaultAbi,
+  quorumGrantVaultAbi,
   hskTestnet,
   SPONSORED_CLAIM_DOMAIN,
   SPONSORED_CLAIM_TYPES,
@@ -445,6 +446,33 @@ export function GrantDetail({ address }: { address: Address }) {
   const { writeContractAsync } = useWriteContract();
   const tx = useTransaction();
 
+  const { data: userApprovals } = useQuery({
+    queryKey: [
+      "quorumApprovals",
+      address,
+      wallet.address,
+      grant.data?.blockNumber.toString(),
+    ],
+    enabled: Boolean(
+      grant.data?.quorum?.supported &&
+      wallet.address &&
+      resolveProtocolRoles(wallet.address, grant.data).isReviewer,
+    ),
+    queryFn: async () => {
+      if (!client || !wallet.address || !grant.data) return [];
+      return Promise.all(
+        grant.data.milestones.map((_, idx) =>
+          client.readContract({
+            address,
+            abi: quorumGrantVaultAbi,
+            functionName: "hasApproved",
+            args: [BigInt(idx), wallet.address as Address],
+          }),
+        ),
+      );
+    },
+  });
+
   if (grant.isPending)
     return (
       <Notice title={t("detail.loading.title")}>
@@ -610,10 +638,14 @@ export function GrantDetail({ address }: { address: Address }) {
   async function approve(index: number) {
     await tx.run(async () => {
       if (!client) throw new Error(t("detail.rpcUnavailable", NETWORK));
-      const account = assertTestnetWallet(g.reviewer, walletMessages);
+      const account = assertTestnetWallet(
+        wallet.address as Address,
+        walletMessages,
+      );
+      const abiToUse = g.quorum.supported ? quorumGrantVaultAbi : grantVaultAbi;
       await client.simulateContract({
         address,
-        abi: grantVaultAbi,
+        abi: abiToUse,
         functionName: "approveMilestone",
         args: [BigInt(index)],
         account,
@@ -623,11 +655,11 @@ export function GrantDetail({ address }: { address: Address }) {
         () =>
           writeContractAsync({
             address,
-            abi: grantVaultAbi,
+            abi: abiToUse,
             functionName: "approveMilestone",
             args: [BigInt(index)],
             chainId: 133,
-            account: assertTestnetWallet(g.reviewer, walletMessages),
+            account,
           }),
       );
     });
@@ -867,53 +899,71 @@ export function GrantDetail({ address }: { address: Address }) {
               </CardHeader>
               <CardContent>
                 <ol className="divide-y">
-                  {g.milestones.map((milestone, index) => (
-                    <li
-                      key={index}
-                      className="flex flex-wrap items-center justify-between gap-4 py-5 first:pt-0 last:pb-0"
-                    >
-                      <div className="flex min-w-0 gap-3">
-                        <span
-                          className={`mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border text-xs ${milestone.approved ? "border-primary bg-primary text-primary-foreground" : "border-border bg-secondary text-muted-foreground"}`}
-                        >
-                          {milestone.approved ? "✓" : index + 1}
-                        </span>
-                        <div>
-                          <p className="break-words font-medium">
-                            {milestone.title}
-                          </p>
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            {amount(milestone.amount)}
-                          </p>
+                  {g.milestones.map((milestone, index) => {
+                    const progress = g.quorum?.supported
+                      ? g.quorum.milestoneProgress[index]
+                      : undefined;
+                    const userHasApproved = Boolean(userApprovals?.[index]);
+                    return (
+                      <li
+                        key={index}
+                        className="flex flex-wrap items-center justify-between gap-4 py-5 first:pt-0 last:pb-0"
+                      >
+                        <div className="flex min-w-0 gap-3">
+                          <span
+                            className={`mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border text-xs ${milestone.approved ? "border-primary bg-primary text-primary-foreground" : "border-border bg-secondary text-muted-foreground"}`}
+                          >
+                            {milestone.approved ? "✓" : index + 1}
+                          </span>
+                          <div>
+                            <p className="break-words font-medium">
+                              {milestone.title}
+                            </p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              {amount(milestone.amount)}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span
-                          className={`text-xs font-medium ${milestone.approved ? "text-primary" : "text-muted-foreground"}`}
-                        >
-                          {milestone.approved
-                            ? t("detail.milestone.approved")
-                            : t("detail.milestone.pending")}
-                        </span>
-                        {isReviewer &&
-                          !milestone.approved &&
-                          (g.revoked ? (
-                            <span className="text-xs text-muted-foreground">
-                              {t("detail.milestone.lockedByRevocation")}
-                            </span>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={!canWrite}
-                              onClick={() => void approve(index)}
-                            >
-                              {t("detail.milestone.approveAction")}
-                            </Button>
-                          ))}
-                      </div>
-                    </li>
-                  ))}
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`text-xs font-medium ${milestone.approved ? "text-primary" : "text-muted-foreground"}`}
+                          >
+                            {milestone.approved
+                              ? t("detail.milestone.approved")
+                              : progress
+                                ? t("detail.milestone.quorumProgress", {
+                                    approvals: progress.approvals.toString(),
+                                    threshold: progress.threshold.toString(),
+                                  })
+                                : t("detail.milestone.pending")}
+                          </span>
+                          {isReviewer &&
+                            !milestone.approved &&
+                            (g.revoked ? (
+                              <span className="text-xs text-muted-foreground">
+                                {t("detail.milestone.lockedByRevocation")}
+                              </span>
+                            ) : userHasApproved && progress ? (
+                              <span className="rounded-control border border-primary/25 bg-[rgba(87,217,139,.08)] px-2.5 py-1 text-xs font-medium text-primary">
+                                {t("detail.milestone.approvedByYou", {
+                                  approvals: progress.approvals.toString(),
+                                  threshold: progress.threshold.toString(),
+                                })}
+                              </span>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={!canWrite}
+                                onClick={() => void approve(index)}
+                              >
+                                {t("detail.milestone.approveAction")}
+                              </Button>
+                            ))}
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ol>
                 {grantContext.data && (
                   <MilestoneEvidenceList
@@ -953,9 +1003,6 @@ export function GrantDetail({ address }: { address: Address }) {
                   ["terms", termsValue],
                   ["issuer", g.issuer],
                   ["beneficiary", g.beneficiary],
-                  ...(g.reviewer !== zeroAddress
-                    ? [["reviewer", g.reviewer]]
-                    : []),
                   ["token", g.token],
                 ].map(([field, party]) => (
                   <div
@@ -983,6 +1030,40 @@ export function GrantDetail({ address }: { address: Address }) {
                     </dd>
                   </div>
                 ))}
+                {g.quorum?.supported && g.quorum.reviewers.length > 0 ? (
+                  <div className="flex flex-wrap justify-between gap-2">
+                    <dt className="text-muted-foreground">
+                      {t("detail.terms.quorumReviewers", {
+                        threshold: g.quorum.threshold.toString(),
+                        count: g.quorum.reviewers.length.toString(),
+                      })}
+                    </dt>
+                    <dd className="space-y-1 text-right">
+                      {g.quorum.reviewers.map((rev) => (
+                        <div key={rev}>
+                          <ParticipantIdentity
+                            address={getAddress(rev)}
+                            members={organizationMembers.data}
+                          />
+                        </div>
+                      ))}
+                    </dd>
+                  </div>
+                ) : (
+                  g.reviewer !== zeroAddress && (
+                    <div className="flex flex-wrap justify-between gap-2">
+                      <dt className="text-muted-foreground">
+                        {t("party.reviewer")}
+                      </dt>
+                      <dd>
+                        <ParticipantIdentity
+                          address={getAddress(g.reviewer)}
+                          members={organizationMembers.data}
+                        />
+                      </dd>
+                    </div>
+                  )
+                )}
               </dl>
             </CardContent>
           </Card>

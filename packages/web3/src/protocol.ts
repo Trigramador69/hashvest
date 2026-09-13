@@ -12,6 +12,7 @@ export { hskChains, hskMainnet, hskTestnet, type HskChain } from "./chains/hsk";
 export {
   hashVestFactoryAbi,
   grantVaultAbi,
+  quorumGrantVaultAbi,
   sponsoredGrantVaultAbi,
   demoTokenAbi,
   demoEligibilityProviderAbi,

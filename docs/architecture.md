@@ -16,6 +16,7 @@ The Protocol is the trust boundary. It holds funds, enforces unlock math, and de
 | ---------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | `packages/contracts/src/HashVestFactory.sol`         | Creates vaults; keeps role discovery arrays                                         |
 | `packages/contracts/src/GrantVault.sol`              | Immutable terms, milestone approval, beneficiary claims, optional issuer revocation |
+| `packages/contracts/src/QuorumGrantVault.sol`        | Versioned 1-of-N and M-of-N milestone approval quorum extension                     |
 | `packages/contracts/src/SponsoredGrantVault.sol`     | Versioned beneficiary-signed first claim with an exact relayer binding              |
 | `packages/contracts/src/GrantTypes.sol`              | Shared strategy and schedule types                                                  |
 | `packages/contracts/src/IEligibilityProvider.sol`    | Optional eligibility adapter interface                                              |
@@ -106,6 +107,7 @@ HashVest Protocol
         v
 HSK Testnet (chain 133)
   SponsoredGrantVault  signed first claim + native HSK gas
+  QuorumGrantVault     M-of-N reviewer milestone quorum
 ```
 
 Inside `apps/web/lib`, the same direction holds between three trees:
@@ -120,15 +122,15 @@ Localization is presentation state, so it lives in `lib/shared/i18n/**` and impo
 
 ## Authority: which layer owns which field
 
-| Owned by HSK (authoritative)                          | Owned by Supabase (product context)                                                                     |
-| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Issuer, beneficiary, reviewer                         | Organization name and description                                                                       |
-| Token, allocation, strategy                           | Membership and workspace ownership (`is_owner`)                                                         |
-| Vesting start, cliff, duration, initial unlock        | Display names and presentation role labels                                                              |
-| Milestone titles, amounts, approval state             | Organization ↔ GrantVault associations                                                                  |
-| Revocable mode, revoked state, revocation time        | Grant descriptions, organization templates, and private milestone evidence (URL, type, note, submitter) |
-| Vested, unlocked, claimable, claimed amounts          | —                                                                                                       |
-| Eligibility, balances, funds, signed claim settlement | Sponsorship policy, reservations, and request/receipt status                                            |
+| Owned by HSK (authoritative)                                   | Owned by Supabase (product context)                                                                     |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Issuer, beneficiary, reviewer / quorum reviewers and threshold | Organization name and description                                                                       |
+| Token, allocation, strategy                                    | Membership and workspace ownership (`is_owner`)                                                         |
+| Vesting start, cliff, duration, initial unlock                 | Display names and presentation role labels                                                              |
+| Milestone titles, amounts, approval state                      | Organization ↔ GrantVault associations                                                                  |
+| Revocable mode, revoked state, revocation time                 | Grant descriptions, organization templates, and private milestone evidence (URL, type, note, submitter) |
+| Vested, unlocked, claimable, claimed amounts                   | —                                                                                                       |
+| Eligibility, balances, funds, signed claim settlement          | Sponsorship policy, reservations, and request/receipt status                                            |
 
 Two consequences that have already shaped the code:
 

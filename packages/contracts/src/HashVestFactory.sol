@@ -6,6 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {GrantVault} from "./GrantVault.sol";
 import {SponsoredGrantVault} from "./SponsoredGrantVault.sol";
+import {QuorumGrantVault} from "./QuorumGrantVault.sol";
 import {GrantConfig, MilestoneInput, UnlockStrategy} from "./GrantTypes.sol";
 
 /// @notice Deploys and atomically funds one immutable vault per grant.
@@ -28,6 +29,17 @@ contract HashVestFactory is ReentrancyGuard {
         bool revocable
     );
 
+    event GrantCreatedWithQuorum(
+        address indexed vault,
+        address indexed issuer,
+        address indexed beneficiary,
+        address[] reviewers,
+        uint256 threshold,
+        string title,
+        UnlockStrategy strategy,
+        bool revocable
+    );
+
     function createGrant(GrantConfig memory config, MilestoneInput[] memory milestones)
         external
         nonReentrant
@@ -45,6 +57,38 @@ contract HashVestFactory is ReentrancyGuard {
         returns (address vault)
     {
         vault = _createGrant(config, milestones, true);
+    }
+
+    /// @notice Create a versioned vault that supports 1-of-N or M-of-N milestone reviewer quorums.
+    function createQuorumGrant(
+        GrantConfig memory config,
+        address[] memory reviewers,
+        uint256 threshold,
+        MilestoneInput[] memory milestones
+    ) external nonReentrant returns (address vault) {
+        if (config.start == 0) config.start = block.timestamp;
+        if (reviewers.length > 0 && config.reviewer == address(0)) {
+            config.reviewer = reviewers[0];
+        }
+        vault = address(new QuorumGrantVault(msg.sender, config, reviewers, threshold, milestones));
+        IERC20 asset = IERC20(config.token);
+        uint256 beforeBalance = asset.balanceOf(vault);
+        asset.safeTransferFrom(msg.sender, vault, config.totalAllocation);
+        uint256 afterBalance = asset.balanceOf(vault);
+        if (afterBalance < beforeBalance || afterBalance - beforeBalance < config.totalAllocation) {
+            revert UnderfundedGrant();
+        }
+        grantsByIssuer[msg.sender].push(vault);
+        grantsByBeneficiary[config.beneficiary].push(vault);
+        for (uint256 i; i < reviewers.length; ++i) {
+            grantsByReviewer[reviewers[i]].push(vault);
+        }
+        emit GrantCreated(
+            vault, msg.sender, config.beneficiary, config.reviewer, config.title, config.strategy, config.revocable
+        );
+        emit GrantCreatedWithQuorum(
+            vault, msg.sender, config.beneficiary, reviewers, threshold, config.title, config.strategy, config.revocable
+        );
     }
 
     function _createGrant(GrantConfig memory config, MilestoneInput[] memory milestones, bool sponsored)

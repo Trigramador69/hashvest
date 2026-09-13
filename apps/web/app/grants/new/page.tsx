@@ -113,6 +113,10 @@ type PreparedGrant = {
   symbol: string;
   decimals: number;
   issuer: Address;
+  quorum?: {
+    reviewers: Address[];
+    threshold: number;
+  };
 };
 
 function Field({
@@ -302,6 +306,9 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   const [reviewer, setReviewer] = useState("");
   const [reviewerMemberId, setReviewerMemberId] = useState("");
   const [reviewerExternal, setReviewerExternal] = useState(!organizationId);
+  const [useQuorumReviewers, setUseQuorumReviewers] = useState(false);
+  const [quorumReviewers, setQuorumReviewers] = useState<string[]>(["", ""]);
+  const [quorumThreshold, setQuorumThreshold] = useState(2);
   const [milestones, setMilestones] = useState<MilestoneInput[]>([
     { title: "", amount: "" },
   ]);
@@ -579,16 +586,37 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             };
           });
     if (strategy !== 0) {
-      if (organizationId && !reviewerExternal && !reviewerMemberId)
-        throw new Error(t("wizard.error.reviewerMember"));
-      validateMemberSelection(
-        reviewerMemberId,
-        reviewer,
-        reviewerExternal,
-        t("wizard.error.memberMismatch.reviewer"),
-      );
-      if (!validParty(reviewer))
-        throw new Error(t("wizard.error.reviewerRequired"));
+      if (useQuorumReviewers) {
+        const cleaned = quorumReviewers.map((r) => r.trim()).filter(Boolean);
+        if (cleaned.length < 1 || cleaned.length > 10) {
+          throw new Error(t("wizard.error.invalidQuorumCount"));
+        }
+        for (let i = 0; i < cleaned.length; i++) {
+          if (!validParty(cleaned[i])) {
+            throw new Error(
+              t("wizard.error.invalidQuorumReviewer", { index: i + 1 }),
+            );
+          }
+        }
+        const lowerSet = new Set(cleaned.map((r) => r.toLowerCase()));
+        if (lowerSet.size !== cleaned.length) {
+          throw new Error(t("wizard.error.duplicateReviewer"));
+        }
+        if (quorumThreshold < 1 || quorumThreshold > cleaned.length) {
+          throw new Error(t("wizard.error.invalidThreshold"));
+        }
+      } else {
+        if (organizationId && !reviewerExternal && !reviewerMemberId)
+          throw new Error(t("wizard.error.reviewerMember"));
+        validateMemberSelection(
+          reviewerMemberId,
+          reviewer,
+          reviewerExternal,
+          t("wizard.error.memberMismatch.reviewer"),
+        );
+        if (!validParty(reviewer))
+          throw new Error(t("wizard.error.reviewerRequired"));
+      }
       if (!items.length || items.length > 20)
         throw new Error(t("wizard.error.milestoneCount", { max: 20 }));
       if (strategy === 2 && initialUnlockAmount === totalAllocation) {
@@ -609,12 +637,28 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         );
       }
     }
+    const quorumData =
+      strategy !== 0 && useQuorumReviewers
+        ? {
+            reviewers: quorumReviewers
+              .map((r) => r.trim())
+              .filter(Boolean)
+              .map((r) => getAddress(r)),
+            threshold: quorumThreshold,
+          }
+        : undefined;
+
     return {
       config: {
         title: title.trim(),
         token: getAddress(token),
         beneficiary: getAddress(beneficiary),
-        reviewer: strategy === 0 ? zeroAddress : getAddress(reviewer),
+        reviewer:
+          strategy === 0
+            ? zeroAddress
+            : quorumData
+              ? quorumData.reviewers[0]
+              : getAddress(reviewer),
         totalAllocation,
         strategy,
         start: startTimestamp,
@@ -628,6 +672,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
       symbol: tokenMetadata.data.symbol,
       decimals: tokenMetadata.data.decimals,
       issuer: address,
+      quorum: quorumData,
     };
   }
 
@@ -698,14 +743,27 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         );
       }
       assertTestnetWallet(account, walletMessages);
-      const createFunction = organizationId
-        ? "createSponsoredGrant"
-        : "createGrant";
+      const isQuorum = Boolean(
+        prepared.quorum && prepared.quorum.reviewers.length > 0,
+      );
+      const createFunction = isQuorum
+        ? "createQuorumGrant"
+        : organizationId
+          ? "createSponsoredGrant"
+          : "createGrant";
+      const callArgs = isQuorum
+        ? ([
+            config,
+            prepared.quorum!.reviewers,
+            BigInt(prepared.quorum!.threshold),
+            items,
+          ] as const)
+        : ([config, items] as const);
       const simulation = await client.simulateContract({
         address: factory,
         abi: hashVestFactoryAbi,
         functionName: createFunction,
-        args: [config, items],
+        args: callArgs,
         account,
       });
       const receipt = await tx.confirm(t("wizard.tx.create"), () =>
@@ -713,7 +771,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
           address: factory,
           abi: hashVestFactoryAbi,
           functionName: createFunction,
-          args: [config, items],
+          args: callArgs,
           chainId: 133,
           account: assertTestnetWallet(account, walletMessages),
           gas: simulation.request.gas
@@ -1381,34 +1439,166 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                       )}
                       {strategy !== 0 && (
                         <div className="space-y-5">
-                          {organizationId ? (
-                            <MemberPicker
-                              label={t("wizard.field.reviewer.label")}
-                              hint={t("wizard.field.reviewer.hint")}
-                              choosePlaceholder={t("picker.chooseReviewer")}
-                              members={organizationMembers.data}
-                              memberId={reviewerMemberId}
-                              addressValue={reviewer}
-                              onMemberChange={setReviewerMemberId}
-                              onAddressChange={setReviewer}
-                              external={reviewerExternal}
-                              onExternalChange={setReviewerExternal}
-                            />
-                          ) : (
-                            <Field
-                              label={t("wizard.field.reviewerWallet.label")}
-                              hint={t("wizard.field.reviewerWallet.hint")}
-                            >
-                              <input
-                                className="field font-mono"
-                                value={reviewer}
-                                onChange={(event) =>
-                                  setReviewer(event.target.value.trim())
-                                }
-                                placeholder="0x…"
-                                spellCheck={false}
+                          <div className="space-y-2">
+                            <span className="text-sm font-medium">
+                              {t("wizard.quorum.modeLabel")}
+                            </span>
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                type="button"
+                                className={`rounded-control border px-3 py-2 text-xs font-medium transition-colors ${
+                                  !useQuorumReviewers
+                                    ? "border-primary bg-primary/10 text-primary"
+                                    : "border-border bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                                }`}
+                                onClick={() => setUseQuorumReviewers(false)}
+                              >
+                                {t("wizard.quorum.singleReviewer")}
+                              </button>
+                              <button
+                                type="button"
+                                className={`rounded-control border px-3 py-2 text-xs font-medium transition-colors ${
+                                  useQuorumReviewers
+                                    ? "border-primary bg-primary/10 text-primary"
+                                    : "border-border bg-secondary/50 text-muted-foreground hover:bg-secondary"
+                                }`}
+                                onClick={() => setUseQuorumReviewers(true)}
+                              >
+                                {t("wizard.quorum.multiReviewer")}
+                              </button>
+                            </div>
+                          </div>
+                          {!useQuorumReviewers ? (
+                            organizationId ? (
+                              <MemberPicker
+                                label={t("wizard.field.reviewer.label")}
+                                hint={t("wizard.field.reviewer.hint")}
+                                choosePlaceholder={t("picker.chooseReviewer")}
+                                members={organizationMembers.data}
+                                memberId={reviewerMemberId}
+                                addressValue={reviewer}
+                                onMemberChange={setReviewerMemberId}
+                                onAddressChange={setReviewer}
+                                external={reviewerExternal}
+                                onExternalChange={setReviewerExternal}
                               />
-                            </Field>
+                            ) : (
+                              <Field
+                                label={t("wizard.field.reviewerWallet.label")}
+                                hint={t("wizard.field.reviewerWallet.hint")}
+                              >
+                                <input
+                                  className="field font-mono"
+                                  value={reviewer}
+                                  onChange={(event) =>
+                                    setReviewer(event.target.value.trim())
+                                  }
+                                  placeholder="0x…"
+                                  spellCheck={false}
+                                />
+                              </Field>
+                            )
+                          ) : (
+                            <div className="space-y-4 rounded-card border bg-secondary/20 p-4">
+                              <p className="text-xs leading-5 text-muted-foreground">
+                                {t("wizard.quorum.multiReviewerHint")}
+                              </p>
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-medium">
+                                    {t("wizard.quorum.reviewersCount", {
+                                      count: quorumReviewers.length,
+                                    })}
+                                  </span>
+                                  {quorumReviewers.length < 10 && (
+                                    <button
+                                      type="button"
+                                      className="text-xs font-medium text-primary hover:underline"
+                                      onClick={() => {
+                                        setQuorumReviewers((prev) => [
+                                          ...prev,
+                                          "",
+                                        ]);
+                                        setQuorumThreshold((curr) =>
+                                          Math.min(
+                                            curr + 1,
+                                            quorumReviewers.length + 1,
+                                          ),
+                                        );
+                                      }}
+                                    >
+                                      {t("wizard.quorum.addReviewer")}
+                                    </button>
+                                  )}
+                                </div>
+                                {quorumReviewers.map((revAddr, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <input
+                                      className="field font-mono text-xs"
+                                      value={revAddr}
+                                      onChange={(e) => {
+                                        const val = e.target.value.trim();
+                                        setQuorumReviewers((prev) =>
+                                          prev.map((item, i) =>
+                                            i === idx ? val : item,
+                                          ),
+                                        );
+                                      }}
+                                      placeholder={t(
+                                        "wizard.quorum.reviewerPlaceholder",
+                                      )}
+                                      spellCheck={false}
+                                    />
+                                    {quorumReviewers.length > 2 && (
+                                      <button
+                                        type="button"
+                                        className="shrink-0 px-2 py-1 text-xs text-destructive hover:underline"
+                                        onClick={() => {
+                                          const next = quorumReviewers.filter(
+                                            (_, i) => i !== idx,
+                                          );
+                                          setQuorumReviewers(next);
+                                          if (quorumThreshold > next.length) {
+                                            setQuorumThreshold(
+                                              Math.max(1, next.length),
+                                            );
+                                          }
+                                        }}
+                                      >
+                                        {t("wizard.quorum.removeReviewer")}
+                                      </button>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                              <Field
+                                label={t("wizard.quorum.thresholdLabel")}
+                                hint={t("wizard.quorum.thresholdHint")}
+                              >
+                                <select
+                                  className="field"
+                                  value={quorumThreshold}
+                                  onChange={(e) =>
+                                    setQuorumThreshold(Number(e.target.value))
+                                  }
+                                >
+                                  {Array.from(
+                                    { length: quorumReviewers.length },
+                                    (_, i) => i + 1,
+                                  ).map((thresh) => (
+                                    <option key={thresh} value={thresh}>
+                                      {t("wizard.quorum.thresholdOption", {
+                                        threshold: thresh,
+                                        total: quorumReviewers.length,
+                                      })}
+                                    </option>
+                                  ))}
+                                </select>
+                              </Field>
+                            </div>
                           )}
                           <div>
                             <h3 className="font-semibold">
@@ -1596,7 +1786,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                           ["issuer", prepared.issuer],
                           ["beneficiary", prepared.config.beneficiary],
                           ["token", prepared.config.token],
-                          ...(strategy !== 0
+                          ...(strategy !== 0 && !prepared.quorum
                             ? [["reviewer", prepared.config.reviewer]]
                             : []),
                         ].map(([field, party]) => (
@@ -1625,6 +1815,29 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             </dd>
                           </div>
                         ))}
+                        {prepared.quorum && (
+                          <div className="rounded-card border bg-secondary/30 p-3">
+                            <dt className="text-xs font-medium text-foreground">
+                              {t("wizard.review.quorumReviewers", {
+                                threshold: prepared.quorum.threshold,
+                                count: prepared.quorum.reviewers.length,
+                              })}
+                            </dt>
+                            <dd className="mt-2 space-y-1.5 font-mono text-xs">
+                              {prepared.quorum.reviewers.map((rev, i) => (
+                                <div
+                                  key={rev}
+                                  className="flex items-center gap-2"
+                                >
+                                  <span className="text-muted-foreground">
+                                    {i + 1}.
+                                  </span>
+                                  <AddressDisplay address={rev} full />
+                                </div>
+                              ))}
+                            </dd>
+                          </div>
+                        )}
                         {strategy !== 1 && (
                           <>
                             <div className="flex justify-between gap-4">

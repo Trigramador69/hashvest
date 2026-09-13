@@ -626,6 +626,7 @@ export const en = {
   "party.issuer": "Issuer",
   "party.beneficiary": "Beneficiary",
   "party.reviewer": "Reviewer",
+  "party.reviewers": "Reviewers",
   "party.token": "Token",
   "ui.wallet.providerUnavailableRepair": "Your wallet provider is unavailable.",
   "ui.connect.title": "Connect a wallet to get started",
@@ -724,6 +725,11 @@ export const en = {
   "detail.milestone.approved": "Approved",
   "detail.milestone.pending": "Pending",
   "detail.milestone.approveAction": "Approve milestone",
+  "detail.milestone.quorumProgress": "{approvals} of {threshold} approvals",
+  "detail.milestone.approvedByYou": "Approved by you ({approvals}/{threshold})",
+  "detail.milestone.waitingQuorum":
+    "Waiting for quorum ({approvals}/{threshold})",
+  "detail.terms.quorumReviewers": "Reviewers (Quorum {threshold} of {count})",
   "detail.evidence.title": "Milestone evidence",
   "detail.evidence.loading": "Loading workspace evidence…",
   "detail.evidence.error": "Workspace evidence is temporarily unavailable.",
@@ -913,6 +919,19 @@ export const en = {
   "wizard.field.reviewerWallet.label": "Reviewer wallet",
   "wizard.field.reviewerWallet.hint":
     "This wallet may approve milestones. Amounts and terms cannot be edited.",
+  "wizard.quorum.modeLabel": "Reviewer configuration",
+  "wizard.quorum.singleReviewer": "Single reviewer",
+  "wizard.quorum.multiReviewer": "Multi-reviewer quorum (M-of-N)",
+  "wizard.quorum.multiReviewerHint":
+    "Require approvals from multiple designated reviewers before milestones unlock.",
+  "wizard.quorum.thresholdLabel": "Approval threshold (M of N)",
+  "wizard.quorum.thresholdHint":
+    "Number of distinct reviewer approvals required to unlock each milestone.",
+  "wizard.quorum.reviewersCount": "Designated reviewers ({count}/10)",
+  "wizard.quorum.addReviewer": "Add reviewer +",
+  "wizard.quorum.removeReviewer": "Remove",
+  "wizard.quorum.reviewerPlaceholder": "Reviewer address (0x…)",
+  "wizard.quorum.thresholdOption": "{threshold} of {total} reviewers required",
   "wizard.milestones.title": "Milestones",
   "wizard.milestones.lede":
     "Amounts must total exactly {amount} {symbol}. Up to {max} milestones.",
@@ -935,6 +954,7 @@ export const en = {
   "wizard.review.beneficiary": "Beneficiary",
   "wizard.review.token": "Token",
   "wizard.review.reviewer": "Reviewer",
+  "wizard.review.quorumReviewers": "Reviewers (Quorum {threshold} of {count})",
   "wizard.review.start": "Start",
   "wizard.review.startCreation": "Creation timestamp",
   "wizard.review.cliffDuration": "Cliff / total duration",
@@ -984,6 +1004,14 @@ export const en = {
     "Choose a reviewer member or use an external wallet.",
   "wizard.error.reviewerRequired":
     "Milestone and hybrid grants require a reviewer address.",
+  "wizard.error.invalidQuorumCount":
+    "Add between 1 and 10 reviewers for the quorum.",
+  "wizard.error.duplicateReviewer":
+    "Duplicate reviewer addresses are not allowed.",
+  "wizard.error.invalidQuorumReviewer":
+    "Reviewer {index} is not a valid address.",
+  "wizard.error.invalidThreshold":
+    "Threshold must be between 1 and the number of reviewers.",
   "wizard.error.milestoneCount": "Add between 1 and {max} milestones.",
   "wizard.error.milestoneSum":
     "Milestone amounts must add up exactly to the total allocation.",

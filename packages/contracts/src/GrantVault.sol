@@ -46,7 +46,7 @@ contract GrantVault is ReentrancyGuard {
     uint256 public revocationEarnedAmount;
     uint256 public claimedAmount;
     uint256 public milestoneUnlockedAmount;
-    Milestone[] private milestones;
+    Milestone[] internal milestones;
 
     event MilestoneApproved(address indexed reviewer, uint256 indexed index, uint256 amount);
     event TokensClaimed(address indexed beneficiary, address indexed token, uint256 amount, uint256 totalClaimed);
@@ -109,7 +109,7 @@ contract GrantVault is ReentrancyGuard {
         return milestones;
     }
 
-    function approveMilestone(uint256 index) external {
+    function approveMilestone(uint256 index) public virtual {
         if (revoked) revert AlreadyRevoked();
         if (msg.sender != reviewer) revert UnauthorizedReviewer();
         if (index >= milestones.length) revert InvalidMilestoneIndex();

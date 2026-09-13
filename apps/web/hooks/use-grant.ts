@@ -8,6 +8,7 @@ import {
   eligibilityProviderAbi,
   hskTestnet,
   sponsoredGrantVaultAbi,
+  quorumGrantVaultAbi,
 } from "@hashvest/web3";
 
 import { readRevocationState } from "@/lib/protocol/revocation";
@@ -171,11 +172,87 @@ export function useGrant(address: Address) {
           return { supported: false as const, nonce: 0n, used: false };
         }
       })();
+      const quorum = await (async () => {
+        try {
+          const supported = await client.readContract({
+            address,
+            abi: quorumGrantVaultAbi,
+            functionName: "supportsQuorumReviewers",
+            blockNumber,
+          });
+          if (!supported) {
+            return {
+              supported: false as const,
+              reviewers: [] as Address[],
+              threshold: 0n,
+              milestoneProgress: [] as {
+                approvals: bigint;
+                threshold: bigint;
+                approved: boolean;
+              }[],
+            };
+          }
+          const [reviewers, threshold] = await Promise.all([
+            client.readContract({
+              address,
+              abi: quorumGrantVaultAbi,
+              functionName: "getReviewers",
+              blockNumber,
+            }),
+            client.readContract({
+              address,
+              abi: quorumGrantVaultAbi,
+              functionName: "threshold",
+              blockNumber,
+            }),
+          ]);
+          const milestoneProgress = await Promise.all(
+            milestones.map((_, idx) =>
+              client
+                .readContract({
+                  address,
+                  abi: quorumGrantVaultAbi,
+                  functionName: "getMilestoneApprovalProgress",
+                  args: [BigInt(idx)],
+                  blockNumber,
+                })
+                .then(([approvals, thresh, approved]) => ({
+                  approvals,
+                  threshold: thresh,
+                  approved,
+                })),
+            ),
+          );
+          return {
+            supported: true as const,
+            reviewers: reviewers as Address[],
+            threshold,
+            milestoneProgress,
+          };
+        } catch {
+          return {
+            supported: false as const,
+            reviewers: [] as Address[],
+            threshold: 0n,
+            milestoneProgress: [] as {
+              approvals: bigint;
+              threshold: bigint;
+              approved: boolean;
+            }[],
+          };
+        }
+      })();
+      const effectiveReviewers: readonly Address[] = quorum.supported
+        ? quorum.reviewers
+        : reviewer !== zeroAddress
+          ? [reviewer]
+          : [];
       return {
         title,
         issuer,
         beneficiary,
         reviewer,
+        reviewers: effectiveReviewers,
         token,
         totalAllocation,
         strategy,
@@ -200,6 +277,7 @@ export function useGrant(address: Address) {
         beneficiaryBalance,
         eligibility,
         sponsoredClaim,
+        quorum,
         blockNumber,
       };
     },

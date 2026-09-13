@@ -8,6 +8,7 @@ import { artifactPath, broadcastPath, deploymentPath, root } from "./paths.mjs";
 const contracts = [
   ["HashVestFactory", "hashVestFactoryAbi"],
   ["GrantVault", "grantVaultAbi"],
+  ["QuorumGrantVault", "quorumGrantVaultAbi"],
   ["SponsoredGrantVault", "sponsoredGrantVaultAbi"],
   ["DemoToken", "demoTokenAbi"],
   ["DemoEligibilityProvider", "demoEligibilityProviderAbi"],
