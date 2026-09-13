@@ -73,7 +73,7 @@ UI. This is an explicit HAS-8 acceptance criterion, not a style preference.
 
 ## Demo-compressed schedules
 
-`timing.unit` is the wizard's own `<select>` value in seconds: `"60"` minutes,
+`timing.unit` is the wizard's own schedule choice value in seconds: `"60"` minutes,
 `"3600"` hours, `"86400"` days. The shipped presets use **minutes** so the full
 vest→claim cycle is watchable in a live demo. Each preset states its real-world
 equivalent in `timing.realWorldNote`, which the UI shows next to the schedule, so

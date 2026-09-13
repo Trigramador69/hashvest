@@ -270,6 +270,7 @@ export const es: TranslationDictionary = {
     "Conecta proveedores de compliance o attestations sin mover la autoridad fuera de la cadena. Solo hoja de ruta.",
 
   // Revocación (HAS-26), estados de transacción y validación de lib/protocol.
+  "ui.close": "Cerrar",
   "ui.lifecycle.revoked": "Revocada",
   "party.terms": "Términos",
   "tx.stage.confirm": "{label}: confirma en tu wallet",

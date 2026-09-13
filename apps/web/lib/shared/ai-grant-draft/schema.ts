@@ -20,7 +20,7 @@
 
 import { MAX_PRESET_MILESTONES } from "../grant-presets/apply-preset";
 
-/** The wizard's schedule <select> values, in seconds. */
+/** The wizard's schedule choice values, in seconds. */
 export const AI_SCHEDULE_UNITS = ["60", "3600", "86400"] as const;
 
 export type AiScheduleUnit = (typeof AI_SCHEDULE_UNITS)[number];

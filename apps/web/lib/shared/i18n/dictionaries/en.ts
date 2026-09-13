@@ -269,6 +269,7 @@ export const en = {
     "Connect eligible compliance or attestation providers without moving authority offchain. Roadmap only.",
 
   // Revocation (HAS-26), transaction stages, and validation raised from lib/protocol.
+  "ui.close": "Close",
   "ui.lifecycle.revoked": "Revoked",
   "party.terms": "Terms",
   "tx.stage.confirm": "{label}: confirm in your wallet",

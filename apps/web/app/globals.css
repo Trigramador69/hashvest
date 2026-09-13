@@ -314,11 +314,119 @@ textarea:focus-visible {
   animation: select-content-out var(--motion-fast) var(--ease-standard) both;
 }
 
+@keyframes dialog-overlay-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialog-overlay-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+.dialog-overlay {
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.dialog-overlay[data-state="open"] {
+  animation: dialog-overlay-in var(--motion-base) var(--ease-standard) both;
+}
+
+.dialog-overlay[data-state="closed"] {
+  animation: dialog-overlay-out var(--motion-fast) var(--ease-standard) both;
+}
+
+@keyframes dialog-content-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 6px));
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@keyframes dialog-content-out {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+
+  to {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 4px));
+  }
+}
+
+.dialog-content[data-state="open"] {
+  animation: dialog-content-in var(--motion-base) var(--ease-standard) both;
+}
+
+.dialog-content[data-state="closed"] {
+  animation: dialog-content-out var(--motion-fast) var(--ease-standard) both;
+}
+
+@keyframes collapsible-down {
+  from {
+    height: 0;
+  }
+
+  to {
+    height: var(--radix-collapsible-content-height);
+  }
+}
+
+@keyframes collapsible-up {
+  from {
+    height: var(--radix-collapsible-content-height);
+  }
+
+  to {
+    height: 0;
+  }
+}
+
+.collapsible-content[data-state="open"] {
+  animation: collapsible-down var(--motion-base) var(--ease-standard) both;
+}
+
+.collapsible-content[data-state="closed"] {
+  animation: collapsible-up var(--motion-fast) var(--ease-standard) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .select-content[data-state="open"],
   .select-content[data-state="closed"] {
     animation: none;
     opacity: 1;
     transform: none;
+  }
+
+  .dialog-overlay[data-state="open"],
+  .dialog-overlay[data-state="closed"],
+  .dialog-content[data-state="open"],
+  .dialog-content[data-state="closed"],
+  .collapsible-content[data-state="open"],
+  .collapsible-content[data-state="closed"] {
+    animation: none;
+  }
+
+  .dialog-overlay[data-state="open"],
+  .dialog-overlay[data-state="closed"],
+  .dialog-content[data-state="open"],
+  .dialog-content[data-state="closed"] {
+    opacity: 1;
   }
 }

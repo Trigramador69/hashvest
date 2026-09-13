@@ -234,6 +234,7 @@ export const zhCN: TranslationDictionary = {
     "连接合规或证明服务商，同时不将权威性移出链上。仅限路线图。",
 
   // 撤销功能（HAS-26）、交易阶段，以及来自 lib/protocol 的校验提示。
+  "ui.close": "关闭",
   "ui.lifecycle.revoked": "已撤销",
   "party.terms": "条款",
   "tx.stage.confirm": "{label}：请在钱包中确认",

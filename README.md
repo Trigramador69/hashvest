@@ -78,8 +78,11 @@ responsive from a 192px desktop rail to a mobile drawer.
 Dashboard activity and strategy visuals use the shared `ChartContainer` primitive
 over the repository's Recharts dependency, keeping analytics read-only and
 accessible. `DataArt` is limited to sparse deterministic point clouds. The
-header and settings language control uses an accessible Radix Select popup while
-preserving the existing locale cookie and `router.refresh()` provider boundary;
+header and settings language control, plus grant/workspace form choices, use
+accessible Radix Select popups while preserving the existing locale cookie and
+`router.refresh()` provider boundary. Destructive confirmations and expandable
+settings/reconciliation sections use the shared custom AlertDialog, Dialog, and
+Collapsible primitives rather than browser dialogs or native select/details UI.
 RainbowKit continues to own wallet/account/network modals through HashVest
 styled triggers.
 

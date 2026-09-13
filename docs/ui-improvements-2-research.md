@@ -68,10 +68,15 @@ change hit targets, layout, reading order, or the authority of HSK-derived value
 
 The official shadcn chart and select docs were consulted for the separate UI
 requirements in this slice: the dashboard now composes Recharts through the
-shared `ChartContainer`, and the language control uses the Radix-backed `Select`
-primitive while preserving the existing locale boundary. RainbowKit remains the
-wallet state owner; only its triggers are styled locally. Those dependencies were
-not added for animation, and the CSS-only motion decision remains independent.
+shared `ChartContainer`, and the language/control choices use the Radix-backed
+`Select` primitive while preserving the existing locale boundary. The follow-up
+dialog pass follows the documented `Dialog`, `AlertDialog`, and `Collapsible`
+composition (`Content` + header/title/description + footer actions where
+applicable), with HashVest tokens applied locally. RainbowKit remains the wallet
+state owner; only its triggers are styled locally. Those dependencies were not
+added for animation, and the CSS-only motion decision remains independent.
+
+The component references are the official [Dialog](https://ui.shadcn.com/docs/components/radix/dialog), [Alert Dialog](https://ui.shadcn.com/docs/components/radix/alert-dialog), [Collapsible](https://ui.shadcn.com/docs/components/radix/collapsible), and [Select](https://ui.shadcn.com/docs/components/radix/select) pages.
 
 ## Decision boundary
 

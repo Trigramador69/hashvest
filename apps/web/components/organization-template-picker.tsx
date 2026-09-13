@@ -14,6 +14,15 @@ import { appRoutes } from "@/lib/shared/routes";
 import { useTranslations } from "@/lib/shared/i18n/provider";
 
 import { PresetOption } from "./preset-option";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+
+const EMPTY_ORGANIZATION_VALUE = "__empty_organization__";
 
 /**
  * Organization templates as starting points in the grant wizard (HAS-13).
@@ -71,20 +80,39 @@ export function OrganizationTemplatePicker({
           <span className="text-sm font-medium">
             {t("wizard.orgTemplates.organization")}
           </span>
-          <select
-            className="field"
-            value={organizationId ?? ""}
-            onChange={(event) => onOrganizationChange(event.target.value)}
+          <Select
+            value={organizationId || EMPTY_ORGANIZATION_VALUE}
+            onValueChange={(value) =>
+              onOrganizationChange(
+                value === EMPTY_ORGANIZATION_VALUE ? "" : value,
+              )
+            }
           >
-            <option value="">
-              {t("wizard.orgTemplates.chooseOrganization")}
-            </option>
-            {organizations.data?.map((entry) => (
-              <option key={entry.id} value={entry.id}>
-                {entry.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger
+              className={`w-full font-sans text-sm ${organizationId ? "" : "text-muted-foreground"}`}
+            >
+              <SelectValue
+                placeholder={t("wizard.orgTemplates.chooseOrganization")}
+              />
+            </SelectTrigger>
+            <SelectContent align="start">
+              <SelectItem
+                value={EMPTY_ORGANIZATION_VALUE}
+                className="font-sans text-sm"
+              >
+                {t("wizard.orgTemplates.chooseOrganization")}
+              </SelectItem>
+              {organizations.data?.map((entry) => (
+                <SelectItem
+                  key={entry.id}
+                  value={entry.id}
+                  className="font-sans text-sm"
+                >
+                  {entry.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </label>
       )}
       {organizationId &&
