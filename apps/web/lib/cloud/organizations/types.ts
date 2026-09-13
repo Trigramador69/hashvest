@@ -1,4 +1,5 @@
 import type { OrganizationTemplateDefinition } from "../../shared/grant-presets/organization-template";
+import type { MilestoneEvidenceType } from "../../shared/milestone-evidence";
 
 export type Organization = {
   id: string;
@@ -127,6 +128,23 @@ export type OrganizationGrantContext = {
   grant: OrganizationGrant;
 };
 
+export type OrganizationMilestoneEvidence = {
+  chainId: 133;
+  vaultAddress: string;
+  milestoneIndex: number;
+  evidenceUrl: string;
+  evidenceType: MilestoneEvidenceType;
+  note: string | null;
+  submittedByWallet: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type OrganizationMilestoneEvidenceInput = Pick<
+  OrganizationMilestoneEvidence,
+  "evidenceUrl" | "evidenceType" | "note"
+>;
+
 export type Session = {
   walletAddress: string;
   chainId: 133;
@@ -175,6 +193,18 @@ export type OrganizationGrantRow = {
   template_key: string | null;
   created_by_wallet: string;
   created_at: string;
+};
+
+export type OrganizationMilestoneEvidenceRow = {
+  chain_id: 133;
+  vault_address: string;
+  milestone_index: number;
+  evidence_url: string;
+  evidence_type: MilestoneEvidenceType;
+  note: string | null;
+  submitted_by_wallet: string;
+  created_at: string;
+  updated_at: string;
 };
 
 /**
@@ -259,6 +289,23 @@ export type Database = {
         Omit<OrganizationGrantRow, "created_at"> &
           Partial<Pick<OrganizationGrantRow, "created_at">>,
         Partial<Pick<OrganizationGrantRow, "description" | "template_key">>
+      >;
+      organization_grant_milestone_evidence: TableDefinition<
+        OrganizationMilestoneEvidenceRow,
+        Omit<OrganizationMilestoneEvidenceRow, "created_at" | "updated_at"> &
+          Partial<
+            Pick<OrganizationMilestoneEvidenceRow, "created_at" | "updated_at">
+          >,
+        Partial<
+          Pick<
+            OrganizationMilestoneEvidenceRow,
+            | "evidence_url"
+            | "evidence_type"
+            | "note"
+            | "submitted_by_wallet"
+            | "updated_at"
+          >
+        >
       >;
       organization_templates: TableDefinition<
         OrganizationTemplateRow,

@@ -28,8 +28,10 @@ function onchainReadError(error: unknown) {
       );
 }
 
-export async function verifyGrantVault(address: Address) {
-  const client = publicClient();
+async function assertReadableGrantVault(
+  client: ReturnType<typeof publicClient>,
+  address: Address,
+) {
   let code: string | undefined;
   try {
     if ((await client.getChainId()) !== 133)
@@ -47,6 +49,11 @@ export async function verifyGrantVault(address: Address) {
       422,
       "The GrantVault address has no contract code on HSK Testnet.",
     );
+}
+
+export async function verifyGrantVault(address: Address) {
+  const client = publicClient();
+  await assertReadableGrantVault(client, address);
   try {
     const [issuer, title] = await Promise.all([
       client.readContract({
@@ -64,4 +71,27 @@ export async function verifyGrantVault(address: Address) {
   } catch (error) {
     throw onchainReadError(error);
   }
+}
+
+export async function verifyGrantMilestone(
+  address: Address,
+  milestoneIndex: number,
+) {
+  if (!Number.isSafeInteger(milestoneIndex) || milestoneIndex < 0)
+    throw new ApiError(422, "Milestone index is invalid.");
+  const client = publicClient();
+  await assertReadableGrantVault(client, address);
+  let milestones: readonly unknown[];
+  try {
+    milestones = await client.readContract({
+      address,
+      abi: grantVaultAbi,
+      functionName: "getMilestones",
+    });
+  } catch (error) {
+    throw onchainReadError(error);
+  }
+  if (milestoneIndex >= milestones.length)
+    throw new ApiError(422, "Milestone index is outside this GrantVault.");
+  return { milestoneCount: milestones.length };
 }

@@ -28,6 +28,11 @@ export const sponsorshipPolicyQueryKey = (organizationId: string) =>
   ["organization-sponsorship-policy", organizationId] as const;
 export const grantContextQueryKey = (vaultAddress: string) =>
   ["grant-context", 133, vaultAddress] as const;
+export const grantEvidenceQueryKey = (
+  organizationId: string,
+  vaultAddress: string,
+) =>
+  ["organization-grant-evidence", 133, organizationId, vaultAddress] as const;
 
 const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
@@ -104,6 +109,30 @@ export function useGrantContext(vaultAddress: string | undefined) {
     queryFn: async () =>
       (await organizationApi.getGrantContext(vaultAddress as string)).context,
     enabled: Boolean(vaultAddress && walletMatches),
+    retry: false,
+    staleTime: 15_000,
+  });
+  return { ...query, data: walletMatches ? query.data : undefined };
+}
+
+export function useOrganizationGrantEvidence(
+  organizationId: string | undefined,
+  vaultAddress: string | undefined,
+) {
+  const { walletMatches } = useSession();
+  const query = useQuery({
+    queryKey:
+      organizationId && vaultAddress
+        ? grantEvidenceQueryKey(organizationId, vaultAddress)
+        : ["organization-grant-evidence", "missing"],
+    queryFn: async () =>
+      (
+        await organizationApi.getGrantEvidence(
+          organizationId as string,
+          vaultAddress as string,
+        )
+      ).evidence,
+    enabled: Boolean(organizationId && vaultAddress && walletMatches),
     retry: false,
     staleTime: 15_000,
   });

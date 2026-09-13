@@ -14,6 +14,13 @@ import {
 } from "../../shared/grant-presets/organization-template";
 import { TEMPLATE_KEY_MAX_LENGTH } from "../../shared/grant-presets/template-key";
 import type { GrantPresetMilestone } from "../../shared/grant-presets/presets";
+import {
+  isMilestoneEvidenceType,
+  isSafeMilestoneEvidenceUrl,
+  MILESTONE_EVIDENCE_NOTE_MAX_LENGTH,
+  MILESTONE_EVIDENCE_URL_MAX_LENGTH,
+} from "../../shared/milestone-evidence";
+import type { OrganizationMilestoneEvidenceInput } from "./types";
 
 export { TEMPLATE_KEY_MAX_LENGTH };
 
@@ -164,6 +171,44 @@ export function parseOrganizationGrantInput(value: unknown) {
       input.templateKey,
       "Template key",
       TEMPLATE_KEY_MAX_LENGTH,
+    ),
+  };
+}
+
+export function parseMilestoneIndex(value: unknown) {
+  if (typeof value !== "string" || !/^(0|[1-9]\d*)$/.test(value))
+    throw new InputValidationError("Milestone index is invalid.");
+  const index = Number(value);
+  if (!Number.isSafeInteger(index))
+    throw new InputValidationError("Milestone index is invalid.");
+  return index;
+}
+
+export function parseMilestoneEvidenceInput(
+  value: unknown,
+): OrganizationMilestoneEvidenceInput {
+  if (!value || typeof value !== "object" || Array.isArray(value))
+    throw new InputValidationError("Milestone evidence data is invalid.");
+  const input = value as Record<string, unknown>;
+  const evidenceType = input.evidenceType;
+  if (!isMilestoneEvidenceType(evidenceType))
+    throw new InputValidationError("Evidence type is invalid.");
+  const evidenceUrl = requiredText(
+    input.evidenceUrl,
+    "Evidence URL",
+    MILESTONE_EVIDENCE_URL_MAX_LENGTH,
+  );
+  if (!isSafeMilestoneEvidenceUrl(evidenceUrl, evidenceType))
+    throw new InputValidationError(
+      "Evidence URL must use HTTPS, or IPFS for IPFS evidence.",
+    );
+  return {
+    evidenceUrl,
+    evidenceType,
+    note: optionalText(
+      input.note,
+      "Evidence note",
+      MILESTONE_EVIDENCE_NOTE_MAX_LENGTH,
     ),
   };
 }
