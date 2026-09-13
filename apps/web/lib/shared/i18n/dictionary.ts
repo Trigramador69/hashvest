@@ -30,6 +30,19 @@ export type Translator = (
 ) => string;
 
 /**
+ * Looks up a key that is built at runtime rather than written literally, and
+ * returns `undefined` when it does not exist instead of echoing the key back.
+ *
+ * Only for catalogs whose entries are data, not code — grant presets, where the
+ * caller already holds an English value to fall back to. Everything written by
+ * hand should use `Translator`, whose keys are checked at compile time.
+ */
+export type OptionalTranslator = (
+  key: string,
+  values?: TranslationValues,
+) => string | undefined;
+
+/**
  * Drop entries a translator left blank so they fall back to English instead of
  * rendering an empty element. An untranslated string is recoverable; a missing
  * one looks like a broken page.
@@ -79,6 +92,17 @@ export function interpolate(
  */
 export function createTranslator(messages: Messages): Translator {
   return (key, values) => interpolate(messages[key] ?? en[key], values);
+}
+
+/** Build the `tOptional()` used for runtime-built keys. See `OptionalTranslator`. */
+export function createOptionalTranslator(
+  messages: Messages,
+): OptionalTranslator {
+  const lookup = messages as Record<string, string | undefined>;
+  return (key, values) => {
+    const message = lookup[key];
+    return message === undefined ? undefined : interpolate(message, values);
+  };
 }
 
 /** Locales that are missing at least one key, as a build-time diagnostic. */

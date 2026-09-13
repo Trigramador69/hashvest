@@ -8,12 +8,13 @@ import {
 } from "@tanstack/react-query";
 import { useAccount, usePublicClient } from "wagmi";
 import { type Address } from "viem";
-import { grantVaultAbi } from "@hashvest/web3";
+import { grantVaultAbi, hskTestnet } from "@hashvest/web3";
 
 import { organizationApi } from "@/lib/cloud/organizations/client";
 import { deriveGrantLifecycle } from "@/lib/protocol/grant-state";
 import { readRevocationState } from "@/lib/protocol/revocation";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
+import { useTranslations } from "@/lib/shared/i18n/provider";
 
 import { useSession } from "./use-session";
 
@@ -25,6 +26,8 @@ export const grantsQueryKey = (organizationId: string) =>
   ["organization-grants", organizationId] as const;
 export const grantContextQueryKey = (vaultAddress: string) =>
   ["grant-context", 133, vaultAddress] as const;
+
+const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
 export function useOrganizations() {
   const { walletMatches } = useSession();
@@ -174,6 +177,7 @@ type GrantSummary = {
 export function useOrganizationGrantStats(
   grants: { vaultAddress: string }[] | undefined,
 ) {
+  const t = useTranslations();
   const { address: walletAddress } = useAccount();
   const client = usePublicClient({ chainId: 133 });
   const queries = useQueries({
@@ -182,7 +186,7 @@ export function useOrganizationGrantStats(
       enabled: Boolean(client),
       staleTime: 7_000,
       queryFn: async (): Promise<GrantSummary> => {
-        if (!client) throw new Error("HSK Testnet RPC is unavailable.");
+        if (!client) throw new Error(t("tx.error.rpcUnavailable", NETWORK));
         const address = grant.vaultAddress as Address;
         const blockNumber = await client.getBlockNumber();
         const contract = { address, abi: grantVaultAbi, blockNumber };

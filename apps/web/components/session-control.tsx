@@ -47,7 +47,16 @@ export function SessionControl({ compact = false }: { compact?: boolean }) {
       await session.refetch();
       router.refresh();
     } catch (error) {
-      setActionError(errorMessage(error));
+      setActionError(
+        errorMessage(error, {
+          fallback: t("ui.error.requestFailed"),
+          rpcUnavailable: t("tx.error.rpcUnavailable", network),
+          preserve: [
+            t("session.switchNetworkChain", network),
+            t("session.walletChanged"),
+          ],
+        }),
+      );
     } finally {
       setPending(false);
     }
@@ -61,7 +70,12 @@ export function SessionControl({ compact = false }: { compact?: boolean }) {
       clearSession();
       router.refresh();
     } catch (error) {
-      setActionError(errorMessage(error));
+      setActionError(
+        errorMessage(error, {
+          fallback: t("ui.error.requestFailed"),
+          rpcUnavailable: t("tx.error.rpcUnavailable", network),
+        }),
+      );
     } finally {
       setPending(false);
     }

@@ -118,6 +118,39 @@ describe("interpolation", () => {
   });
 });
 
+describe("placeholder parity", () => {
+  const slots = (value: string) =>
+    [...value.matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort();
+
+  it("keeps the same {placeholders} in every locale", () => {
+    // A translation that drops a slot renders a sentence with a hole in it and
+    // fails nothing else: no type error, no missing key, no blank string. The
+    // slots carry addresses, amounts and chain ids, so a dropped one is a
+    // demo-visible bug.
+    for (const locale of LOCALE_CODES) {
+      const messages = getMessages(locale) as Record<string, string>;
+      for (const key of KEYS) {
+        expect(slots(messages[key]), `${locale} → ${key}`).toEqual(
+          slots(en[key]),
+        );
+      }
+    }
+  });
+
+  it("never invents a placeholder English does not have", () => {
+    for (const locale of LOCALE_CODES) {
+      const messages = getMessages(locale) as Record<string, string>;
+      for (const key of KEYS) {
+        for (const slot of slots(messages[key])) {
+          expect(slots(en[key]), `${locale} → ${key} → {${slot}}`).toContain(
+            slot,
+          );
+        }
+      }
+    }
+  });
+});
+
 describe("technical literals", () => {
   it("never inlines an address, hash or chain id into a message", () => {
     // Literals must arrive as placeholders so they stay identical per locale.

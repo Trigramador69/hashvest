@@ -2,13 +2,19 @@
 
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 
-import { createTranslator, getMessages } from "./dictionary";
-import type { Messages, Translator } from "./dictionary";
+import {
+  createOptionalTranslator,
+  createTranslator,
+  getMessages,
+} from "./dictionary";
+import type { Messages, OptionalTranslator, Translator } from "./dictionary";
 import { DEFAULT_LOCALE, type Locale } from "./locales";
 
 type I18nValue = {
   locale: Locale;
   t: Translator;
+  /** For runtime-built keys only; see `OptionalTranslator`. */
+  tOptional: OptionalTranslator;
 };
 
 const I18nContext = createContext<I18nValue | null>(null);
@@ -30,7 +36,11 @@ export function I18nProvider({
   children: ReactNode;
 }) {
   const value = useMemo<I18nValue>(
-    () => ({ locale, t: createTranslator(messages) }),
+    () => ({
+      locale,
+      t: createTranslator(messages),
+      tOptional: createOptionalTranslator(messages),
+    }),
     [locale, messages],
   );
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
@@ -54,9 +64,11 @@ let fallback: I18nValue | null = null;
 
 /** Built once, and only if some subtree renders outside the provider. */
 function englishFallback(): I18nValue {
+  const messages = getMessages(DEFAULT_LOCALE);
   fallback ??= {
     locale: DEFAULT_LOCALE,
-    t: createTranslator(getMessages(DEFAULT_LOCALE)),
+    t: createTranslator(messages),
+    tOptional: createOptionalTranslator(messages),
   };
   return fallback;
 }

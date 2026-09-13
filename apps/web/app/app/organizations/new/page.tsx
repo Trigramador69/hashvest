@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
+import { hskTestnet } from "@hashvest/web3";
 
 import { WorkspaceAccessNotice } from "@/components/workspace-access";
 import { Button } from "@/components/ui/button";
@@ -11,8 +12,12 @@ import { Notice, PageHeading } from "@/components/grant-ui";
 import { useCreateOrganization } from "@/hooks/use-organizations";
 import { useSession } from "@/hooks/use-session";
 import { errorMessage } from "@/lib/protocol/grants";
+import { useTranslations } from "@/lib/shared/i18n/provider";
+
+const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
 export default function NewOrganizationPage() {
+  const t = useTranslations();
   const router = useRouter();
   const { address } = useAccount();
   const session = useSession();
@@ -37,21 +42,18 @@ export default function NewOrganizationPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-7">
-      <PageHeading eyebrow="New organization" title="Create a workspace.">
-        <p>
-          Set up a calm home for your ecosystem, startup, DAO, foundation, or
-          treasury team.
-        </p>
+      <PageHeading eyebrow={t("neworg.eyebrow")} title={t("neworg.title")}>
+        <p>{t("neworg.lede")}</p>
       </PageHeading>
       <WorkspaceAccessNotice />
       {session.walletMatches && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">Your organization profile</CardTitle>
+            <CardTitle className="text-xl">
+              {t("neworg.profile.title")}
+            </CardTitle>
             <p className="pt-2 text-sm leading-6 text-muted-foreground">
-              You will be added automatically as the sole owner. Organization
-              role labels describe people; they do not change GrantVault
-              permissions.
+              {t("neworg.profile.lede")}
             </p>
           </CardHeader>
           <CardContent>
@@ -60,32 +62,36 @@ export default function NewOrganizationPage() {
               onSubmit={(event) => void submit(event)}
             >
               <label className="block space-y-2">
-                <span className="text-sm font-medium">Organization name</span>
+                <span className="text-sm font-medium">
+                  {t("neworg.field.name")}
+                </span>
                 <input
                   className="field"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   maxLength={120}
-                  placeholder="HashKey LATAM Ecosystem"
-                  required
-                />
-              </label>
-              <label className="block space-y-2">
-                <span className="text-sm font-medium">Your display name</span>
-                <input
-                  className="field"
-                  value={displayName}
-                  onChange={(event) => setDisplayName(event.target.value)}
-                  maxLength={100}
-                  placeholder="Alejandro Castro"
+                  placeholder={t("neworg.field.name.placeholder")}
                   required
                 />
               </label>
               <label className="block space-y-2">
                 <span className="text-sm font-medium">
-                  Your role/title{" "}
+                  {t("neworg.field.displayName")}
+                </span>
+                <input
+                  className="field"
+                  value={displayName}
+                  onChange={(event) => setDisplayName(event.target.value)}
+                  maxLength={100}
+                  placeholder={t("neworg.field.displayName.placeholder")}
+                  required
+                />
+              </label>
+              <label className="block space-y-2">
+                <span className="text-sm font-medium">
+                  {t("neworg.field.role")}{" "}
                   <span className="font-normal text-muted-foreground">
-                    (optional)
+                    {t("members.field.optional")}
                   </span>
                 </span>
                 <input
@@ -93,35 +99,35 @@ export default function NewOrganizationPage() {
                   value={roleLabel}
                   onChange={(event) => setRoleLabel(event.target.value)}
                   maxLength={100}
-                  placeholder="Ecosystem Lead"
+                  placeholder={t("neworg.field.role.placeholder")}
                 />
               </label>
               <div className="rounded-lg bg-secondary/60 p-4 text-sm text-muted-foreground">
-                Connected owner wallet:{" "}
+                {t("neworg.ownerWallet")}{" "}
                 <span className="font-mono text-foreground">
                   {address?.slice(0, 8)}…{address?.slice(-6)}
                 </span>
               </div>
               {createOrganization.isError && (
                 <p role="alert" className="text-sm text-destructive">
-                  {errorMessage(createOrganization.error)}
+                  {errorMessage(createOrganization.error, {
+                    fallback: t("ui.error.requestFailed"),
+                    rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+                  })}
                 </p>
               )}
               <Button type="submit" disabled={createOrganization.isPending}>
                 {createOrganization.isPending
-                  ? "Creating workspace…"
-                  : "Create organization"}
+                  ? t("neworg.pending")
+                  : t("neworg.action")}
               </Button>
             </form>
           </CardContent>
         </Card>
       )}
       {!session.walletMatches && !session.isError && (
-        <Notice title="Organization creation is locked">
-          <p>
-            Connect and sign in with the wallet that should own this
-            organization.
-          </p>
+        <Notice title={t("neworg.locked.title")}>
+          <p>{t("neworg.locked.body")}</p>
         </Notice>
       )}
     </div>
