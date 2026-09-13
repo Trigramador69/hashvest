@@ -3,6 +3,7 @@
   "source": ".agents/skills",
   "skills": [
     "agent-maintenance",
+    "ai-assistance",
     "architecture",
     "ci-preflight",
     "deployment",

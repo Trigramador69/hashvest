@@ -17,6 +17,7 @@ Before creating or updating a PR, agents must run `pnpm agents:sync`, `pnpm agen
 Canonical skills live in `.agents/skills/`; Claude adapters are generated in `.claude/skills/`.
 
 - [`agent-maintenance`](.agents/skills/agent-maintenance/SKILL.md) — Keep HashVest agent instructions, skills, generated adapters, README, architecture docs, and CI contracts synchronized whenever repository behavior or references change.
+- [`ai-assistance`](.agents/skills/ai-assistance/SKILL.md) — Build or change HashVest AI assistance while keeping model output advisory, validated against the protocol's own rules, provider-agnostic, and free of retained prompts or exposed secrets.
 - [`architecture`](.agents/skills/architecture/SKILL.md) — Design or review HashVest changes while preserving the Cloud, web3, Protocol, Supabase, and HSK authority boundaries documented by the repository.
 - [`ci-preflight`](.agents/skills/ci-preflight/SKILL.md) — Reproduce the HashVest GitHub CI validation locally, diagnose failures without hiding them, and produce exact evidence before a pull request is created or updated.
 - [`deployment`](.agents/skills/deployment/SKILL.md) — Plan, rehearse, execute, or verify HashVest HSK Testnet operations with chain guards, explicit transaction authority, safe secrets, and evidence-backed state changes.
@@ -37,6 +38,7 @@ After changing a skill, run `pnpm agents:sync` and `pnpm agents:check`.
 - Optional one-way issuer revocation that recovers only unearned allocation while preserving earned and claimed beneficiary value.
 - One fully funded vault per grant; SafeERC20 rejects underfunded fee-on-transfer funding.
 - Beneficiary-only claims, role dashboards, explorer links, and real HSK Testnet transactions.
+- Optional AI Grant Builder: a description becomes a validated, fully editable draft. It cannot sign, fund, approve, claim, revoke, or choose a wallet, and it works with no provider configured.
 
 ## Architecture
 
@@ -91,6 +93,14 @@ The canonical identities are lowercase EVM addresses for wallets, `(chain_id, va
 
 Organization writes go through authenticated Next.js Route Handlers. The browser never uses the Supabase service-role key or writes organization tables directly. Workspace grant cards and queues join organization metadata with fresh GrantVault reads; they do not aggregate token balances or invent USD values.
 
+### AI Grant Builder
+
+A floating panel on the grant wizard turns a short description into a draft. The draft is a _preset_, not a grant: it is validated by the same `assertValidPreset` gate the hand-written Builder/Employee/Advisor/Ecosystem templates pass and applied through the same preset path, so `prepare()` remains the only source of truth for what is submitted onchain. There is no submission path that only AI output uses.
+
+The draft type has no field for a beneficiary, reviewer, token, eligibility provider, start timestamp, or revocability, so a model cannot suggest an identity or a transaction at all. Prompts are redacted before they leave the server and are never retained. A provider that is unavailable, unauthorized, rate-limited, slow, or incoherent falls back to a deterministic offline drafter, so the feature never blocks the wizard.
+
+Full contract, limits, failure matrix, and privacy boundary: [`docs/ai-grant-builder.md`](docs/ai-grant-builder.md).
+
 ### Unlock semantics
 
 - `TIME`: `unlockedAmount = vestedByTime`.
@@ -127,7 +137,17 @@ AUTH_APP_URL=http://localhost:3000
 HSK_TESTNET_RPC_URL=
 ```
 
-Generate `AUTH_SECRET` with `openssl rand -base64 32` or another cryptographically random secret. Never prefix `SUPABASE_SERVICE_ROLE_KEY` or `AUTH_SECRET` with `NEXT_PUBLIC_`, commit them, or expose them to browser code. `AUTH_APP_URL` should be the canonical application origin when deployed behind a proxy; leave it at the local origin for local development.
+Generate `AUTH_SECRET` with `openssl rand -base64 32` or another cryptographically random secret. Never prefix `SUPABASE_SERVICE_ROLE_KEY`, `AUTH_SECRET`, or `AI_API_KEY` with `NEXT_PUBLIC_`, commit them, or expose them to browser code. `AUTH_APP_URL` should be the canonical application origin when deployed behind a proxy; leave it at the local origin for local development.
+
+The AI Grant Builder is optional and off unless a provider is configured:
+
+```dotenv
+AI_API_KEY=
+AI_BASE_URL=
+AI_MODEL=
+```
+
+Any OpenAI-compatible `/chat/completions` endpoint works, so `AI_BASE_URL` and `AI_MODEL` are the only difference between xAI (the default, `https://api.x.ai/v1` and `grok-4.6`), OpenRouter, DeepSeek, Zhipu, or a local Ollama or LM Studio server. With `AI_API_KEY` blank the feature still works: it falls back to a deterministic offline drafter, so the demo never depends on a provider being reachable. See [`docs/ai-grant-builder.md`](docs/ai-grant-builder.md).
 
 Apply the tracked organization migration to the existing Supabase project from a machine with Supabase CLI access:
 
@@ -225,7 +245,7 @@ For the controlled-wallet browser rehearsal, copy the public-address-only fixtur
 
 ## Security boundary
 
-HashVest MVP has not been professionally audited. It targets HSK Testnet only, uses a faucet-mintable demo token, and should not hold production funds. Revocation is available only on explicitly revocable new vaults, is issuer-only and one-way, and preserves earned beneficiary entitlement; non-revocable and old vaults have no issuer withdrawal path. `DemoEligibilityProvider` is an adapter demonstration, not KYC or compliance.
+HashVest MVP has not been professionally audited. It targets HSK Testnet only, uses a faucet-mintable demo token, and should not hold production funds. Revocation is available only on explicitly revocable new vaults, is issuer-only and one-way, and preserves earned beneficiary entitlement; non-revocable and old vaults have no issuer withdrawal path. `DemoEligibilityProvider` is an adapter demonstration, not KYC or compliance. The AI Grant Builder is advisory only: it drafts editable form values, never signs, funds, approves, claims, revokes, or selects a wallet, retains no prompt or model output, and keeps its provider key server-side in a single allowlisted module.
 
 ## Roadmap
 
@@ -239,15 +259,15 @@ Hackathon P0 work, by milestone and owning layer:
 | M3 — Lifecycle & funding health         | Cloud            |
 | M4 — i18n, browser E2E & submission     | Cloud + Protocol |
 
-Post-hackathon milestones M5–M7 cover P1–P3 work: milestone evidence, AI-assisted grant building and review, batch creation, TGE semantics, reviewer quorum, analytics, notifications, compliance and attestation adapters, an embedded SDK, and extraction of the protocol into a public `hashvest-protocol` repository. None of it is implemented in this MVP. New scope during the hackathon is a swap, never an addition — see the stop-adding-features rule in [`docs/architecture.md`](docs/architecture.md).
+Post-hackathon milestones M5–M7 cover P1–P3 work: milestone evidence, AI-assisted review, batch creation, TGE semantics, reviewer quorum, analytics, notifications, compliance and attestation adapters, an embedded SDK, and extraction of the protocol into a public `hashvest-protocol` repository. The human-reviewed AI Grant Builder (HAS-16/HAS-18) is the one M5 item that has landed; the rest is not implemented in this MVP. New scope during the hackathon is a swap, never an addition — see the stop-adding-features rule in [`docs/architecture.md`](docs/architecture.md).
 
 ## Repository layout
 
 ```text
 apps/web                 Cloud     Next.js wallet application
   lib/protocol           Protocol  chain-facing helpers, wagmi config, onchain roles, vault verification
-  lib/cloud              Cloud     Supabase, SIWE sessions, organizations
-  lib/shared             shared    layer-neutral utilities
+  lib/cloud              Cloud     Supabase, SIWE sessions, organizations, AI provider
+  lib/shared             shared    layer-neutral utilities, i18n, grant presets, AI draft contract
 packages/contracts       Protocol  Solidity contracts, Foundry tests, deployment script
 packages/web3            Protocol  HSK chain config, generated ABIs, deployment data, sync scripts
 packages/ui              shared    Shared UI package placeholder
