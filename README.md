@@ -13,6 +13,7 @@ This is a hackathon MVP deployed on **HSK Chain Testnet**. It is unaudited, uses
 | **Network**        | HSK Chain Testnet (chain ID 133)                                                                                                         |
 | **Factory**        | [`0x6fE671195Ac025220B074439362214c10821F93d`](https://testnet-explorer.hskchain.net/address/0x6fE671195Ac025220B074439362214c10821F93d) |
 | **Live proof**     | TIME, MILESTONE, HYBRID, and revocable grant lifecycles with 19 public transactions — [`docs/testnet-demo.json`](docs/testnet-demo.json) |
+| **Languages**      | English · 简体中文 · Español, with typed English fallback                                                                                |
 | **Technical docs** | Problem, track, architecture, evidence, and roadmap — [`docs/submission.md`](docs/submission.md)                                         |
 | **Architecture**   | Protocol/Cloud boundary and per-field authority — [`docs/architecture.md`](docs/architecture.md)                                         |
 | **Protocol fee**   | Transparent optional create-time surplus (design only) — [`docs/protocol-fee-spec.md`](docs/protocol-fee-spec.md)                        |
