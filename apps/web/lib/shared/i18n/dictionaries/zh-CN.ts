@@ -28,6 +28,26 @@ export const zhCN: TranslationDictionary = {
   "ai.templates.example.hybrid":
     "为期六个月的资助，既按时间释放，也依据两个经审核的里程碑释放。",
   "ai.review.openMilestone": "前往里程碑 {index}",
+  "ai.report.title": "用 AI 解读此报告",
+  "ai.report.lede": "对本页数字的参考性解读，每句话都指向其来源的板块。",
+  "ai.report.generate": "总结此报告",
+  "ai.report.unavailable": "摘要不可用。上方报告不受影响。",
+  "ai.report.noPrices":
+    "HashVest 没有价格来源。金额只停留在单一代币内，绝不跨代币换算、估值或相加。",
+  "ai.report.disclaimer":
+    "仅供参考。每个数字都来自上方板块，即 GrantVault 的实时读数。行动前请自行核对。",
+  "ai.report.summary": "投资组合概览",
+  "ai.report.watchlist": "值得关注",
+  "ai.report.uncertainty": "局限与不确定性",
+  "ai.report.checkedAt": "读自 HSK：{date} · {grants} 笔资助",
+  "ai.report.stale": "报告已变化，或此摘要已超过五分钟。",
+  "ai.report.omitted":
+    "有 {count} 笔关联资助未纳入：单次摘要只读取有限数量的保险库。",
+  "ai.report.tokenSource": "{symbol} 分配",
+  "ai.report.source.lifecycle": "资助生命周期计数",
+  "ai.report.source.viewer": "你自己的角色",
+  "ai.report.source.unlocks": "即将到来的解锁日期",
+  "ai.report.source.unreadable": "无法读取的资助",
   "ai.tools.forbidden": "你无权在此组织中使用此工具。",
   "ai.tools.failed": "无法完成分析。你可以继续手动操作并重试。",
   "ai.tools.working": "正在生成参考建议…",

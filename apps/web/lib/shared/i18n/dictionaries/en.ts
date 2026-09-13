@@ -29,6 +29,29 @@ export const en = {
   "ai.templates.example.hybrid":
     "A six-month grant that vests over time and also unlocks on two reviewed milestones.",
   "ai.review.openMilestone": "Go to milestone {index}",
+  "ai.report.title": "Read this report with AI",
+  "ai.report.lede":
+    "An advisory reading of the figures on this page, with every sentence pointing at the section it came from.",
+  "ai.report.generate": "Summarize this report",
+  "ai.report.unavailable":
+    "The summary is unavailable. The report above is unaffected.",
+  "ai.report.noPrices":
+    "HashVest has no price feed. Amounts stay inside one token and are never converted, valued or added together across tokens.",
+  "ai.report.disclaimer":
+    "Advisory only. Every figure comes from the sections above, which are the live GrantVault reads. Check them before acting.",
+  "ai.report.summary": "What the portfolio looks like",
+  "ai.report.watchlist": "Worth watching",
+  "ai.report.uncertainty": "Limitations and uncertainty",
+  "ai.report.checkedAt": "Read from HSK: {date} · {grants} grants",
+  "ai.report.stale":
+    "The report changed or this summary is over five minutes old.",
+  "ai.report.omitted":
+    "{count} associated grants were not included: one summary reads a bounded number of vaults.",
+  "ai.report.tokenSource": "{symbol} allocations",
+  "ai.report.source.lifecycle": "Grant lifecycle counts",
+  "ai.report.source.viewer": "Your own roles",
+  "ai.report.source.unlocks": "Upcoming unlock dates",
+  "ai.report.source.unreadable": "Grants that could not be read",
   "ai.tools.forbidden":
     "You do not have access to this tool in this organization.",
   "ai.tools.failed":
