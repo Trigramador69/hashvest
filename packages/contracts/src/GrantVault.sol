@@ -42,7 +42,7 @@ contract GrantVault is ReentrancyGuard {
     address public immutable eligibilityProvider;
     bool public immutable revocable;
     bool public revoked;
-    uint256 public revokedAt;
+    uint64 public revokedAt;
     uint256 public revocationEarnedAmount;
     uint256 public claimedAmount;
     uint256 public milestoneUnlockedAmount;
@@ -78,12 +78,16 @@ contract GrantVault is ReentrancyGuard {
                 ? config.totalAllocation - config.initialUnlock
                 : config.totalAllocation;
             if (expectedMilestoneSum == 0) revert InvalidInitialUnlock();
+            uint256 len = inputs.length;
             uint256 sum;
-            for (uint256 i; i < inputs.length; ++i) {
+            for (uint256 i; i < len;) {
                 uint256 amount = inputs[i].amount;
                 // Subtraction also prevents an overflowing sum from creating malformed economics.
                 if (amount == 0 || amount > expectedMilestoneSum - sum) revert InvalidMilestones();
                 sum += amount;
+                unchecked {
+                    ++i;
+                }
             }
             if (sum != expectedMilestoneSum) revert InvalidMilestones();
         }
@@ -100,8 +104,12 @@ contract GrantVault is ReentrancyGuard {
         duration = config.duration;
         eligibilityProvider = config.eligibilityProvider;
         revocable = config.revocable;
-        for (uint256 i; i < inputs.length; ++i) {
+        uint256 inputLen = inputs.length;
+        for (uint256 i; i < inputLen;) {
             milestones.push(Milestone(inputs[i].title, inputs[i].amount, false));
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -155,19 +163,26 @@ contract GrantVault is ReentrancyGuard {
 
     function claim() external nonReentrant {
         if (msg.sender != beneficiary) revert UnauthorizedBeneficiary();
-        _claim(claimableAmount());
+        uint256 available = claimableAmount();
+        if (available == 0) revert NothingToClaim();
+        _settleClaim(available);
     }
 
     /// @dev Shared claim settlement for the beneficiary path and versioned
     /// signed-claim extensions. The caller must authorize the path first.
     function _claim(uint256 amount) internal {
+        uint256 available = claimableAmount();
+        if (amount == 0 || amount > available) revert NothingToClaim();
+        _settleClaim(amount);
+    }
+
+    function _settleClaim(uint256 amount) internal {
         if (eligibilityProvider != address(0) && !IEligibilityProvider(eligibilityProvider).isEligible(beneficiary)) {
             revert BeneficiaryNotEligible();
         }
-        if (amount == 0 || amount > claimableAmount()) revert NothingToClaim();
         claimedAmount += amount;
-        IERC20(token).safeTransfer(beneficiary, amount);
         emit TokensClaimed(beneficiary, token, amount, claimedAmount);
+        IERC20(token).safeTransfer(beneficiary, amount);
     }
 
     function revoke() external nonReentrant {
@@ -184,14 +199,13 @@ contract GrantVault is ReentrancyGuard {
         }
 
         revoked = true;
-        revokedAt = block.timestamp;
+        revokedAt = uint64(block.timestamp);
         revocationEarnedAmount = earned;
 
         uint256 recovered = totalAllocation - earned;
+        emit GrantRevoked(msg.sender, recovered, earned);
         if (recovered != 0) {
             IERC20(token).safeTransfer(issuer, recovered);
         }
-
-        emit GrantRevoked(msg.sender, recovered, earned);
     }
 }

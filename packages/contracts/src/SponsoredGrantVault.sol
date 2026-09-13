@@ -78,13 +78,14 @@ contract SponsoredGrantVault is GrantVault, EIP712 {
         if (block.timestamp > deadline) revert SponsoredActionExpired();
         if (nonce != sponsoredClaimNonce) revert SponsoredActionNonceMismatch();
         if (relayer == address(0) || msg.sender != relayer) revert UnauthorizedRelayer();
-        if (amount == 0 || amount > claimableAmount()) revert SponsoredActionAmountUnavailable();
+        uint256 available = claimableAmount();
+        if (amount == 0 || amount > available) revert SponsoredActionAmountUnavailable();
         if (ECDSA.recover(hashSponsoredClaim(amount, nonce, deadline, relayer), signature) != beneficiary) {
             revert SponsoredActionSignatureInvalid();
         }
 
         sponsoredClaimNonce = nonce + 1;
-        _claim(amount);
+        _settleClaim(amount);
         emit SponsoredClaimExecuted(msg.sender, beneficiary, amount, nonce);
     }
 

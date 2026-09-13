@@ -342,7 +342,7 @@ export const grantVaultAbi = [
     type: "function",
     name: "revokedAt",
     inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [{ name: "", type: "uint64", internalType: "uint64" }],
     stateMutability: "view",
   },
   {
@@ -761,7 +761,7 @@ export const sponsoredGrantVaultAbi = [
     type: "function",
     name: "revokedAt",
     inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [{ name: "", type: "uint64", internalType: "uint64" }],
     stateMutability: "view",
   },
   {
