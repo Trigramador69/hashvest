@@ -51,6 +51,7 @@ Verified against the current `main` branch:
 - **Beneficiary-only claims** and a designated reviewer for milestones.
 - **Optional eligibility adapter** through `IEligibilityProvider`, with a clearly labeled demo allowlist (not KYC).
 - **Organizations and members.** Pick beneficiaries and reviewers by name instead of pasting addresses; role labels are presentation only and grant no permission.
+- **Private milestone evidence.** Organization members can attach a URL, type, and optional note to a canonical grant milestone. Reviewers see that context before using the existing onchain `approveMilestone` action; HSK remains authoritative for approval and value.
 - **Grant presets** — Builder Grant, Employee Vesting, Advisor Vesting, and Ecosystem Grant — chosen in the first step of a five-step creation wizard (Template, Grant, Strategy, Conditions, Review). Every prefilled value stays editable before signing.
 - **Cohort distribution.** Bounded batch creation and funding keeps each grant an independent factory call with safe partial retry.
 - **Human-reviewed AI Grant Builder.** A description becomes an editable, validated preset; it never signs, funds, approves, claims, revokes, or chooses a wallet.
@@ -177,7 +178,7 @@ The complete record — all 19 transactions, the three wallets, and the revocati
 | 🟡 Manual           | The three-wallet **browser** flow — organization, named members, hybrid grant, review, claim. Wallet extension steps are performed by hand and are tracked in HAS-20.                        |
 | 🟡 Manual           | Blockscout source verification. The explorer returned HTTP 413 for the automated submission; deployment is unaffected.                                                                       |
 | ✅ Presentation     | `/plans`, the landing summary, and their English / Spanish / Simplified Chinese product-model copy; presentation-only and independent of billing.                                            |
-| ⚪ Roadmap          | Unimplemented packaging capabilities are explicitly labeled in the product model; sponsored first claims still require the authorized factory redeploy gate.                                 |
+| ⚪ Roadmap          | Remaining items in the next section. Organization templates, sponsored first claims, the AI Grant Builder, TGE unlock semantics, and private milestone evidence have already landed.         |
 
 ## Future roadmap
 
@@ -187,13 +188,13 @@ Planned in the team's issue tracker, in delivery order. Each step must preserve 
 
 - Bounded batch grant creation and funding, for grant rounds.
 - A human-reviewed AI Grant Builder that drafts grant terms for approval, never signing on its own.
+- Organization-owned custom templates.
+- Precise TGE and initial-unlock semantics.
+- Private milestone evidence for organization members (HAS-15/HAS-14).
 - Organization-sponsored first claim implementation; the checked-in testnet factory predates `createSponsoredGrant`, so live use requires an authorized redeploy and artifact synchronization.
 
 **Next — Cloud additions (P1/P2)**
 
-- Organization-owned custom templates.
-- Milestone evidence: reviewers see what was delivered before approving.
-- Precise TGE and initial-unlock semantics.
 - Advanced organization reporting and notifications.
 
 **Then — intelligence and operations (P2)**
