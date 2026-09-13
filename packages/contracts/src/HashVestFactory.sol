@@ -36,7 +36,7 @@ contract HashVestFactory is ReentrancyGuard {
         vault = _createGrant(config, milestones, false);
     }
 
-    /// @notice Create a versioned vault that supports one signed first claim.
+    /// @notice Create a versioned vault that supports signed claims and reviews.
     /// @dev Organization policy is enforced by Cloud; the beneficiary signature
     /// remains the onchain authority for the sponsored operation.
     function createSponsoredGrant(GrantConfig memory config, MilestoneInput[] memory milestones)

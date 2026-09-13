@@ -110,14 +110,20 @@ contract GrantVault is ReentrancyGuard {
     }
 
     function approveMilestone(uint256 index) external {
+        _approveMilestone(index, msg.sender);
+    }
+
+    /// @dev Shared approval settlement for the reviewer path and versioned
+    /// signed-action extensions. The caller must authenticate `actor` first.
+    function _approveMilestone(uint256 index, address actor) internal {
         if (revoked) revert AlreadyRevoked();
-        if (msg.sender != reviewer) revert UnauthorizedReviewer();
+        if (actor != reviewer) revert UnauthorizedReviewer();
         if (index >= milestones.length) revert InvalidMilestoneIndex();
         Milestone storage milestone = milestones[index];
         if (milestone.approved) revert MilestoneAlreadyApproved();
         milestone.approved = true;
         milestoneUnlockedAmount += milestone.amount;
-        emit MilestoneApproved(msg.sender, index, milestone.amount);
+        emit MilestoneApproved(actor, index, milestone.amount);
     }
 
     /// @notice The cliff delays access to the vesting allocation, while initialUnlock is accessible at start.

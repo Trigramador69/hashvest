@@ -557,8 +557,28 @@ export const sponsoredGrantVaultAbi = [
   },
   {
     type: "function",
+    name: "SPONSORED_MILESTONE_APPROVAL_TYPEHASH",
+    inputs: [],
+    outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "approveMilestone",
     inputs: [{ name: "index", type: "uint256", internalType: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "approveMilestoneWithSignature",
+    inputs: [
+      { name: "milestoneIndex", type: "uint256", internalType: "uint256" },
+      { name: "nonce", type: "uint256", internalType: "uint256" },
+      { name: "deadline", type: "uint256", internalType: "uint256" },
+      { name: "relayer", type: "address", internalType: "address" },
+      { name: "signature", type: "bytes", internalType: "bytes" },
+    ],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -671,6 +691,18 @@ export const sponsoredGrantVaultAbi = [
   },
   {
     type: "function",
+    name: "hashSponsoredMilestoneApproval",
+    inputs: [
+      { name: "milestoneIndex", type: "uint256", internalType: "uint256" },
+      { name: "nonce", type: "uint256", internalType: "uint256" },
+      { name: "deadline", type: "uint256", internalType: "uint256" },
+      { name: "relayer", type: "address", internalType: "address" },
+    ],
+    outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "initialUnlock",
     inputs: [],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
@@ -741,10 +773,17 @@ export const sponsoredGrantVaultAbi = [
   },
   {
     type: "function",
-    name: "sponsoredClaimUsed",
+    name: "sponsoredReviewNonce",
     inputs: [],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "sponsorshipVersion",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "pure",
   },
   {
     type: "function",
@@ -759,6 +798,13 @@ export const sponsoredGrantVaultAbi = [
     inputs: [],
     outputs: [{ name: "", type: "uint8", internalType: "enum UnlockStrategy" }],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "supportsSponsoredActions",
+    inputs: [],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "pure",
   },
   {
     type: "function",
@@ -886,6 +932,37 @@ export const sponsoredGrantVaultAbi = [
   },
   {
     type: "event",
+    name: "SponsoredMilestoneApprovalExecuted",
+    inputs: [
+      {
+        name: "relayer",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "reviewer",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "milestoneIndex",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "nonce",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
     name: "TokensClaimed",
     inputs: [
       {
@@ -944,11 +1021,10 @@ export const sponsoredGrantVaultAbi = [
     name: "SafeERC20FailedOperation",
     inputs: [{ name: "token", type: "address", internalType: "address" }],
   },
-  { type: "error", name: "SponsoredClaimAlreadyUsed", inputs: [] },
-  { type: "error", name: "SponsoredClaimAmountUnavailable", inputs: [] },
-  { type: "error", name: "SponsoredClaimExpired", inputs: [] },
-  { type: "error", name: "SponsoredClaimNonceMismatch", inputs: [] },
-  { type: "error", name: "SponsoredClaimSignatureInvalid", inputs: [] },
+  { type: "error", name: "SponsoredActionAmountUnavailable", inputs: [] },
+  { type: "error", name: "SponsoredActionExpired", inputs: [] },
+  { type: "error", name: "SponsoredActionNonceMismatch", inputs: [] },
+  { type: "error", name: "SponsoredActionSignatureInvalid", inputs: [] },
   {
     type: "error",
     name: "StringTooLong",
