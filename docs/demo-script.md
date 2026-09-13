@@ -66,7 +66,7 @@ A live grant needs several wallet signatures, three account switches, and a work
 
 Cut whole beats, in this order. Never compress the review or claim beats — they are the proof.
 
-1. **Report (0:30–2:45).** Move it to Q&A; it answers the "how does this scale" question anyway.
+1. **Report (2:30–2:45).** Move it to Q&A; it answers the "how does this scale" question anyway.
 2. **Revocation (2:10–2:30).** Becomes a one-line claim over the claim beat: "and a revoked grant can never take back earned value."
 3. **Protocol (0:20–0:45)** down to 15 seconds — name the three strategies without scrolling.
 
