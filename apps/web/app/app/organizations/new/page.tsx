@@ -36,7 +36,7 @@ export default function NewOrganizationPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-7">
+    <div className="mx-auto max-w-2xl space-y-5">
       <PageHeading eyebrow="New organization" title="Create a workspace.">
         <p>
           Set up a calm home for your ecosystem, startup, DAO, foundation, or
@@ -47,7 +47,7 @@ export default function NewOrganizationPage() {
       {session.walletMatches && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">Your organization profile</CardTitle>
+            <CardTitle className="text-[18px]">Your organization profile</CardTitle>
             <p className="pt-2 text-sm leading-6 text-muted-foreground">
               You will be added automatically as the sole owner. Organization
               role labels describe people; they do not change GrantVault
@@ -96,7 +96,7 @@ export default function NewOrganizationPage() {
                   placeholder="Ecosystem Lead"
                 />
               </label>
-              <div className="rounded-lg bg-secondary/60 p-4 text-sm text-muted-foreground">
+              <div className="rounded-card border border-border bg-surface-2 p-4 text-xs leading-5 text-muted-foreground">
                 Connected owner wallet:{" "}
                 <span className="font-mono text-foreground">
                   {address?.slice(0, 8)}…{address?.slice(-6)}

@@ -12,7 +12,7 @@ import { errorMessage, shortAddress } from "@/lib/protocol/grants";
 import type { OrganizationMember } from "@/lib/cloud/organizations/types";
 
 import { Notice, PageHeading } from "./grant-ui";
-import { Button } from "./ui/button";
+import { Button, buttonVariants } from "./ui/button";
 import { WorkspaceAccessNotice } from "./workspace-access";
 
 export function initials(name: string) {
@@ -27,7 +27,7 @@ export function initials(name: string) {
 export function MemberIdentity({ member }: { member: OrganizationMember }) {
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+      <span className="grid size-9 shrink-0 place-items-center rounded-full border border-primary/30 bg-[rgba(87,217,139,.08)] font-mono text-xs text-primary">
         {initials(member.displayName)}
       </span>
       <div className="min-w-0">
@@ -133,13 +133,13 @@ export function WorkspaceTabs({ organizationId }: { organizationId: string }) {
   return (
     <nav
       aria-label="Organization navigation"
-      className="flex flex-wrap gap-2 border-b pb-3"
+      className="flex flex-wrap gap-1 border-b border-border-soft pb-3"
     >
       {tabs.map(([label, href]) => (
         <Link
           key={label}
           href={href}
-          className={`rounded-md px-3 py-2 text-sm font-medium ${pathname === href ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
+          className={`rounded-control px-3 py-2 font-mono text-xs ${pathname === href ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
         >
           {label}
         </Link>
@@ -178,7 +178,7 @@ export function OrganizationHeader({
   const { organization: data } = organization.data;
   return (
     <div className="space-y-5">
-      <Link className="text-sm font-medium text-primary" href="/app">
+      <Link className="font-mono text-xs text-primary hover:underline" href="/app">
         ← Organizations
       </Link>
       <PageHeading
@@ -186,7 +186,7 @@ export function OrganizationHeader({
         title={data.name}
         action={
           <Link
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+            className={buttonVariants({ size: "sm" })}
             href={`/app/organizations/${organizationId}/grants/new`}
           >
             Create grant <span aria-hidden>+</span>

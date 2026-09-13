@@ -12,7 +12,7 @@ export default function OrganizationNewGrantPage({
 }) {
   const { organizationId } = use(params);
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       <OrganizationHeader organizationId={organizationId} />
       <NewGrant organizationId={organizationId} />
     </div>

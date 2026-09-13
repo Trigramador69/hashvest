@@ -178,13 +178,13 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
         </CardHeader>
         <CardContent>
           {!memberList.length ? (
-            <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+            <p className="rounded-card border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
               No members yet.
             </p>
           ) : (
             <div className="space-y-3">
               {memberList.map((member) => (
-                <div key={member.id} className="rounded-xl border p-4">
+                <div key={member.id} className="rounded-card border border-border bg-surface-1 p-4">
                   {editingId === member.id ? (
                     <form
                       className="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end"
@@ -251,7 +251,8 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
                           address={getAddress(member.walletAddress)}
                         />
                         {member.isOwner && (
-                          <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-primary">
+                            <span className="size-1.5 rounded-full bg-current" />
                             Owner
                           </span>
                         )}

@@ -26,18 +26,12 @@ import { GrantCard } from "./grant-card";
 import { MembersPreview } from "./organization-ui";
 import { Button, buttonVariants } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { MetricCard } from "./ui/metric-card";
 import { FundingHealthSummary, GrantLifecycleBadge, Notice } from "./grant-ui";
 import { deriveGrantState } from "@/lib/protocol/grant-state";
 
 function LiveMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <Card>
-      <CardContent className="p-5">
-        <p className="text-xs font-medium text-muted-foreground">{label}</p>
-        <p className="mt-3 text-3xl font-semibold tracking-tight">{value}</p>
-      </CardContent>
-    </Card>
-  );
+  return <MetricCard label={label} value={value} art="rings" />;
 }
 
 function ReviewQueueItem({
@@ -153,7 +147,7 @@ function ClaimableQueueItem({
   if (!roles.isBeneficiary || live.data.claimableAmount === 0n) return null;
   const beneficiary = findMemberByWallet(members, live.data.beneficiary);
   return (
-    <Card className="border-primary/30 bg-primary/5">
+    <Card className="border-primary/30 bg-[rgba(87,217,139,.06)]">
       <CardContent className="flex flex-wrap items-center justify-between gap-4 p-5">
         <div>
           <div className="mb-2">
@@ -209,8 +203,8 @@ function LinkExistingGrant({ organizationId }: { organizationId: string }) {
     }
   }
   return (
-    <details className="rounded-xl border p-5">
-      <summary className="cursor-pointer text-sm font-semibold">
+    <details className="rounded-card border border-border bg-surface-1 p-5">
+      <summary className="cursor-pointer font-mono text-xs font-medium">
         Link an existing GrantVault
       </summary>
       <p className="mt-3 text-sm leading-6 text-muted-foreground">
@@ -281,7 +275,7 @@ export function OrganizationOverview({
     stats.isPending || stats.hasError ? "—" : value.toString();
   return (
     <div className="space-y-7">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <LiveMetric
           label="Members"
           value={organizationData.memberCount.toString()}
@@ -302,12 +296,12 @@ export function OrganizationOverview({
           still available.
         </p>
       )}
-      <div className="grid items-start gap-7 lg:grid-cols-[1.55fr_1fr]">
-        <div className="space-y-7">
+      <div className="grid items-start gap-3 lg:grid-cols-12">
+        <div className="space-y-5 lg:col-span-8">
           <section className="space-y-4">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <h2 className="text-xl font-semibold tracking-tight">
+                <h2 className="font-mono text-[22px] font-normal tracking-tight">
                   Recent grants
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -322,8 +316,8 @@ export function OrganizationOverview({
               </Link>
             </div>
             {!grantsData.length ? (
-              <div className="rounded-xl border border-dashed p-8 text-center">
-                <p className="font-semibold">
+              <div className="rounded-card border border-dashed border-border p-8 text-center">
+                <p className="font-mono text-sm">
                   No grants in this workspace yet.
                 </p>
                 <Link
@@ -349,7 +343,7 @@ export function OrganizationOverview({
           </section>
           <section className="space-y-4">
             <div>
-              <h2 className="text-xl font-semibold tracking-tight">
+              <h2 className="font-mono text-[22px] font-normal tracking-tight">
                 Review queue
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -358,11 +352,11 @@ export function OrganizationOverview({
               </p>
             </div>
             {stats.isPending ? (
-              <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
+              <p className="rounded-card border border-dashed border-border p-6 text-xs text-muted-foreground">
                 Reading live reviewer assignments…
               </p>
             ) : stats.hasError ? (
-              <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
+              <p className="rounded-card border border-dashed border-border p-6 text-xs text-muted-foreground">
                 Live reviewer assignments are temporarily unavailable.
               </p>
             ) : stats.pendingReviews > 0 ? (
@@ -374,14 +368,14 @@ export function OrganizationOverview({
                 />
               ))
             ) : (
-              <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
+              <p className="rounded-card border border-dashed border-border p-6 text-xs text-muted-foreground">
                 No associated grants to review.
               </p>
             )}
           </section>
           <section className="space-y-4">
             <div>
-              <h2 className="text-xl font-semibold tracking-tight">
+              <h2 className="font-mono text-[22px] font-normal tracking-tight">
                 Claimable for you
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -390,11 +384,11 @@ export function OrganizationOverview({
               </p>
             </div>
             {stats.isPending ? (
-              <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
+              <p className="rounded-card border border-dashed border-border p-6 text-xs text-muted-foreground">
                 Reading live beneficiary claimability…
               </p>
             ) : stats.hasError ? (
-              <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
+              <p className="rounded-card border border-dashed border-border p-6 text-xs text-muted-foreground">
                 Live claimable amounts are temporarily unavailable.
               </p>
             ) : stats.claimableGrants > 0 ? (
@@ -406,13 +400,13 @@ export function OrganizationOverview({
                 />
               ))
             ) : (
-              <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
+              <p className="rounded-card border border-dashed border-border p-6 text-xs text-muted-foreground">
                 No claimable grants for this wallet.
               </p>
             )}
           </section>
         </div>
-        <aside className="space-y-5">
+        <aside className="space-y-3 lg:col-span-4">
           <Card>
             <CardHeader className="flex-row items-center justify-between space-y-0">
               <CardTitle className="text-lg">Members</CardTitle>
@@ -464,7 +458,7 @@ export function OrganizationGrants({
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight">
+          <h2 className="font-mono text-[22px] font-normal tracking-tight">
             Organization grants
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -479,8 +473,8 @@ export function OrganizationGrants({
         </Link>
       </div>
       {!grants.data?.length ? (
-        <div className="rounded-xl border border-dashed p-12 text-center">
-          <p className="text-lg font-semibold">
+        <div className="rounded-card border border-dashed border-border p-12 text-center">
+          <p className="font-mono text-lg">
             No grants have been associated yet.
           </p>
           <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">

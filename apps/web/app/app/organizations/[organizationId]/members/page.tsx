@@ -12,7 +12,7 @@ export default function OrganizationMembersPage({
 }) {
   const { organizationId } = use(params);
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       <OrganizationHeader organizationId={organizationId} />
       <MembersManager organizationId={organizationId} />
     </div>

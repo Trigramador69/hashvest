@@ -163,7 +163,7 @@ export function Notice({
   return (
     <div
       role={error ? "alert" : undefined}
-      className={`rounded-xl border p-5 ${error ? "border-destructive/25 bg-destructive/5" : "bg-secondary/50"}`}
+      className={`rounded-card border p-5 ${error ? "border-[#E9832D]/40 bg-[rgba(233,131,45,.08)]" : "border-border bg-surface-2"}`}
     >
       <p className="mb-1 font-semibold">{title}</p>
       <div className="text-sm leading-6 text-muted-foreground">{children}</div>
@@ -231,7 +231,7 @@ export function TransactionStatus({
   return (
     <div
       aria-live="polite"
-      className="space-y-2 rounded-xl border bg-card p-4 text-sm"
+      className="space-y-2 rounded-card border border-border bg-surface-1 p-4 text-sm"
     >
       {stage && <p className="font-medium">{stage}</p>}
       {error && (
@@ -259,7 +259,7 @@ export function TransactionStatus({
 export function Progress({ value, label }: { value: number; label: string }) {
   return (
     <div
-      className="h-2.5 overflow-hidden rounded-full bg-secondary"
+      className="h-1.5 overflow-hidden rounded-full bg-[#2A2C2B]"
       role="progressbar"
       aria-label={label}
       aria-valuemin={0}
@@ -281,14 +281,15 @@ export function GrantLifecycleBadge({
 }) {
   return (
     <span
-      className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+      className={`inline-flex items-center gap-1.5 text-xs font-medium ${
         lifecycle === "REVOKED"
-          ? "bg-destructive/10 text-destructive font-semibold"
+          ? "text-[#E9832D]"
           : lifecycle === "COMPLETED"
-            ? "bg-secondary text-muted-foreground"
-            : "bg-primary/10 text-primary"
+            ? "text-[#4D6AD9]"
+            : "text-primary"
       }`}
     >
+      <span className="size-1.5 rounded-full bg-current" />
       {lifecycle === "REVOKED"
         ? "Revoked"
         : lifecycle === "COMPLETED"
@@ -319,7 +320,7 @@ export function FundingHealthSummary({
       : 0n;
   return (
     <div
-      className={`rounded-xl border ${funding.isFullyFunded ? "border-primary/25 bg-primary/5" : "border-destructive/25 bg-destructive/5"} ${compact ? "p-4" : "p-5"}`}
+      className={`rounded-card border ${funding.isFullyFunded ? "border-primary/30 bg-[rgba(87,217,139,.06)]" : "border-[#E9832D]/40 bg-[rgba(233,131,45,.08)]"} ${compact ? "p-4" : "p-5"}`}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -333,8 +334,9 @@ export function FundingHealthSummary({
           </p>
         </div>
         <span
-          className={`rounded-full px-2.5 py-1 text-xs font-medium ${funding.isFullyFunded ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"}`}
+          className={`inline-flex items-center gap-1.5 text-xs font-medium ${funding.isFullyFunded ? "text-primary" : "text-[#E9832D]"}`}
         >
+          <span className="size-1.5 rounded-full bg-current" />
           {funding.isFullyFunded ? "Healthy" : "Underfunded"}
         </span>
       </div>
@@ -390,10 +392,10 @@ export function PageHeading({
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-5">
       <div className="max-w-2xl">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[.18em] text-primary">
+        <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[.08em] text-primary">
           {eyebrow}
         </p>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+        <h1 className="font-mono text-3xl font-normal tracking-tight sm:text-[42px] sm:leading-none">
           {title}
         </h1>
         {children && (
