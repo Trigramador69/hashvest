@@ -34,6 +34,7 @@ Use this skill for contract deployment, address or ABI synchronization, smoke te
 - Do not redeploy or resend funds to repair an unavailable RPC endpoint. Change or repair the endpoint, then rerun a read-only readiness check.
 - Stop on a wrong chain, missing key, unfunded deployer, failed receipt, unexpected bytecode, or address drift. Do not hide a partial broadcast.
 - The current factory address may predate `createSponsoredGrant`. Treat a sponsored-flow deployment as a new authorized factory deployment plus ABI/address synchronization; never silently redeploy to make the UI path work.
+- A protocol fee is design-only. Do not broadcast or sync a fee-aware factory from [`docs/protocol-fee-spec.md`](../../../docs/protocol-fee-spec.md); that requires a separately approved implementation and review.
 
 ## Completion criteria
 

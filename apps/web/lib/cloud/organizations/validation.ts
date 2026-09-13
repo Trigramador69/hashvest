@@ -344,3 +344,39 @@ export function parseTemplateVersion(value: unknown): number {
     throw new InputValidationError("Template version is invalid.");
   return value;
 }
+
+export const NOTIFICATION_KEY_MAX_LENGTH = 200;
+
+/**
+ * Parse a batch of notification read marks.
+ *
+ * A key is derived from vault state, so it must name the vault it belongs to.
+ * Checking that here keeps an arbitrary string out of the table and keeps a
+ * stored identity reconcilable with what the reducer would derive again.
+ */
+export function parseNotificationReadInput(value: unknown) {
+  const body = value as { reads?: unknown } | null;
+  const reads = body?.reads;
+  if (!Array.isArray(reads))
+    throw new InputValidationError("Provide the notifications to mark read.");
+  return reads.map((entry) => {
+    const item = entry as {
+      notificationKey?: unknown;
+      vaultAddress?: unknown;
+    } | null;
+    const vaultAddress = normalizeWalletAddress(
+      item?.vaultAddress,
+      "GrantVault address",
+    ).toLowerCase();
+    const notificationKey = requiredText(
+      item?.notificationKey,
+      "Notification key",
+      NOTIFICATION_KEY_MAX_LENGTH,
+    );
+    if (!notificationKey.startsWith(`${vaultAddress}:`))
+      throw new InputValidationError(
+        "A notification key must belong to the GrantVault it names.",
+      );
+    return { notificationKey, vaultAddress };
+  });
+}

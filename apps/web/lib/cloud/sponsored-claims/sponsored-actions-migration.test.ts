@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 const migration = readFileSync(
   fileURLToPath(
     new URL(
-      "../../../../../supabase/migrations/20260913030000_hashvest_sponsored_actions.sql",
+      "../../../../../supabase/migrations/20260913040000_hashvest_sponsored_actions.sql",
       import.meta.url,
     ),
   ),

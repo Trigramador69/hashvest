@@ -37,11 +37,11 @@ The Cloud is the product layer. It makes the Protocol usable — workspaces, nam
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `apps/web/app/**`                       | Next.js routes, pages, and Route Handlers                                                                                                                           |
 | `apps/web/lib/cloud/auth/**`            | SIWE challenge, one-time nonce, signed session cookie                                                                                                               |
-| `apps/web/lib/cloud/organizations/**`   | Validation, server authorization, template, sponsorship, and private milestone-evidence data access, browser API client, types                                      |
+| `apps/web/lib/cloud/organizations/**`   | Validation, server authorization, template, sponsorship, private milestone-evidence and notification read state data access, browser API client, types              |
 | `apps/web/lib/cloud/supabase-server.ts` | The only service-role Supabase client; server-only                                                                                                                  |
 | `apps/web/lib/shared/i18n/**`           | Locale selection and the typed translation boundary                                                                                                                 |
 | `apps/web/lib/shared/grant-presets/**`  | Grant preset catalog, organization template rules, `template_key` linkage, wizard mapping, field ownership, the template editor's form model, and provenance lookup |
-| `supabase/migrations/**`                | Organizations, members, grant associations, organization templates, milestone evidence, auth nonces, sponsorship policy and state                                   |
+| `supabase/migrations/**`                | Organizations, members, grant associations, organization templates, milestone evidence, notification read marks, auth nonces, sponsorship policy and state          |
 
 ### Dashboard presentation projection
 
@@ -76,7 +76,9 @@ relates to HashVest Cloud and present the intended Free / Team / Enterprise
 value ladder. Their catalog lives in `apps/web/lib/shared/product-model.ts`
 and is presentation metadata only. It has no billing, checkout, metering,
 entitlement, plan-assignment, or authorization path, and it never changes
-onchain behavior.
+onchain behavior. The designed protocol fee in
+[`protocol-fee-spec.md`](protocol-fee-spec.md) is a future onchain surplus, not
+a Cloud price, and must not be added to this catalog as billing.
 
 Each capability is explicitly classified as `demo` or `roadmap`. Roadmap labels
 are required for work that is not available in the current demo. Sponsored
@@ -152,6 +154,12 @@ The complete threat model and deployment gate are in
 
 - **An AI draft owns nothing.** It is a suggestion shaped as an editable preset, so it reaches the wizard through the same `assertValidPreset` gate a hand-written preset passes and `prepare()` remains the only source of truth for what is submitted. Its draft type has no field for a beneficiary, reviewer, token, eligibility provider, start timestamp, or revocability, so it cannot suggest an identity or a transaction at all. The only trace a grant keeps of one is `organization_grants.template_key = "ai-draft"`, which is presentation metadata like every other template key. Prompts are never retained.
 
+A protocol fee is designed, not live. The current factory is ownerless and
+zero-fee, so the authority table above has no fee row. If a later factory is
+separately approved, the quote, rate, treasury, and waiver become HSK fields
+and Cloud may only display that live quote. See
+[`protocol-fee-spec.md`](protocol-fee-spec.md).
+
 ## Public integration surface and extension points
 
 The Protocol is usable without this application. Anyone integrating should depend on the contract ABIs and the factory's role discovery arrays, not on the Cloud API.
@@ -217,19 +225,53 @@ In force from the moment this document merges until submission:
 
 ## Roadmap ownership
 
-| Milestone                                             | Owner                                                           | Status         |
-| ----------------------------------------------------- | --------------------------------------------------------------- | -------------- |
-| M0 — Protocol/Cloud boundary & baseline               | Cloud + Protocol                                                | Hackathon P0   |
-| M1 — Global grant templates                           | Cloud                                                           | Hackathon P0   |
-| M2 — Revocation & protocol safety                     | Protocol                                                        | Hackathon P0   |
-| M3 — Lifecycle & funding health                       | Cloud                                                           | Hackathon P0   |
-| M4 — i18n, browser E2E & submission                   | Cloud + Protocol                                                | Hackathon P0   |
-| M5 — P1 Cloud additions after P0                      | Cloud (HAS-23, HAS-24, HAS-27, HAS-30 are Cloud + Protocol)     | Post-hackathon |
-| M6 — P2 intelligence, operations & protocol readiness | Mixed; includes HAS-28 sponsorship policy and HAS-38 extraction | Post-hackathon |
-| M7 — P3 long-term protocol, Cloud & ecosystem         | Mixed                                                           | Post-hackathon |
+| Milestone                                             | Owner                                                                                                 | Status         |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | -------------- |
+| M0 — Protocol/Cloud boundary & baseline               | Cloud + Protocol                                                                                      | Hackathon P0   |
+| M1 — Global grant templates                           | Cloud                                                                                                 | Hackathon P0   |
+| M2 — Revocation & protocol safety                     | Protocol                                                                                              | Hackathon P0   |
+| M3 — Lifecycle & funding health                       | Cloud                                                                                                 | Hackathon P0   |
+| M4 — i18n, browser E2E & submission                   | Cloud + Protocol                                                                                      | Hackathon P0   |
+| M5 — P1 Cloud additions after P0                      | Cloud (HAS-23, HAS-24, HAS-27, HAS-30 are Cloud + Protocol)                                           | Post-hackathon |
+| M6 — P2 intelligence, operations & protocol readiness | Mixed; includes HAS-28 sponsorship policy, HAS-38 extraction, and a blocked HAS-40 fee implementation | Post-hackathon |
+| M7 — P3 long-term protocol, Cloud & ecosystem         | Mixed                                                                                                 | Post-hackathon |
+
+## Organization reporting and notifications
+
+Two organization surfaces are derived, never stored. The Reports tab aggregates
+live GrantVault reads, and the overview notification panel derives lifecycle
+items from the same reads. Supabase contributes only the discovery set — which
+vaults the organization is associated with — plus, for notifications, whether a
+member has already seen a given item.
+
+Both read through one shared per-vault query
+(`apps/web/hooks/use-organization-grant-snapshots.ts`), at a single block per
+vault, so their figures agree with each other and with the overview metrics
+without extra RPC load. A vault whose read fails is carried as unreadable
+rather than dropped: the report shows a partial state naming it, and the panel
+raises an explicitly unverified item. Neither presents a failed read as a
+smaller confident number.
+
+The reducers are pure and live beside the wallet dashboard reducer:
+`apps/web/lib/dashboard/organization-report.ts` and
+`apps/web/lib/dashboard/organization-notifications.ts`.
+
+Two invariants are worth stating here because they are easy to erode:
+
+- **No cross-token aggregation.** HashVest has no price feed, so amounts are
+  summed only within one ERC20 contract. There is no combined total, no USD
+  conversion, no TVL and no yield anywhere in the report.
+- **A notification is identified by the state fact it reports**, never by the
+  clock or the read. That makes deduplication a property of the identity rather
+  than a stored observation log, and bounds the stream by construction without
+  an indexer.
+
+Role scoping in both surfaces uses `resolveProtocolRoles` against the connected
+wallet only, so organization membership never widens what a member is shown
+about a grant. Full contract: [`organization-reporting.md`](organization-reporting.md).
 
 ## Security boundary
 
 HashVest MVP is unaudited, targets HSK Testnet only, and uses a faucet-mintable demo token. It is not production custody software. Explicitly revocable new vaults permit only issuer-triggered, one-way recovery of unearned allocation; earned and claimed beneficiary value is preserved. Non-revocable and previously deployed vaults retain their permanent terms.
 
-Compromising the Cloud layer must not put funds at risk. That property follows from this boundary: Supabase holds no key material, no signing authority, and no amount that any claim depends on.
+Compromising the Cloud layer must not put funds at risk. That property follows from this boundary: Supabase holds no key material, no signing authority, and no amount that any claim depends on. A designed protocol fee does not change that: the quote is factory-owned, and this repository must not implement or deploy it until a separate review.

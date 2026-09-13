@@ -31,6 +31,7 @@ import type {
 } from "@/lib/cloud/organizations/types";
 
 import { GrantCard } from "./grant-card";
+import { OrganizationNotifications } from "./organization-notifications";
 import { MilestoneEvidenceList } from "./milestone-evidence";
 import { MembersPreview } from "./organization-ui";
 import { Button, buttonVariants } from "./ui/button";
@@ -748,6 +749,7 @@ export function OrganizationOverview({
           </section>
         </div>
         <aside className="space-y-3 lg:col-span-4">
+          <OrganizationNotifications organizationId={organizationId} />
           <Card>
             <CardHeader className="flex-row items-center justify-between space-y-0">
               <CardTitle className="text-lg">

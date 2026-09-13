@@ -141,7 +141,7 @@ It only pays gas for an actor-signed protocol call.
 remains in
 [`20260913000000_hashvest_sponsored_claims.sql`](../supabase/migrations/20260913000000_hashvest_sponsored_claims.sql)
 and is not mutated. HAS-28 adds
-[`20260913030000_hashvest_sponsored_actions.sql`](../supabase/migrations/20260913030000_hashvest_sponsored_actions.sql)
+[`20260913040000_hashvest_sponsored_actions.sql`](../supabase/migrations/20260913040000_hashvest_sponsored_actions.sql)
 for policy, budgets, allowlists, rate limits, and action receipts. The
 existing deployment artifact still points to the previously deployed factory,
 so organization creation will use `createSponsoredGrant` only after a new

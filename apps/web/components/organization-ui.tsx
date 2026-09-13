@@ -138,6 +138,7 @@ export function WorkspaceTabs({ organizationId }: { organizationId: string }) {
   const tabs = [
     ["overview", appRoutes.organization(organizationId)],
     ["grants", appRoutes.organizationGrants(organizationId)],
+    ["reports", appRoutes.organizationReports(organizationId)],
     ["members", appRoutes.organizationMembers(organizationId)],
     ["templates", appRoutes.organizationTemplates(organizationId)],
   ] as const;

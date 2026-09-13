@@ -15,6 +15,7 @@ This is a hackathon MVP deployed on **HSK Chain Testnet**. It is unaudited, uses
 | **Live proof**     | TIME, MILESTONE, HYBRID, and revocable grant lifecycles with 19 public transactions — [`docs/testnet-demo.json`](docs/testnet-demo.json) |
 | **Technical docs** | Problem, track, architecture, evidence, and roadmap — [`docs/submission.md`](docs/submission.md)                                         |
 | **Architecture**   | Protocol/Cloud boundary and per-field authority — [`docs/architecture.md`](docs/architecture.md)                                         |
+| **Protocol fee**   | Transparent optional create-time surplus (design only) — [`docs/protocol-fee-spec.md`](docs/protocol-fee-spec.md)                        |
 
 ## Features
 
@@ -27,6 +28,7 @@ This is a hackathon MVP deployed on **HSK Chain Testnet**. It is unaudited, uses
 - Optional one-way issuer revocation that recovers only unearned allocation while preserving earned and claimed beneficiary value.
 - Organization-sponsored claims and reviews: organization-created grants use a versioned `SponsoredGrantVault`; the actor signs the exact claim or milestone approval and a server-only relayer pays HSK gas.
 - One fully funded vault per grant; SafeERC20 rejects underfunded fee-on-transfer funding.
+- Optional protocol fee: designed as a later create-time issuer surplus that never reduces allocation; not implemented. See [`docs/protocol-fee-spec.md`](docs/protocol-fee-spec.md).
 - Beneficiary-only claims, role dashboards, explorer links, and real HSK Testnet transactions.
 - Optional AI Grant Builder: a description becomes a validated, fully editable draft. It cannot sign, fund, approve, claim, revoke, or choose a wallet, and it works with no provider configured.
 
@@ -40,6 +42,8 @@ This is a hackathon MVP deployed on **HSK Chain Testnet**. It is unaudited, uses
 - Organization-sponsored claims and reviews are implemented behind a deployment gate; an actor signature and server-only relayer pay HSK gas, with the wallet-paid claim or approval always available as fallback.
 - Private milestone evidence for organization members: a URL, type, and optional note attached to the canonical grant identity and milestone index. Reviewers still approve only through the existing onchain `approveMilestone` action.
 - A wallet dashboard with grants by role, strategy, and lifecycle and a six-month activity timeline from HSK events, as a read-only projection of chain state.
+- Bounded organization reporting from live vault reads: lifecycle counts, allocations grouped by token identity, and upcoming cliffs. Every figure names its vault field, and there is no cross-token total, price, or conversion.
+- In-app lifecycle notifications derived from current vault state, deduplicated by the state fact they report rather than by an event log, so no indexer is required and the stream stays bounded.
 - Full English, 简体中文, and Español localization with typed English fallback.
 
 ## Architecture
@@ -112,6 +116,8 @@ Organizations are workspaces around existing GrantVaults. Supabase stores organi
 The canonical identities are lowercase EVM addresses for wallets, `(chain_id, vault_address)` for grants, and UUIDs for organizations. The current organization schema accepts HSK Testnet only (`chain_id = 133`). Product role labels such as `Treasury Reviewer` are presentation metadata; they do not grant permission to approve or claim.
 
 An organization owner manages its templates on the workspace Templates tab; every other member can read them and apply one in either wizard, but cannot change them, and deleting a template archives it so grants already created from it keep their name. Applying a template only fills editable wizard fields — it never submits a transaction, sets a beneficiary, or grants permission.
+
+The workspace Reports tab derives an operational report from the same live vault reads: lifecycle counts, allocations grouped by token identity, upcoming cliffs and vesting ends, and the connected wallet's own review and claim queues. The organization overview additionally derives in-app lifecycle notifications whose identity comes from the state fact each one reports, so repeated reads cannot grow the stream and no indexer is needed. Only read/unread is stored. See [`docs/organization-reporting.md`](docs/organization-reporting.md).
 
 Organization writes go through authenticated Next.js Route Handlers. The browser never uses the Supabase service-role key or writes organization tables directly. Workspace grant cards and queues join organization metadata with fresh GrantVault reads; they do not aggregate token balances or invent USD values.
 
@@ -201,10 +207,7 @@ creates `organizations`, `organization_members`, `organization_grants`, and
 server-only `auth_nonces`. The first-claim prototype migration
 [`supabase/migrations/20260913000000_hashvest_sponsored_claims.sql`](supabase/migrations/20260913000000_hashvest_sponsored_claims.sql)
 adds the historical `sponsored_claim_policies` and `sponsored_claim_requests`
-tables and is not mutated after apply. The HAS-28 migration
-[`supabase/migrations/20260913030000_hashvest_sponsored_actions.sql`](supabase/migrations/20260913030000_hashvest_sponsored_actions.sql)
-adds `organization_sponsorship_policies`, `sponsored_action_requests`, and
-server-only reservation, lease, settle, and expiry functions. The organization-template migration
+tables and is not mutated after apply. The organization-template migration
 [`supabase/migrations/20260913010000_hashvest_organization_templates.sql`](supabase/migrations/20260913010000_hashvest_organization_templates.sql)
 adds `organization_templates` with database constraints for every grant
 strategy rule; it requires PostgreSQL 15 or later. The milestone-evidence
@@ -212,7 +215,16 @@ migration
 [`supabase/migrations/20260913020000_hashvest_milestone_evidence.sql`](supabase/migrations/20260913020000_hashvest_milestone_evidence.sql)
 adds `organization_grant_milestone_evidence`, keyed by
 `(chain_id, vault_address, milestone_index)`, with HSK Testnet, lowercase
-vault, non-negative index, and safe-URL constraints. All product tables use the
+vault, non-negative index, and safe-URL constraints. The notification-read
+migration
+[`supabase/migrations/20260913030000_hashvest_notification_reads.sql`](supabase/migrations/20260913030000_hashvest_notification_reads.sql)
+adds `organization_notification_reads`, keyed by
+`(organization_id, member_wallet, notification_key)`, holding only whether a
+member has seen a derived notification; the notifications themselves are never
+stored. The HAS-28 migration
+[`supabase/migrations/20260913040000_hashvest_sponsored_actions.sql`](supabase/migrations/20260913040000_hashvest_sponsored_actions.sql)
+adds `organization_sponsorship_policies`, `sponsored_action_requests`, and
+server-only reservation, lease, settle, and expiry functions. All product tables use the
 same closed RLS posture and intentionally grant no public/anon/authenticated
 table policies. The application uses the service role only from server Route
 Handlers, while business authorization still checks the verified session and
@@ -323,6 +335,8 @@ The direct protocol flow remains available at `/grants/new`: enter raw beneficia
 
 Every approval, creation, milestone, faucet, claim, and revocation transaction exposes an HSK Testnet explorer link. Use `/app/grants` to move between role-specific grants.
 
+Open the workspace **Reports** tab (HAS-41) at any point to see the same grants aggregated by lifecycle and by token, with each figure labeled with the vault field it was read from. The organization overview shows lifecycle notifications (HAS-37) for the connected wallet: a pending review reaches the reviewer, a claimable balance reaches the beneficiary, and a vault that could not be read is shown as unverified rather than as an event.
+
 For the controlled-wallet browser rehearsal, copy the public-address-only fixture and follow [`docs/browser-rehearsal.md`](docs/browser-rehearsal.md). `pnpm rehearsal:check` performs a read-only HSK/deployment/wallet readiness check; live browser execution and evidence are tracked separately in HAS-20.
 
 ## Security boundary
@@ -331,7 +345,7 @@ HashVest MVP has not been professionally audited. It targets HSK Testnet only, u
 
 ## Roadmap
 
-The product roadmap after the buildathon — remaining Cloud additions, AI-assisted review, reviewer quorum, and protocol extraction — is described in [`docs/submission.md`](docs/submission.md#future-roadmap). Organization templates, sponsored protocol actions, the human-reviewed AI Grant Builder, TGE unlock semantics, and private milestone evidence have already landed as Cloud context. A professional audit is the precondition for any mainnet deployment.
+The product roadmap after the buildathon — remaining Cloud additions, AI-assisted review, reviewer quorum, protocol extraction, and a separately reviewed protocol-fee implementation — is described in [`docs/submission.md`](docs/submission.md#future-roadmap). Organization templates, sponsored protocol actions, the human-reviewed AI Grant Builder, TGE unlock semantics, private milestone evidence, and organization reporting and lifecycle notifications (HAS-41/HAS-37) have already landed as Cloud context. The HAS-40 fee model is specified, not deployed. A professional audit is the precondition for any mainnet deployment.
 
 Hackathon P0 work, by milestone and owning layer:
 
@@ -343,7 +357,7 @@ Hackathon P0 work, by milestone and owning layer:
 | M3 — Lifecycle & funding health         | Cloud            |
 | M4 — i18n, browser E2E & submission     | Cloud + Protocol |
 
-Post-hackathon milestones M5–M7 cover P1–P3 work: AI-assisted review, reviewer quorum, analytics, notifications, compliance and attestation adapters, an embedded SDK, and extraction of the protocol into a public `hashvest-protocol` repository. Organization templates, bounded batch creation, sponsored protocol actions, the human-reviewed AI Grant Builder, TGE unlock semantics, and private milestone evidence (HAS-15/HAS-14) have landed as Cloud context; HSK remains authoritative for reviewer, approval, and value. New scope during the hackathon is a swap, never an addition — see the stop-adding-features rule in [`docs/architecture.md`](docs/architecture.md).
+Post-hackathon milestones M5–M7 cover P1–P3 work: AI-assisted review, reviewer quorum, analytics, notifications, compliance and attestation adapters, an embedded SDK, extraction of the protocol into a public `hashvest-protocol` repository, and a separately reviewed protocol-fee implementation. The HAS-40 fee model is specified in [`docs/protocol-fee-spec.md`](docs/protocol-fee-spec.md) and is not deployed. Organization templates, bounded batch creation, sponsored protocol actions, the human-reviewed AI Grant Builder, TGE unlock semantics, and private milestone evidence (HAS-15/HAS-14) have landed as Cloud context; HSK remains authoritative for reviewer, approval, and value. New scope during the hackathon is a swap, never an addition — see the stop-adding-features rule in [`docs/architecture.md`](docs/architecture.md).
 
 ## Contributing with agents
 
