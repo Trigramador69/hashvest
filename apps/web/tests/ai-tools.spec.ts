@@ -71,11 +71,63 @@ const reviewResponse = {
   missingNotes: false,
   redacted: false,
 };
+const reportResponse = {
+  report: {
+    summary: [statement("One grant is active.", ["lifecycle"])],
+    watchlist: [statement("A cliff releases next week.", ["unlocks"])],
+    uncertainty: [
+      statement("Amounts are HVT and were not converted.", ["token-0"]),
+    ],
+  },
+  sources: [
+    { id: "lifecycle", kind: "lifecycle", anchor: "report-lifecycle" },
+    { id: "viewer", kind: "viewer", anchor: "report-viewer" },
+    { id: "token-0", kind: "token", anchor: "report-tokens", symbol: "HVT" },
+    { id: "unlocks", kind: "unlocks", anchor: "report-upcoming" },
+  ],
+  facts: {
+    associatedGrants: 1,
+    readableGrants: 1,
+    includedGrants: 1,
+    omittedGrants: 0,
+    partial: false,
+    lifecycle: { active: 1, completed: 0, revoked: 0 },
+    viewer: { pendingReviews: 1, claimableGrants: 0 },
+    tokenGroups: [
+      {
+        sourceId: "token-0",
+        symbol: "HVT",
+        grantCount: 1,
+        totalAllocation: "100",
+        unlockedAmount: "0",
+        unvestedAmount: "100",
+        claimedAmount: "0",
+        claimableAmount: "0",
+      },
+    ],
+    upcomingUnlocks: [],
+    unreadableVaults: 0,
+  },
+  checkedAt: "2026-09-13T12:00:00Z",
+  redacted: false,
+};
 async function fixture(page: Page) {
   await page.clock.install({ time: new Date("2026-09-13T12:00:00Z") });
   await page.addInitScript(() => {
     const calls: string[] = [];
+    const copied: string[] = [];
+    // The sandboxed test origin has no clipboard permission; record instead.
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: {
+        writeText: (text: string) => {
+          copied.push(text);
+          return Promise.resolve();
+        },
+      },
+    });
     Object.assign(window, {
+      __copied: copied,
       __walletCalls: calls,
       ethereum: {
         isMetaMask: true,
@@ -93,6 +145,9 @@ async function fixture(page: Page) {
   );
   await page.route("**/api/organizations/*/grants/*/ai/review", (route) =>
     route.fulfill({ json: reviewResponse }),
+  );
+  await page.route("**/api/organizations/*/ai/report", (route) =>
+    route.fulfill({ json: reportResponse }),
   );
   await page.goto("/visual/ai-tools", { waitUntil: "domcontentloaded" });
   await expect(
@@ -177,8 +232,12 @@ test("HAS-19 preserves edits when replacement is declined and supports manual cr
     .getByLabel("What should this template describe?")
     .fill("A reusable release template");
   await page.getByRole("button", { name: "Draft it", exact: true }).click();
-  page.once("dialog", (dialog) => dialog.dismiss());
   await page.getByRole("button", { name: "Apply to the editor" }).click();
+  const replaceConfirm = page
+    .getByRole("alert")
+    .filter({ hasText: "Your edits will be replaced" });
+  await expect(replaceConfirm).toBeVisible();
+  await replaceConfirm.getByRole("button", { name: "Cancel" }).click();
   await expect(page.getByLabel("Name", { exact: true })).toHaveValue(
     "Keep my edits",
   );
@@ -254,6 +313,57 @@ test("HAS-17 keeps manual review usable on provider failure and handles keyboard
   await expect(
     page.getByRole("button", { name: "Evidence analysis", exact: true }),
   ).toBeFocused();
+  await noWalletWrites(page);
+});
+
+test("HAS-17 exports a cited analysis and jumps from a note to its milestone", async ({
+  page,
+}) => {
+  await fixture(page);
+  await page.getByRole("button", { name: "Evidence analysis" }).click();
+  await page.getByRole("button", { name: "Analyze evidence" }).click();
+  await expect(
+    page.getByText("The release milestone is pending."),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Go to milestone 1" }).click();
+  await expect(page.locator("#milestone-0")).toBeVisible();
+  await page.getByRole("button", { name: "Copy as a report" }).click();
+  const copied = await page.evaluate(
+    () => (window as unknown as { __copied: string[] }).__copied,
+  );
+  expect(copied).toHaveLength(1);
+  // The export has to carry the citations and the caveat, not just the prose.
+  expect(copied[0]).toContain("The note reports failing tests.");
+  expect(copied[0]).toContain("Evidence for milestone 1");
+  expect(copied[0]).toContain("not downloaded or verified");
+  expect(copied[0]).toContain("Advisory only");
+  await noWalletWrites(page);
+});
+
+test("HAS-17 summarizes the organization report and regenerates when it goes stale", async ({
+  page,
+}) => {
+  const reportRequests: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/ai/report"))
+      reportRequests.push(request.url());
+  });
+  await fixture(page);
+  await page.getByRole("button", { name: "Read this report with AI" }).click();
+  await page.getByRole("button", { name: "Summarize this report" }).click();
+  await expect(page.getByText("One grant is active.")).toBeVisible();
+  // Citations point at the page's own sections, not at anything the model wrote.
+  await expect(
+    page.getByRole("link", { name: "Grant lifecycle counts" }).first(),
+  ).toHaveAttribute("href", "#report-lifecycle");
+  await page.clock.fastForward("06:00");
+  const staleNotice = page
+    .getByRole("status")
+    .filter({ hasText: "over five minutes old" });
+  await expect(staleNotice).toBeVisible();
+  await staleNotice.getByRole("button", { name: "Generate it again" }).click();
+  await expect(page.getByText("One grant is active.")).toBeVisible();
+  expect(reportRequests).toHaveLength(2);
   await noWalletWrites(page);
 });
 

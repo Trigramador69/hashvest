@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { organizationApi } from "@/lib/cloud/organizations/client";
 import type { OrganizationTemplate } from "@/lib/cloud/organizations/types";
+import { reportStateKey } from "@/lib/shared/ai-tools/report";
 import {
   reviewStateKey,
   type ReviewSnapshot,
@@ -15,6 +16,7 @@ import {
   templateFormToContent,
 } from "@/lib/shared/grant-presets/template-form";
 import { useI18n } from "@/lib/shared/i18n/provider";
+import { AiReportSummary } from "./ai-report-summary";
 import { AiTemplateBuilder } from "./ai-template-builder";
 import { EvidenceReviewTool } from "./ai-evidence-review";
 import { TemplateEditor } from "./template-editor";
@@ -34,6 +36,21 @@ const SNAPSHOT: ReviewSnapshot = {
   revoked: false,
   milestones: [{ index: 0, title: "Release", amount: "100", approved: false }],
 };
+/** Mirrors the figures the stubbed report route answers with. */
+const REPORT_STATE = reportStateKey({
+  lifecycle: { active: 1, completed: 0, revoked: 0 },
+  viewer: { pendingReviews: 1, claimableGrants: 0 },
+  tokenGroups: [
+    {
+      symbol: "HVT",
+      totalAllocation: "100",
+      unlockedAmount: "0",
+      claimedAmount: "0",
+      claimableAmount: "0",
+    },
+  ],
+  unreadableVaults: [],
+});
 
 /** Gated fixtures share the real tool/editor/application components. HTTP is stubbed in tests. */
 export function VisualAiToolsFixture() {
@@ -107,12 +124,26 @@ export function VisualAiToolsFixture() {
           />
         </label>
       )}
+      <ol>
+        <li id="milestone-0" className="scroll-mt-6 text-xs">
+          Fixture milestone 1
+        </li>
+      </ol>
       <EvidenceReviewTool
         key={`review:${scope}`}
         organizationId={ORGANIZATION}
         vaultAddress={VAULT}
         currentStateKey={reviewStateKey(SNAPSHOT)}
         evidenceKey={changed ? "changed" : "original"}
+        milestoneAnchor={(index) => `#milestone-${index}`}
+      />
+      <div id="report-lifecycle" className="scroll-mt-6 text-xs">
+        Fixture report sections
+      </div>
+      <AiReportSummary
+        key={`report:${scope}`}
+        organizationId={ORGANIZATION}
+        currentStateKey={REPORT_STATE}
       />
       <div className="flex flex-wrap gap-2">
         <Button

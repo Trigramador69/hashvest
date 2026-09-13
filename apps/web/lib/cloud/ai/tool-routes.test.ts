@@ -11,6 +11,7 @@ const state = vi.hoisted(() => ({
   },
   database: undefined as unknown,
   snapshot: vi.fn(),
+  reportReads: vi.fn(),
 }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/cloud/auth/session", () => ({
@@ -32,17 +33,45 @@ vi.mock("@/lib/cloud/ai/config", () => ({
 vi.mock("@/lib/protocol/verify", () => ({
   verifyGrantVault: vi.fn(),
   readGrantReviewSnapshot: state.snapshot,
+  readOrganizationGrantSnapshots: state.reportReads,
 }));
 
 const templateRoute =
   await import("@/app/api/organizations/[organizationId]/ai/template-draft/route");
 const reviewRoute =
   await import("@/app/api/organizations/[organizationId]/grants/[vaultAddress]/ai/review/route");
+const reportRoute =
+  await import("@/app/api/organizations/[organizationId]/ai/report/route");
 const ORG = "aaaaaaaa-0000-4000-8000-000000000001";
 const OTHER = "bbbbbbbb-0000-4000-8000-000000000002";
 const OWNER = "0x0000000000000000000000000000000000000001";
 const MEMBER = "0x0000000000000000000000000000000000000002";
 const VAULT = "0x0000000000000000000000000000000000000003";
+/** Decimals 0 keeps the expected report figure readable in the assertions. */
+const REPORT_SNAPSHOT = {
+  vaultAddress: VAULT,
+  title: "Grant",
+  strategy: 1,
+  token: "0x0000000000000000000000000000000000000010",
+  symbol: "HVT",
+  decimals: 0,
+  totalAllocation: 100n,
+  claimedAmount: 0n,
+  claimableAmount: 0n,
+  unlockedAmount: 0n,
+  initialUnlock: 0n,
+  start: 1789257600n,
+  cliff: 0n,
+  duration: 0n,
+  issuer: OWNER,
+  beneficiary: MEMBER,
+  reviewer: MEMBER,
+  revoked: false,
+  revokedAt: 0n,
+  milestones: [{ title: "Build", amount: 100n, approved: false }],
+  blockNumber: 1n,
+  readAt: 1789257600000,
+};
 const generated = {
   name: "Reviewed template",
   description: null,
@@ -63,6 +92,12 @@ beforeEach(() => {
   aiRateLimiter.reset();
   fetchMock.mockClear();
   state.snapshot.mockReset();
+  state.reportReads.mockReset();
+  state.reportReads.mockResolvedValue({
+    snapshots: [REPORT_SNAPSHOT],
+    unreadable: [],
+    omitted: [],
+  });
   state.session = {
     walletAddress: OWNER,
     chainId: 133,
@@ -235,5 +270,42 @@ describe("HAS-17 authorized review route", () => {
     expect(response.status).toBe(500);
     expect(await response.text()).not.toContain("Private workspace note");
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("HAS-17 authorized report route", () => {
+  it("summarizes the server's own reads and ignores anything the browser sends", async () => {
+    state.session!.walletAddress = MEMBER;
+    const response = await reportRoute.POST(
+      request({ locale: "en", totalAllocation: "999999", report: "invented" }),
+      templateContext(),
+    );
+    expect(response.status).toBe(200);
+    const result = await response.json();
+    expect(state.reportReads).toHaveBeenCalledWith([VAULT]);
+    expect(result.facts.tokenGroups[0].totalAllocation).toBe("100");
+    expect(JSON.stringify(result)).not.toContain("invented");
+    expect(JSON.stringify(result)).not.toContain("999999");
+    expect(response.headers.get("cache-control")).toBe("no-store");
+  });
+
+  it("rejects outsiders and other organizations before any read", async () => {
+    expect(
+      (await reportRoute.POST(request({}), templateContext(OTHER))).status,
+    ).toBe(403);
+    state.session = null;
+    expect(
+      (await reportRoute.POST(request({}), templateContext())).status,
+    ).toBe(401);
+    expect(state.reportReads).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("shares the wallet budget with the other tools", async () => {
+    for (let index = 0; index < 5; index++)
+      aiRateLimiter.consume(OWNER, Date.now());
+    const response = await reportRoute.POST(request({}), templateContext());
+    expect(response.status).toBe(429);
+    expect(state.reportReads).not.toHaveBeenCalled();
   });
 });

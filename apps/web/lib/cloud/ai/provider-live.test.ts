@@ -2,13 +2,14 @@ import { expect, it, vi } from "vitest";
 import { createAiRateLimiter } from "./rate-limit";
 import { buildTemplateDraft } from "./template-service";
 import { buildEvidenceReview } from "./review-service";
+import { buildReportSummary } from "./report-service";
 
 vi.mock("server-only", () => ({}));
 const { resolveAiProvider } = await import("./config");
 
 /** Opt-in only. Synthetic data; no Supabase reads, evidence ingestion or wallet calls. */
 it.skipIf(process.env.HASHVEST_LIVE_AI !== "1")(
-  "live configured provider supports both advisory schemas in every locale",
+  "live configured provider supports all three advisory schemas in every locale",
   async () => {
     const config = resolveAiProvider();
     expect(Boolean(config)).toBe(true);
@@ -49,6 +50,41 @@ it.skipIf(process.env.HASHVEST_LIVE_AI !== "1")(
         true,
       );
       expect(review.review?.recommendation.value).not.toBe("approve");
+      const summary = await buildReportSummary({
+        config,
+        locale,
+        omitted: 0,
+        report: {
+          generatedAt: Date.now(),
+          readAt: Date.now(),
+          associatedGrants: 2,
+          readableGrants: 1,
+          unreadableVaults: ["0x0000000000000000000000000000000000000002"],
+          partial: true,
+          lifecycle: { active: 1, completed: 0, revoked: 0 },
+          viewer: { pendingReviews: 1, claimableGrants: 0 },
+          tokenGroups: [
+            {
+              token: "0x0000000000000000000000000000000000000010",
+              symbol: "HVT",
+              decimals: 0,
+              grantCount: 1,
+              totalAllocation: 100n,
+              unlockedAmount: 0n,
+              unvestedAmount: 100n,
+              claimedAmount: 0n,
+              claimableAmount: 0n,
+              vaultAddresses: ["0x0000000000000000000000000000000000000001"],
+            },
+          ],
+          upcomingUnlocks: [],
+        },
+      });
+      // A live model has to clear the fiat/cross-token guard and the honesty
+      // rule about the vault it could not read, not just the JSON schema.
+      expect(Boolean(summary.report), `Report model response (${locale})`).toBe(
+        true,
+      );
     }
   },
   120000,
