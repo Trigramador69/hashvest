@@ -38,6 +38,7 @@ import {
 import { useGrant } from "@/hooks/use-grant";
 import {
   useGrantContext,
+  useOrganizationGrantEvidence,
   useOrganizationMembers,
   useOrganizationSponsorshipPolicy,
   useTemplateLabel,
@@ -63,6 +64,7 @@ import { resolveProtocolRoles } from "@/lib/protocol/roles";
 import { organizationApi } from "@/lib/cloud/organizations/client";
 import type { SponsoredClaimRequest } from "@/lib/cloud/organizations/types";
 import { SPONSORED_CLAIM_SIGNING_WINDOW_SECONDS } from "@/lib/shared/sponsored-claims";
+import { MilestoneEvidenceList } from "./milestone-evidence";
 
 /** Protocol literals: never translated, only interpolated into messages. */
 const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
@@ -424,6 +426,10 @@ export function GrantDetail({ address }: { address: Address }) {
   const [showRevokeModal, setShowRevokeModal] = useState(false);
   const grant = useGrant(address);
   const grantContext = useGrantContext(address);
+  const grantEvidence = useOrganizationGrantEvidence(
+    grantContext.data?.organization.id,
+    address,
+  );
   const organizationMembers = useOrganizationMembers(
     grantContext.data?.organization.id,
   );
@@ -909,6 +915,19 @@ export function GrantDetail({ address }: { address: Address }) {
                     </li>
                   ))}
                 </ol>
+                {grantContext.data && (
+                  <MilestoneEvidenceList
+                    evidence={grantEvidence.data}
+                    isPending={grantEvidence.isPending}
+                    isError={grantEvidence.isError}
+                    onRetry={() => void grantEvidence.refetch()}
+                    milestones={g.milestones.map((milestone, index) => ({
+                      index,
+                      title: milestone.title,
+                    }))}
+                    members={organizationMembers.data}
+                  />
+                )}
               </CardContent>
             </Card>
           )}

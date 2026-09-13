@@ -16,7 +16,8 @@ Use this skill for new modules, data flows, APIs, persistence, contracts, cross-
 4. Prefer an existing seam and the smallest change. Record material alternatives, invariants, and migration or rollback implications in the relevant design document or ADR before implementation.
 5. Respect the hackathon scope: do not split the repository or add deferred P1/P2/P3 product functionality. Use a Linear issue for ideas outside the active milestone unless the requester explicitly asks to defer issue tracking.
 6. For relayed claims, bind every beneficiary intent field (vault, beneficiary, amount, nonce, deadline, relayer) in the protocol, keep the relayer key server-only, make policy/request state idempotent, and preserve a manual beneficiary-paid fallback.
-7. Validate with `pnpm boundary:check`, focused tests, and the full preflight when the change is ready for a PR.
+7. Treat milestone evidence as private Cloud/Supabase metadata associated with `(chain_id, vault_address, milestone_index)`. It must not change reviewer, approval, beneficiary, allocation, or any other HSK authority, and the public GrantDetail context endpoint must not return it.
+8. Validate with `pnpm boundary:check`, focused tests, and the full preflight when the change is ready for a PR.
 
 ## Review questions
 

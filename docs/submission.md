@@ -51,6 +51,7 @@ Verified against the current `main` branch:
 - **Beneficiary-only claims** and a designated reviewer for milestones.
 - **Optional eligibility adapter** through `IEligibilityProvider`, with a clearly labeled demo allowlist (not KYC).
 - **Organizations and members.** Pick beneficiaries and reviewers by name instead of pasting addresses; role labels are presentation only and grant no permission.
+- **Private milestone evidence.** Organization members can attach a URL, type, and optional note to a canonical grant milestone. Reviewers see that context before using the existing onchain `approveMilestone` action; HSK remains authoritative for approval and value.
 - **Grant presets** — Builder Grant, Employee Vesting, Advisor Vesting, and Ecosystem Grant — chosen in the first step of a five-step creation wizard (Template, Grant, Strategy, Conditions, Review). Every prefilled value stays editable before signing.
 - **Lifecycle and funding health** (Active, Completed, Revoked) computed from live HSK reads, with no invented USD values.
 - **Wallet dashboard analytics.** Grants by role, strategy, and lifecycle, plus a six-month activity timeline built from factory and vault events. It is a read-only projection of HSK state: a failed event read shows a partial timeline, never fabricated data.
@@ -158,7 +159,7 @@ The complete record — all 19 transactions, the three wallets, and the revocati
 | 🟡 Manual           | One live provider run (Groq, `openai/gpt-oss-20b`): the example prompt drafts correctly in all three locales, and an injection prompt returns no address. Provider calls are not made in CI. |
 | 🟡 Manual           | The three-wallet **browser** flow — organization, named members, hybrid grant, review, claim. Wallet extension steps are performed by hand and are tracked in HAS-20.                        |
 | 🟡 Manual           | Blockscout source verification. The explorer returned HTTP 413 for the automated submission; deployment is unaffected.                                                                       |
-| ⚪ Roadmap          | Everything in the next section. None of it is implemented.                                                                                                                                   |
+| ⚪ Roadmap          | Remaining items in the next section. Organization templates, sponsored first claims, the AI Grant Builder, TGE unlock semantics, and private milestone evidence have already landed.         |
 
 ## Future roadmap
 
@@ -167,7 +168,6 @@ Planned in the team's issue tracker, in delivery order. Each step must preserve 
 **Next — Cloud additions (P1)**
 
 - Organization-owned custom templates.
-- Milestone evidence: reviewers see what was delivered before approving.
 - Precise TGE and initial-unlock semantics.
 - Bounded batch grant creation and funding, for grant rounds.
 - Organization-sponsored first claim, so a new beneficiary does not need gas to receive their first tokens.

@@ -4,6 +4,8 @@ import type {
   OrganizationGrant,
   OrganizationGrantContext,
   OrganizationMember,
+  OrganizationMilestoneEvidence,
+  OrganizationMilestoneEvidenceInput,
   OrganizationSummary,
   OrganizationTemplate,
   SponsoredClaimPolicy,
@@ -129,6 +131,20 @@ export const organizationApi = {
     request<{ grant: OrganizationGrant }>(
       `/api/organizations/${organizationId}/grants`,
       { method: "POST", body: JSON.stringify(input) },
+    ),
+  getGrantEvidence: (organizationId: string, vaultAddress: string) =>
+    request<{ evidence: OrganizationMilestoneEvidence[] }>(
+      `/api/organizations/${organizationId}/grants/${vaultAddress}/evidence`,
+    ),
+  upsertGrantEvidence: (
+    organizationId: string,
+    vaultAddress: string,
+    milestoneIndex: number,
+    input: OrganizationMilestoneEvidenceInput,
+  ) =>
+    request<{ evidence: OrganizationMilestoneEvidence }>(
+      `/api/organizations/${organizationId}/grants/${vaultAddress}/milestones/${milestoneIndex}/evidence`,
+      { method: "PUT", body: JSON.stringify(input) },
     ),
   getTemplates: (
     organizationId: string,
