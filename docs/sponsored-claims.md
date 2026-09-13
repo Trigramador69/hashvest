@@ -86,9 +86,12 @@ configuration status.
 
 ## Deployment and rollback
 
-`pnpm contracts:sync` includes the new ABI. The existing deployment artifact
-still points to the previously deployed factory, so organization creation will
-use `createSponsoredGrant` only after a new `HashVestFactory` deployment is
+`pnpm contracts:sync` includes the new ABI. The sponsorship schema is applied by
+[`20260913000000_hashvest_sponsored_claims.sql`](../supabase/migrations/20260913000000_hashvest_sponsored_claims.sql);
+the earlier organization migration is historical and must not be edited after
+it has been applied. The existing deployment artifact still points to the
+previously deployed factory, so organization creation will use
+`createSponsoredGrant` only after a new `HashVestFactory` deployment is
 authorized and the address artifact is synchronized. This implementation did
 not broadcast or redeploy anything. The relayer also needs a server-only
 `SPONSORED_CLAIM_RELAYER_PRIVATE_KEY` and enough native HSK for the configured
