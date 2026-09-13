@@ -49,11 +49,7 @@ export type ValidatedCohort = {
 };
 
 export type CohortItemStatus =
-  | "idle"
-  | "simulating"
-  | "pending_signature"
-  | "confirmed"
-  | "failed";
+  "idle" | "simulating" | "pending_signature" | "confirmed" | "failed";
 
 export type CohortExecutionItem = {
   id: string;

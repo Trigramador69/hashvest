@@ -1,4 +1,4 @@
-import { getAddress, zeroAddress } from "viem";
+import { getAddress } from "viem";
 
 import {
   parseAllocation,
@@ -34,7 +34,9 @@ export function validateCohort(params: {
   const { shared, members, decimals, issuerBalance } = params;
 
   if (!shared.titlePrefix.trim()) {
-    throw new CohortValidationError("Cohort distribution requires a title prefix.");
+    throw new CohortValidationError(
+      "Cohort distribution requires a title prefix.",
+    );
   }
 
   if (!validParty(shared.token)) {
@@ -88,7 +90,9 @@ export function validateCohort(params: {
       allocationBigInt = parseAllocation(row.allocation, decimals);
     } catch (error) {
       const msg = error instanceof Error ? error.message : "Invalid amount";
-      throw new CohortValidationError(`Row ${rowNum} (${shortAddress(normalizedBeneficiary)}): ${msg}`);
+      throw new CohortValidationError(
+        `Row ${rowNum} (${shortAddress(normalizedBeneficiary)}): ${msg}`,
+      );
     }
 
     if (allocationBigInt <= 0n) {
@@ -100,9 +104,12 @@ export function validateCohort(params: {
     // Initial unlock calculation if specified
     const initialUnlockPercent = shared.initialUnlockPercent ?? 0;
     if (initialUnlockPercent < 0 || initialUnlockPercent > 100) {
-      throw new CohortValidationError("Initial unlock percent must be between 0 and 100.");
+      throw new CohortValidationError(
+        "Initial unlock percent must be between 0 and 100.",
+      );
     }
-    const initialUnlockAmount = (allocationBigInt * BigInt(initialUnlockPercent)) / 100n;
+    const initialUnlockAmount =
+      (allocationBigInt * BigInt(initialUnlockPercent)) / 100n;
 
     // Milestones partition
     const milestones: { title: string; amount: bigint }[] = [];

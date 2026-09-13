@@ -37,7 +37,11 @@ import {
   getWalletGuardMessages,
   useTransaction,
 } from "@/hooks/use-transaction";
-import { errorMessage, normalizeAddress, validParty } from "@/lib/protocol/grants";
+import {
+  errorMessage,
+  normalizeAddress,
+  validParty,
+} from "@/lib/protocol/grants";
 import {
   type CohortExecutionItem,
   type CohortMemberInput,
@@ -89,12 +93,26 @@ export function CohortCreator({
 
   // Cohort members input
   const [members, setMembers] = useState<CohortMemberInput[]>([
-    { id: "member-1", beneficiary: "", memberId: "", external: !organizationId, allocation: "" },
-    { id: "member-2", beneficiary: "", memberId: "", external: !organizationId, allocation: "" },
+    {
+      id: "member-1",
+      beneficiary: "",
+      memberId: "",
+      external: !organizationId,
+      allocation: "",
+    },
+    {
+      id: "member-2",
+      beneficiary: "",
+      memberId: "",
+      external: !organizationId,
+      allocation: "",
+    },
   ]);
 
   // Execution state
-  const [executionItems, setExecutionItems] = useState<CohortExecutionItem[]>([]);
+  const [executionItems, setExecutionItems] = useState<CohortExecutionItem[]>(
+    [],
+  );
   const [isExecuting, setIsExecuting] = useState(false);
   const [validationError, setValidationError] = useState("");
 
@@ -338,7 +356,8 @@ export function CohortCreator({
             abi: hashVestFactoryAbi,
             eventName: "GrantCreated",
             logs: receipt.logs.filter(
-              (log: { address: string }) => log.address.toLowerCase() === factory.toLowerCase(),
+              (log: { address: string }) =>
+                log.address.toLowerCase() === factory.toLowerCase(),
             ),
           });
 
@@ -394,10 +413,15 @@ export function CohortCreator({
     }
   }
 
-  const confirmedCount = executionItems.filter((i) => i.status === "confirmed").length;
-  const failedCount = executionItems.filter((i) => i.status === "failed").length;
+  const confirmedCount = executionItems.filter(
+    (i) => i.status === "confirmed",
+  ).length;
+  const failedCount = executionItems.filter(
+    (i) => i.status === "failed",
+  ).length;
   const hasStartedExecution = executionItems.length > 0;
-  const allConfirmed = hasStartedExecution && confirmedCount === executionItems.length;
+  const allConfirmed =
+    hasStartedExecution && confirmedCount === executionItems.length;
 
   return (
     <div className="space-y-6">
@@ -428,7 +452,10 @@ export function CohortCreator({
             </p>
           </Notice>
 
-          <fieldset className="space-y-6" disabled={isExecuting || allConfirmed}>
+          <fieldset
+            className="space-y-6"
+            disabled={isExecuting || allConfirmed}
+          >
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block space-y-2">
                 <span className="text-sm font-medium">Cohort Base Title</span>
@@ -480,9 +507,21 @@ export function CohortCreator({
               <span className="text-sm font-medium">Vesting Strategy</span>
               <div className="grid gap-3 sm:grid-cols-3">
                 {[
-                  { id: 0, name: "Time-based", desc: "Linear stream with cliff" },
-                  { id: 1, name: "Milestone-based", desc: "Reviewer approval releases" },
-                  { id: 2, name: "Hybrid", desc: "Combined stream and milestone" },
+                  {
+                    id: 0,
+                    name: "Time-based",
+                    desc: "Linear stream with cliff",
+                  },
+                  {
+                    id: 1,
+                    name: "Milestone-based",
+                    desc: "Reviewer approval releases",
+                  },
+                  {
+                    id: 2,
+                    name: "Hybrid",
+                    desc: "Combined stream and milestone",
+                  },
                 ].map((s) => (
                   <label
                     key={s.id}
@@ -497,44 +536,67 @@ export function CohortCreator({
                       />
                       <span className="font-semibold">{s.name}</span>
                     </div>
-                    <span className="mt-1 text-xs text-muted-foreground">{s.desc}</span>
+                    <span className="mt-1 text-xs text-muted-foreground">
+                      {s.desc}
+                    </span>
                   </label>
                 ))}
               </div>
             </div>
 
             {strategy !== 1 && (
-              <div className="grid gap-4 sm:grid-cols-3">
+              <div className="space-y-4">
                 <label className="block space-y-1">
-                  <span className="text-xs font-medium">Time Unit</span>
-                  <select
-                    className="field"
-                    value={unit}
-                    onChange={(e) => setUnit(e.target.value)}
-                  >
-                    <option value="60">Minutes</option>
-                    <option value="3600">Hours</option>
-                    <option value="86400">Days</option>
-                  </select>
-                </label>
-                <label className="block space-y-1">
-                  <span className="text-xs font-medium">Cliff ({unit === "60" ? "min" : unit === "3600" ? "hrs" : "days"})</span>
+                  <span className="text-xs font-medium">
+                    Start Date & Time (optional, default: creation block)
+                  </span>
                   <input
                     className="field"
-                    inputMode="numeric"
-                    value={cliff}
-                    onChange={(e) => setCliff(e.target.value)}
+                    type="datetime-local"
+                    value={start}
+                    onChange={(e) => setStart(e.target.value)}
                   />
                 </label>
-                <label className="block space-y-1">
-                  <span className="text-xs font-medium">Duration ({unit === "60" ? "min" : unit === "3600" ? "hrs" : "days"})</span>
-                  <input
-                    className="field"
-                    inputMode="numeric"
-                    value={duration}
-                    onChange={(e) => setDuration(e.target.value)}
-                  />
-                </label>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <label className="block space-y-1">
+                    <span className="text-xs font-medium">Time Unit</span>
+                    <select
+                      className="field"
+                      value={unit}
+                      onChange={(e) => setUnit(e.target.value)}
+                    >
+                      <option value="60">Minutes</option>
+                      <option value="3600">Hours</option>
+                      <option value="86400">Days</option>
+                    </select>
+                  </label>
+                  <label className="block space-y-1">
+                    <span className="text-xs font-medium">
+                      Cliff (
+                      {unit === "60" ? "min" : unit === "3600" ? "hrs" : "days"}
+                      )
+                    </span>
+                    <input
+                      className="field"
+                      inputMode="numeric"
+                      value={cliff}
+                      onChange={(e) => setCliff(e.target.value)}
+                    />
+                  </label>
+                  <label className="block space-y-1">
+                    <span className="text-xs font-medium">
+                      Duration (
+                      {unit === "60" ? "min" : unit === "3600" ? "hrs" : "days"}
+                      )
+                    </span>
+                    <input
+                      className="field"
+                      inputMode="numeric"
+                      value={duration}
+                      onChange={(e) => setDuration(e.target.value)}
+                    />
+                  </label>
+                </div>
               </div>
             )}
 
@@ -566,6 +628,26 @@ export function CohortCreator({
                 )}
               </div>
             )}
+
+            <details className="rounded-card border border-border p-4">
+              <summary className="cursor-pointer text-sm font-medium">
+                Advanced Options
+              </summary>
+              <div className="mt-4">
+                <label className="block space-y-1">
+                  <span className="text-xs font-medium">
+                    Eligibility Provider Address (optional)
+                  </span>
+                  <input
+                    className="field font-mono"
+                    value={provider}
+                    onChange={(e) => setProvider(e.target.value.trim())}
+                    placeholder="0x…"
+                    spellCheck={false}
+                  />
+                </label>
+              </div>
+            </details>
 
             <div className="rounded-card border border-border p-4">
               <label className="flex items-start gap-3 cursor-pointer">
@@ -624,17 +706,25 @@ export function CohortCreator({
                           members={organizationMembers.data}
                           memberId={member.memberId ?? ""}
                           addressValue={member.beneficiary}
-                          onMemberChange={(mid) => updateMember(idx, { memberId: mid })}
-                          onAddressChange={(addr) => updateMember(idx, { beneficiary: addr })}
+                          onMemberChange={(mid) =>
+                            updateMember(idx, { memberId: mid })
+                          }
+                          onAddressChange={(addr) =>
+                            updateMember(idx, { beneficiary: addr })
+                          }
                           external={member.external ?? !organizationId}
-                          onExternalChange={(ext) => updateMember(idx, { external: ext })}
+                          onExternalChange={(ext) =>
+                            updateMember(idx, { external: ext })
+                          }
                         />
                       ) : (
                         <input
                           className="field font-mono text-xs"
                           value={member.beneficiary}
                           onChange={(e) =>
-                            updateMember(idx, { beneficiary: e.target.value.trim() })
+                            updateMember(idx, {
+                              beneficiary: e.target.value.trim(),
+                            })
                           }
                           placeholder="Beneficiary 0x…"
                         />
@@ -647,7 +737,9 @@ export function CohortCreator({
                         inputMode="decimal"
                         value={member.allocation}
                         onChange={(e) =>
-                          updateMember(idx, { allocation: e.target.value.trim() })
+                          updateMember(idx, {
+                            allocation: e.target.value.trim(),
+                          })
                         }
                         placeholder={`Allocation (${tokenMetadata.data?.symbol ?? "tokens"})`}
                       />
@@ -680,7 +772,8 @@ export function CohortCreator({
           {hasStartedExecution && (
             <div className="space-y-3 rounded-card border bg-secondary/20 p-4">
               <h4 className="text-sm font-semibold">
-                Cohort Creation Progress ({confirmedCount}/{executionItems.length} Confirmed)
+                Cohort Creation Progress ({confirmedCount}/
+                {executionItems.length} Confirmed)
               </h4>
               <div className="space-y-2">
                 {executionItems.map((item, idx) => (
@@ -690,9 +783,16 @@ export function CohortCreator({
                   >
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">#{idx + 1}</span>
-                      <span className="font-mono">{item.beneficiary.slice(0, 8)}…{item.beneficiary.slice(-6)}</span>
+                      <span className="font-mono">
+                        {item.beneficiary.slice(0, 8)}…
+                        {item.beneficiary.slice(-6)}
+                      </span>
                       <span className="text-muted-foreground font-mono">
-                        ({formatUnits(item.allocation, tokenMetadata.data?.decimals ?? 18)}{" "}
+                        (
+                        {formatUnits(
+                          item.allocation,
+                          tokenMetadata.data?.decimals ?? 18,
+                        )}{" "}
                         {tokenMetadata.data?.symbol})
                       </span>
                     </div>

@@ -272,7 +272,9 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   const organization = useOrganization(organizationId);
   const organizationMembers = useOrganizationMembers(organizationId);
   const linkGrant = useLinkOrganizationGrant(organizationId ?? "direct");
-  const [creationMode, setCreationMode] = useState<"single" | "cohort">("single");
+  const [creationMode, setCreationMode] = useState<"single" | "cohort">(
+    "single",
+  );
   const [step, setStep] = useState(0);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");

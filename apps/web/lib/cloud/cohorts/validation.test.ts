@@ -53,11 +53,14 @@ describe("Cohort distribution validation (HAS-27)", () => {
     });
 
     it("rejects cohorts with more than 10 beneficiaries", () => {
-      const members: CohortMemberInput[] = Array.from({ length: 11 }, (_, i) => ({
-        id: String(i),
-        beneficiary: `0x${(i + 1).toString().padStart(40, "0")}` as Address,
-        allocation: "10",
-      }));
+      const members: CohortMemberInput[] = Array.from(
+        { length: 11 },
+        (_, i) => ({
+          id: String(i),
+          beneficiary: `0x${(i + 1).toString().padStart(40, "0")}` as Address,
+          allocation: "10",
+        }),
+      );
       expect(() =>
         validateCohort({
           shared: defaultSharedConfig,
@@ -195,9 +198,9 @@ describe("Cohort distribution validation (HAS-27)", () => {
         { id: "1", beneficiary: ALICE, allocation: "100" },
         { id: "2", beneficiary: BOB, allocation: "50" },
       ];
-      expect(() =>
-        validateCohort({ shared, members, decimals: 18 }),
-      ).toThrow(/must sum to 100%/i);
+      expect(() => validateCohort({ shared, members, decimals: 18 })).toThrow(
+        /must sum to 100%/i,
+      );
     });
   });
 
