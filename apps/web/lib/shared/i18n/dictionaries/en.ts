@@ -869,6 +869,94 @@ export const en = {
   "preset.ecosystem-grant.assumption.3":
     "A reviewer wallet is required to approve milestones; choose it before funding.",
 
+  // AI Grant Builder (HAS-16/HAS-18). Chrome for the optional draft panel.
+  // Adjustment and confirmation keys are resolved from the machine codes in
+  // lib/shared/ai-grant-draft/normalize.ts and lib/cloud/ai/draft-service.ts,
+  // so the server never ships a user-facing sentence.
+  "ai.launcher.label": "Draft a grant from a description",
+  "ai.launcher.short": "AI",
+  "ai.panel.title": "Describe the grant",
+  "ai.panel.lede":
+    "Optional. Write what the grant should do and this fills the wizard with an editable draft.",
+  "ai.panel.close": "Close the draft panel",
+  "ai.field.prompt.label": "What should this grant do?",
+  "ai.field.prompt.placeholder":
+    "A six-month grant for a developer, 500 tokens, released against three milestones.",
+  "ai.field.prompt.counter": "{count} of {max} characters",
+  "ai.action.draft": "Draft it",
+  "ai.action.drafting": "Drafting",
+  "ai.action.apply": "Apply to the wizard",
+  "ai.action.discard": "Discard",
+  "ai.action.retry": "Try again",
+
+  // Progress steps. These name the real pipeline, not a loading animation.
+  "ai.progress.0": "Reading the request",
+  "ai.progress.1": "Removing anything private",
+  "ai.progress.2": "Choosing an unlock strategy",
+  "ai.progress.3": "Splitting the allocation",
+  "ai.progress.4": "Checking it against the protocol rules",
+
+  "ai.draft.name": "AI draft",
+  "ai.draft.tagline": "A starting point. Every value stays editable.",
+  "ai.draft.sourceModel": "Drafted by the configured provider",
+  "ai.draft.sourceFallback": "Drafted offline, without a provider",
+  "ai.draft.strategy": "Strategy",
+  "ai.draft.allocation": "Allocation",
+  "ai.draft.schedule": "Schedule",
+  "ai.draft.milestones": "Milestones",
+  "ai.preset.applied": "From an AI draft",
+
+  "ai.section.assumptions": "Assumptions",
+  "ai.section.adjustments": "Changed for you",
+  "ai.section.unsupported": "Not supported",
+  "ai.section.confirm": "You still choose",
+  "ai.confirm.beneficiary": "The beneficiary wallet",
+  "ai.confirm.reviewer": "The reviewer wallet",
+  "ai.confirm.token": "The token to grant",
+
+  "ai.adjustment.allocationClamped":
+    "Reduced the allocation from {requested} to {maximum}: the demo faucet cannot fund more.",
+  "ai.adjustment.cliffClamped":
+    "Shortened the cliff from {cliff} to {duration}: a cliff cannot outlast its own schedule.",
+  "ai.adjustment.durationDefaulted":
+    "Set the duration to {duration}, because the draft asked for none.",
+  "ai.adjustment.timingDefaulted":
+    "Added a default schedule, because this strategy needs one.",
+  "ai.adjustment.timingDropped":
+    "Removed the schedule: a milestone grant has none.",
+  "ai.adjustment.milestonesDefaulted":
+    "Added a single milestone covering the whole allocation.",
+  "ai.adjustment.milestonesDropped":
+    "Removed the milestones: time vesting has none.",
+  "ai.adjustment.milestonesTruncated":
+    "Kept the first {maximum} milestones, which is all a vault accepts.",
+  "ai.adjustment.milestoneTitlesFilled":
+    "Named the milestones the draft left blank.",
+  "ai.adjustment.percentagesRescaled":
+    "Rescaled the milestone split so it adds up to 100%.",
+  "ai.adjustment.fieldsDropped":
+    "Ignored {count} field(s) a grant template has no place for: {fields}.",
+  "ai.adjustment.proseRedacted":
+    "Removed something private the draft had written into its own text.",
+  "ai.adjustment.offlineDraft":
+    "Drafted offline from your words alone. No provider was used.",
+  "ai.adjustment.scheduleCompressed":
+    "Compressed {requested} into {duration} demo units so the whole cycle is watchable.",
+  "ai.adjustment.requestAddressIgnored":
+    "Ignored the wallet address in your request. You pick every wallet yourself.",
+  "ai.adjustment.requestSecretIgnored":
+    "Removed something that looked like a key or a seed phrase. Never paste one here.",
+  "ai.adjustment.requestActionIgnored":
+    "This drafts a template only. It cannot sign, send, approve, claim, or revoke.",
+
+  "ai.error.unauthenticated": "Sign in to draft a grant.",
+  "ai.error.rateLimited": "Too many drafts. Try again in {seconds} seconds.",
+  "ai.error.invalidPrompt": "Describe the grant in {min} to {max} characters.",
+  "ai.error.failed":
+    "The draft could not be produced. The wizard below still works.",
+  "ai.disclaimer":
+    "A draft only suggests. You confirm every value, and the protocol's own checks still run before anything is signed.",
+
   // Document metadata.
   "meta.title": "HashVest — Programmable grants",
   "meta.description":

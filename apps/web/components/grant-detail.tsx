@@ -49,7 +49,7 @@ const REFRESH_SECONDS = 7;
 export function GrantDetail({ address }: { address: Address }) {
   const t = useTranslations();
   const walletMessages = getWalletGuardMessages(t);
-  const { findPreset: localizedTemplate } = useGrantPresets();
+  const { templateLabel } = useGrantPresets();
   const [showRevokeModal, setShowRevokeModal] = useState(false);
   const grant = useGrant(address);
   const grantContext = useGrantContext(address);
@@ -136,7 +136,7 @@ export function GrantDetail({ address }: { address: Address }) {
   const roles = resolveProtocolRoles(wallet.address, g);
   // Workspace metadata: which preset this grant started from. An unknown or
   // retired key simply shows nothing; the vault's own terms are authoritative.
-  const template = localizedTemplate(grantContext.data?.grant.templateKey);
+  const template = templateLabel(grantContext.data?.grant.templateKey);
   const isBeneficiary = roles.isBeneficiary;
   const isReviewer = roles.isReviewer;
   const isIssuer = roles.isIssuer;
@@ -308,7 +308,7 @@ export function GrantDetail({ address }: { address: Address }) {
         {template && (
           <p className="mt-3 text-sm text-muted-foreground">
             {t("detail.fromTemplate", {
-              template: template.name,
+              template,
             })}
           </p>
         )}

@@ -8,7 +8,11 @@ import {
   selectPreset,
   type AppliedPreset,
 } from "./wizard-state";
-import { getGrantPreset } from "./presets";
+import {
+  GENERATED_PRESET_KEY,
+  getGrantPreset,
+  type GrantPreset,
+} from "./presets";
 
 const builder = getGrantPreset("builder-grant"); // MILESTONE, 1000, 20/50/30
 const employee = getGrantPreset("employee-vesting"); // TIME, 600
@@ -286,5 +290,90 @@ describe("the workspace description", () => {
     );
     expect(applied.fields.description).toBe("");
     expect(clearPreset(applied.fields, applied).description).toBe("");
+  });
+});
+
+describe("a generated draft (HAS-18)", () => {
+  /** What lib/cloud/ai/draft-service.ts returns: a preset with no catalog entry. */
+  const aiDraft: GrantPreset = {
+    key: GENERATED_PRESET_KEY,
+    name: "AI draft",
+    tagline: "Milestone grant for a scoped build.",
+    description: "Milestone grant for a scoped build.",
+    bestFor: [],
+    strategy: 1,
+    titleSuggestion: "Protocol integration grant",
+    descriptionSuggestion: "Milestone grant for a scoped build.",
+    allocationSuggestion: "600",
+    timing: null,
+    milestones: [
+      { title: "Integration", percentOfAllocation: 40 },
+      { title: "Launch", percentOfAllocation: 60 },
+    ],
+    reviewerRequired: true,
+    assumptions: ["A reviewer approves each milestone."],
+  };
+
+  it("applies through the same path as a catalog preset", () => {
+    const applied = selectPreset(
+      GENERATED_PRESET_KEY,
+      BLANK_PRESET_FIELDS,
+      undefined,
+      { preset: aiDraft },
+    );
+    expect(applied.key).toBe(GENERATED_PRESET_KEY);
+    expect(applied.fields.title).toBe("Protocol integration grant");
+    expect(applied.fields.strategy).toBe(1);
+    expect(applied.fields.reviewerRequired).toBe(true);
+    expect(applied.fields.milestones.map((item) => item.title)).toEqual([
+      "Integration",
+      "Launch",
+    ]);
+    expect(applied.fields.milestones[0].amount).toBe("240");
+  });
+
+  it("refuses a generated key with nothing to apply", () => {
+    // There is no catalog entry to fall back to, and silently applying some
+    // other preset would put values on screen the draft never suggested.
+    expect(() =>
+      selectPreset(GENERATED_PRESET_KEY, BLANK_PRESET_FIELDS, undefined),
+    ).toThrow("no catalog entry");
+  });
+
+  it("re-splits its own milestones when the allocation changes", () => {
+    const applied = selectPreset(
+      GENERATED_PRESET_KEY,
+      BLANK_PRESET_FIELDS,
+      undefined,
+      { preset: aiDraft },
+    );
+    // Looking the percentages up by key would throw: the draft is not in the
+    // catalog. They come from the applied preset itself.
+    const resynced = resyncMilestoneAmounts(
+      "1000",
+      applied.fields.milestones,
+      applied,
+    );
+    expect(resynced?.fields.milestones.map((item) => item.amount)).toEqual([
+      "400",
+      "600",
+    ]);
+    expect(resynced?.userOwned).toContain("allocation");
+  });
+
+  it("can be swapped for a catalog preset and cleared like any other", () => {
+    const applied = selectPreset(
+      GENERATED_PRESET_KEY,
+      BLANK_PRESET_FIELDS,
+      undefined,
+      { preset: aiDraft },
+    );
+    const swapped = selectPreset("employee-vesting", applied.fields, applied);
+    expect(swapped.key).toBe("employee-vesting");
+    expect(swapped.fields.title).toBe(employee.titleSuggestion);
+    expect(swapped.userOwned).toEqual([]);
+
+    const cleared = clearPreset(applied.fields, applied);
+    expect(cleared).toEqual(BLANK_PRESET_FIELDS);
   });
 });
