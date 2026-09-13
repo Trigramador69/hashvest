@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore, useState } from "react";
 
 import { Button } from "./ui/button";
 import { ConfirmDialog } from "./ui/confirm-dialog";
@@ -25,9 +25,16 @@ export function VisualConfirmDialogFixture() {
    * Hydration, made observable. A key pressed before this component is
    * interactive does nothing, and a keyboard test that raced it would fail for
    * a reason that has nothing to do with the dialog.
+   *
+   * The server snapshot is false and the client snapshot is true, so the flag
+   * flips exactly when React takes over. Nothing ever changes after that, hence
+   * the empty subscription.
    */
-  const [ready, setReady] = useState(false);
-  useEffect(() => setReady(true), []);
+  const ready = useSyncExternalStore(
+    useCallback(() => () => {}, []),
+    () => true,
+    () => false,
+  );
 
   return (
     <div
