@@ -538,6 +538,41 @@ export const zhCN: TranslationDictionary = {
   "report.upcoming.source":
     "来源：GrantVault.start 加上 cliff 或 duration。仅里程碑的资助没有时间条件，永远不会出现在此处。",
 
+  "notify.title": "生命周期通知",
+  "notify.lede":
+    "由每个关联 GrantVault 的当前状态推导而来，并限定于你自己的链上角色。除了你是否已查看之外，此处不存储任何内容。",
+  "notify.loading": "正在读取实时资助状态…",
+  "notify.error": "无法读取工作区数据，因此通知不可用。",
+  "notify.empty": "目前没有需要你处理的事项。",
+  "notify.partial": "至少有一个关联金库无法读取，因此此列表可能不完整。",
+  "notify.unread": "未读",
+  "notify.unreadCount": "{count} 条未读",
+  "notify.open": "打开资助",
+  "notify.markRead": "标记为已读",
+  "notify.markAllRead": "全部标记为已读",
+  "notify.markingAll": "正在标记…",
+  "notify.markError": "无法标记为已读。请重试。",
+  "notify.confidence.confirmed": "链上已确认",
+  "notify.confidence.unverified": "未经验证",
+  "notify.kind.milestonePendingReview": "里程碑等待你审核",
+  "notify.kind.claimable": "你有可领取的资金",
+  "notify.kind.cliffReached": "已到达悬崖期",
+  "notify.kind.vestingComplete": "按时间归属已完成",
+  "notify.kind.completed": "资助已完成",
+  "notify.kind.revoked": "资助已撤销",
+  "notify.kind.syncUnavailable": "无法读取资助状态",
+  "notify.reason.milestonePendingReview":
+    "你是该金库的审核人，里程碑 {position}（{milestone}，{amount}）尚未获批。",
+  "notify.reason.claimable":
+    "你是受益人，金库显示有 {amount} 已解锁且尚未领取。",
+  "notify.reason.cliffReached":
+    "该金库的悬崖期已于 {date} 到达，可归属分配开始释放。",
+  "notify.reason.vestingComplete": "该金库的时间表已于 {date} 结束。",
+  "notify.reason.completed": "金库显示其全部分配 {amount} 已被领取。",
+  "notify.reason.revoked": "发放方已于 {date} 撤销该金库。",
+  "notify.reason.syncUnavailable":
+    "该金库与本组织关联，但链上读取未完成。此处不对其状态作出任何断言。",
+
   // 组织模板管理（HAS-13）。
   "templates.title": "模板",
   "templates.lede.owner":

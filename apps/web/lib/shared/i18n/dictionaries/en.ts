@@ -584,6 +584,47 @@ export const en = {
   "report.upcoming.source":
     "Source: GrantVault.start plus cliff or duration. Milestone-only grants have no time condition and never appear here.",
 
+  // Organization lifecycle notifications (HAS-37). Derived from live vault
+  // state; only the read marks are stored.
+  "notify.title": "Lifecycle notifications",
+  "notify.lede":
+    "Derived from the current state of every associated GrantVault, scoped to your own onchain role. Nothing here is stored except whether you have seen it.",
+  "notify.loading": "Reading live grant state…",
+  "notify.error":
+    "Notifications are unavailable because workspace data could not be read.",
+  "notify.empty": "Nothing needs your attention right now.",
+  "notify.partial":
+    "At least one associated vault could not be read, so this list may be incomplete.",
+  "notify.unread": "Unread",
+  "notify.unreadCount": "{count} unread",
+  "notify.open": "Open grant",
+  "notify.markRead": "Mark read",
+  "notify.markAllRead": "Mark all read",
+  "notify.markingAll": "Marking…",
+  "notify.markError": "Those could not be marked read. Try again.",
+  "notify.confidence.confirmed": "Confirmed onchain",
+  "notify.confidence.unverified": "Unverified",
+  "notify.kind.milestonePendingReview": "Milestone awaiting your review",
+  "notify.kind.claimable": "Funds are claimable by you",
+  "notify.kind.cliffReached": "Cliff reached",
+  "notify.kind.vestingComplete": "Time vesting complete",
+  "notify.kind.completed": "Grant completed",
+  "notify.kind.revoked": "Grant revoked",
+  "notify.kind.syncUnavailable": "Grant state could not be read",
+  "notify.reason.milestonePendingReview":
+    "You are the reviewer on this vault, and milestone {position} ({milestone}, {amount}) is not approved yet.",
+  "notify.reason.claimable":
+    "You are the beneficiary, and the vault reports {amount} unlocked and not yet claimed.",
+  "notify.reason.cliffReached":
+    "The cliff on this vault was reached on {date}, so the vesting allocation is now releasing.",
+  "notify.reason.vestingComplete":
+    "The time schedule on this vault ended on {date}.",
+  "notify.reason.completed":
+    "The vault reports its full allocation of {amount} claimed.",
+  "notify.reason.revoked": "The issuer revoked this vault on {date}.",
+  "notify.reason.syncUnavailable":
+    "This vault is associated with the organization, but the chain read did not complete. Nothing is being claimed about its state.",
+
   // Organization template management (HAS-13). Owner-only writes; every
   // member reads the same list.
   "templates.title": "Templates",

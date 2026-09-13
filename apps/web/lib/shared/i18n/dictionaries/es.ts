@@ -602,6 +602,45 @@ export const es: TranslationDictionary = {
   "report.upcoming.source":
     "Fuente: GrantVault.start más cliff o duration. Las subvenciones solo por hitos no tienen condición temporal y nunca aparecen aquí.",
 
+  "notify.title": "Notificaciones de ciclo de vida",
+  "notify.lede":
+    "Derivadas del estado actual de cada GrantVault asociado y limitadas a tu propio rol en cadena. Aquí no se almacena nada salvo si ya lo has visto.",
+  "notify.loading": "Leyendo el estado en vivo de las subvenciones…",
+  "notify.error":
+    "Las notificaciones no están disponibles porque no se pudieron leer los datos del espacio de trabajo.",
+  "notify.empty": "Ahora mismo no hay nada que requiera tu atención.",
+  "notify.partial":
+    "Al menos una bóveda asociada no se pudo leer, así que esta lista puede estar incompleta.",
+  "notify.unread": "Sin leer",
+  "notify.unreadCount": "{count} sin leer",
+  "notify.open": "Abrir subvención",
+  "notify.markRead": "Marcar como leída",
+  "notify.markAllRead": "Marcar todas como leídas",
+  "notify.markingAll": "Marcando…",
+  "notify.markError": "No se pudieron marcar como leídas. Inténtalo de nuevo.",
+  "notify.confidence.confirmed": "Confirmado en cadena",
+  "notify.confidence.unverified": "Sin verificar",
+  "notify.kind.milestonePendingReview": "Hito pendiente de tu revisión",
+  "notify.kind.claimable": "Tienes fondos reclamables",
+  "notify.kind.cliffReached": "Cliff alcanzado",
+  "notify.kind.vestingComplete": "Consolidación por tiempo completada",
+  "notify.kind.completed": "Subvención completada",
+  "notify.kind.revoked": "Subvención revocada",
+  "notify.kind.syncUnavailable": "No se pudo leer el estado de la subvención",
+  "notify.reason.milestonePendingReview":
+    "Eres el revisor de esta bóveda y el hito {position} ({milestone}, {amount}) todavía no está aprobado.",
+  "notify.reason.claimable":
+    "Eres el beneficiario y la bóveda indica {amount} desbloqueado y aún sin reclamar.",
+  "notify.reason.cliffReached":
+    "El cliff de esta bóveda se alcanzó el {date}, así que la asignación consolidable ya se está liberando.",
+  "notify.reason.vestingComplete":
+    "El calendario temporal de esta bóveda terminó el {date}.",
+  "notify.reason.completed":
+    "La bóveda indica que se ha reclamado su asignación completa de {amount}.",
+  "notify.reason.revoked": "El emisor revocó esta bóveda el {date}.",
+  "notify.reason.syncUnavailable":
+    "Esta bóveda está asociada a la organización, pero la lectura en cadena no se completó. No se afirma nada sobre su estado.",
+
   // Gestión de plantillas de organización (HAS-13).
   "templates.title": "Plantillas",
   "templates.lede.owner":
