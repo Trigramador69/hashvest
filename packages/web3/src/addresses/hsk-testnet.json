@@ -1,17 +1,17 @@
 {
   "chainId": 133,
-  "factory": "0x7a1cB78CDE03f85a3d42A2D8a93014173Afc1461",
-  "demoToken": "0x61764AE7fa269CC77Aa9C4f905FD7421459687C9",
-  "eligibilityProvider": "0xCA3D0B1B19eda7a8Fa30B9aA2713D979Fb5d1db8",
-  "deployer": "0x3227B70F81FFB0CecF842f6486407DE991F29C89",
+  "factory": "0x6fE671195Ac025220B074439362214c10821F93d",
+  "demoToken": "0x66bc0047085a716987FDfCad12a0caC78f67f713",
+  "eligibilityProvider": "0xd162c2dcdDfEa28F1662412C24917966F3e9533a",
+  "deployer": "0x950faC46AB94f71149B89E5A71D374412CF1B842",
   "transactionHashes": {
-    "factory": "0xebc1200b38502a999434cb99469ca33d40f58c45079753a1d54d85aed167b34b",
-    "demoToken": "0x7095a16f4b2db49fb55838c169eefafdb7c8ebb9c1d3e85a07c4c2bdb82dd3ec",
-    "eligibilityProvider": "0xab01f3350a34949602448fb460469349b6eab994853be64a2962735072af2df6"
+    "factory": "0x1ac5e818bb51233b41e4109f9b76a85f887b8fd4572712824791a156cea5c910",
+    "demoToken": "0xa4f5e262e3051be4ec6ce76869175b9e179a208fad6bcf2c9c6317ec81341866",
+    "eligibilityProvider": "0x72961c7d7e525ae523d9f0c9562dcea11db8a9b1cc4a3be7b371c9e2e11be972"
   },
   "blockNumbers": {
-    "factory": 33032417,
-    "demoToken": 33032417,
-    "eligibilityProvider": 33032417
+    "factory": 33054218,
+    "demoToken": 33054218,
+    "eligibilityProvider": 33054218
   }
 }
