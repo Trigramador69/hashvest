@@ -133,6 +133,16 @@ block-consistent HSK snapshots after Cloud proves membership and association.
 Cloud does not pass browser financial values to the model or download evidence
 links. Validated citations identify supplied sources, not authoritative decisions.
 
+The report summary follows the same direction with one more read. The Cloud
+proves membership, takes the Supabase association as a discovery set only, and
+then calls `readOrganizationGrantSnapshots` in `lib/protocol/verify.ts` to read
+each vault itself before reusing the pure `buildOrganizationReport` deriver the
+Reports page uses. Nothing flows the other way: the browser's figures are never
+accepted as input, the read is bounded, and vaults beyond the bound are declared
+omitted. The organization reporting rule applies unchanged — amounts stay inside
+one ERC20 contract, and a vault that could not be read is absent, not zero — and
+the parser rejects a narrative that breaks it rather than trusting the prompt.
+
 Raw prompts, responses and review analysis remain ephemeral. Only template
 configuration explicitly reviewed and saved by an owner is persisted through
 the existing schema and CRUD. No model field chooses identities; the server

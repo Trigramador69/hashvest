@@ -1,10 +1,18 @@
 # Organization AI tools — HAS-19 and HAS-17
 
-Three independent, collapsible sections share one visual vocabulary: the Grant
+Four independent, collapsible sections share one visual vocabulary: the Grant
 Builder in the wizard's Template step, template generation in the organization's
-new-template editor, and evidence analysis beside GrantDetail's private evidence.
-The review queue links directly to analysis. Navigation remains Overview, Grants
-and Settings. Every result is advisory; HSK owns all value and permission.
+new-template editor, evidence analysis beside GrantDetail's private evidence, and
+a reading of the organization report at
+`/app/organizations/<uuid>/reports`. The review queue links directly to analysis.
+Navigation is unchanged — Overview, Grants, Organizations and Settings — and no
+tool adds a destination of its own. Every result is advisory; HSK owns all value
+and permission.
+
+A reviewer can copy any analysis as plain text, citations included, to paste into
+a decision of their own. The copy is user-initiated and goes to the clipboard;
+nothing is filed away, because an advisory reading the product stored would start
+to read like a record.
 
 ## Template generation
 
@@ -51,6 +59,39 @@ chain state or locale changes, or the analysis is older than five minutes.
 Session, organization and grant changes discard private results and abort requests.
 Provider failure retains source context and leaves manual review available.
 
+## Report summary
+
+`POST /api/organizations/[organizationId]/ai/report` uses only `locale` from the
+body. Membership is checked first; Supabase then supplies the discovery set — which
+vaults this organization is associated with — and nothing else.
+
+**The server does its own reads.** `readOrganizationGrantSnapshots` in
+`lib/protocol/verify.ts` reads each vault at a single block, plus its ERC20 symbol
+and decimals, and `buildOrganizationReport` derives the same report the page shows.
+Figures the browser sends are ignored. That duplication is deliberate: a summary
+quoting numbers the caller supplied would be summarizing the caller, not the chain.
+
+`ORGANIZATION_REPORT_VAULT_LIMIT` bounds one call at 12 vaults, because each vault
+costs roughly twenty reads. Vaults past the limit are reported as omitted and mark
+the result partial; they are never treated as empty.
+
+Amounts reach the model as decimal strings beside their token symbol, grouped by
+ERC20 contract. Vault addresses, wallets and links never do; grant titles are
+member-authored text and are redacted like any note.
+
+The parser enforces what the prompt asks for. A statement is rejected outright if
+it names a fiat amount, a currency symbol, a conversion, an exchange rate, a
+valuation, TVL, APR, APY or yield, or if it totals across token groups — HashVest
+has no price feed, so such a sentence is an invented fact about value, not a
+rounding error. A cited id must be one the server supplied. When the result is
+partial, at least one statement must cite `unreadable`, so a reader is never shown
+a confident summary of vaults nobody could read.
+
+Citations resolve to sections of the Reports page itself (`lifecycle`, `viewer`,
+`token-N`, `unlocks`, `unreadable`), so checking a claim is a scroll. The summary
+goes stale when the lifecycle counts, per-token amounts, viewer counts or locale
+change, or after five minutes; re-reading identical state does not age it.
+
 ## Provider and privacy
 
 All tools share `apps/web/lib/cloud/ai/config.ts`: server-only `AI_API_KEY`, optional
@@ -60,7 +101,8 @@ override. No deployer or relayer key is needed.
 
 Limits: 15-second provider timeout, 128,000-byte provider response, 4096-byte
 streamed requests for new routes, 8–400-character template prompts, 24,000-character
-raw model output, eight entries per prose list, 600 characters per review statement,
+raw model output, eight entries per prose list, 600 characters per review or report statement,
+12 vaults per report read,
 20 milestones and 1000 characters per evidence note. All three tools share the
 in-process wallet budget of 5/minute and 40/day. Horizontal deployments enforce
 the budget per instance. New responses, including errors, use no-store; rate

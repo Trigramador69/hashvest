@@ -140,11 +140,22 @@ private milestone notes and current HSK reads on GrantDetail, reached from the
 review queue. Every finding cites supplied sources; linked content is not fetched.
 Recommendations are advisory text and cannot execute approval.
 
-Both use independent, collapsible sections and the same server-only AI provider
-configuration as the Grant Builder. A missing or failed provider leaves manual
-template creation and review available. Prompts and raw responses are never
-retained; only template configuration explicitly reviewed and saved by an owner
-becomes normal organization metadata. No migration or redeployment is required.
+Members can also have the organization report read back to them on
+`/app/organizations/<uuid>/reports`. The server re-reads the associated vaults
+itself rather than trusting the figures the browser derived, bounded to twelve
+vaults per call, and every sentence cites a section of that page so a claim is
+checked by scrolling. Because HashVest has no price feed, a sentence naming a
+fiat amount, a conversion, a valuation, TVL or a yield — or totalling across
+tokens — is rejected outright rather than merely discouraged, and a vault that
+could not be read is declared instead of counted as zero.
+
+All three use independent, collapsible sections and the same server-only AI
+provider configuration as the Grant Builder. Any analysis can be copied as plain
+text, citations included, for a reviewer to paste into their own decision. A
+missing or failed provider leaves manual template creation, review and reporting
+available. Prompts and raw responses are never retained; only template
+configuration explicitly reviewed and saved by an owner becomes normal
+organization metadata. No migration or redeployment is required.
 See [`docs/ai-tools.md`](docs/ai-tools.md) for permissions, limits, tests and the
 optional synthetic live-provider smoke test.
 
