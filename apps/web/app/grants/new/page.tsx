@@ -28,6 +28,7 @@ import {
   TransactionStatus,
 } from "@/components/grant-ui";
 import { DemoFaucet } from "@/components/demo-faucet";
+import { CohortCreator } from "@/components/cohort-creator";
 import { MemberPicker } from "@/components/organization-ui";
 import { ParticipantIdentity } from "@/components/grant-card";
 import { useToken } from "@/hooks/use-grant";
@@ -271,6 +272,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   const organization = useOrganization(organizationId);
   const organizationMembers = useOrganizationMembers(organizationId);
   const linkGrant = useLinkOrganizationGrant(organizationId ?? "direct");
+  const [creationMode, setCreationMode] = useState<"single" | "cohort">("single");
   const [step, setStep] = useState(0);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -849,7 +851,38 @@ export function NewGrant({ organizationId }: NewGrantProps) {
           <p>{t("wizard.notice.noDeployment.body")}</p>
         </Notice>
       )}
-      {creationConfirmed ? (
+      {!creationConfirmed && (
+        <div className="flex rounded-lg border bg-secondary/30 p-1 w-fit">
+          <button
+            type="button"
+            onClick={() => setCreationMode("single")}
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+              creationMode === "single"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Single Grant
+          </button>
+          <button
+            type="button"
+            onClick={() => setCreationMode("cohort")}
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+              creationMode === "cohort"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Cohort Distribution (Batch)
+          </button>
+        </div>
+      )}
+      {creationMode === "cohort" ? (
+        <CohortCreator
+          organizationId={organizationId}
+          onSwitchToSingle={() => setCreationMode("single")}
+        />
+      ) : creationConfirmed ? (
         <Card>
           <CardContent className="space-y-6 p-7">
             <div className="grid size-12 place-items-center rounded-full bg-primary/10 text-2xl text-primary">
