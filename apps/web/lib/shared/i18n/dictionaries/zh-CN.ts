@@ -793,6 +793,81 @@ export const zhCN: TranslationDictionary = {
   "preset.ecosystem-grant.assumption.3":
     "需要一个审核人钱包来批准里程碑；请在注资前选定。",
 
+  "ai.launcher.label": "根据一段描述起草一笔赠款",
+  "ai.launcher.short": "AI",
+  "ai.panel.title": "描述这笔赠款",
+  "ai.panel.lede":
+    "可选。写下这笔赠款要做什么，这里会为向导填入一份可编辑的草稿。",
+  "ai.panel.close": "关闭草稿面板",
+  "ai.field.prompt.label": "这笔赠款要做什么？",
+  "ai.field.prompt.placeholder":
+    "给一位开发者的六个月赠款，500 代币，按三个里程碑释放。",
+  "ai.field.prompt.counter": "{count} / {max} 个字符",
+  "ai.action.draft": "生成草稿",
+  "ai.action.drafting": "正在起草",
+  "ai.action.apply": "应用到向导",
+  "ai.action.discard": "放弃",
+  "ai.action.retry": "重试",
+
+  "ai.progress.0": "正在读取请求",
+  "ai.progress.1": "正在移除隐私内容",
+  "ai.progress.2": "正在选择解锁策略",
+  "ai.progress.3": "正在拆分分配额度",
+  "ai.progress.4": "正在按协议规则校验",
+
+  "ai.draft.name": "AI 草稿",
+  "ai.draft.tagline": "一个起点。每个值都仍可编辑。",
+  "ai.draft.sourceModel": "由已配置的提供方起草",
+  "ai.draft.sourceFallback": "离线起草，未使用提供方",
+  "ai.draft.strategy": "策略",
+  "ai.draft.allocation": "分配额度",
+  "ai.draft.schedule": "时间表",
+  "ai.draft.milestones": "里程碑",
+  "ai.preset.applied": "来自 AI 草稿",
+
+  "ai.section.assumptions": "假设",
+  "ai.section.adjustments": "已为你调整",
+  "ai.section.unsupported": "不支持",
+  "ai.section.confirm": "仍由你决定",
+  "ai.confirm.beneficiary": "受益人钱包",
+  "ai.confirm.reviewer": "审核人钱包",
+  "ai.confirm.token": "要发放的代币",
+
+  "ai.adjustment.allocationClamped":
+    "已将分配额度从 {requested} 降到 {maximum}：演示水龙头无法提供更多资金。",
+  "ai.adjustment.cliffClamped":
+    "已将悬崖期从 {cliff} 缩短到 {duration}：悬崖期不能超过它自己的时间表。",
+  "ai.adjustment.durationDefaulted":
+    "已将时长设为 {duration}，因为草稿没有给出时长。",
+  "ai.adjustment.timingDefaulted": "已补上默认时间表，因为该策略需要一个。",
+  "ai.adjustment.timingDropped": "已移除时间表：里程碑赠款没有时间表。",
+  "ai.adjustment.milestonesDefaulted": "已添加一个覆盖全部额度的里程碑。",
+  "ai.adjustment.milestonesDropped": "已移除里程碑：按时间释放没有里程碑。",
+  "ai.adjustment.milestonesTruncated":
+    "已保留前 {maximum} 个里程碑，这是金库所能接受的上限。",
+  "ai.adjustment.milestoneTitlesFilled": "已为草稿留空的里程碑补上名称。",
+  "ai.adjustment.percentagesRescaled":
+    "已重新缩放里程碑比例，使其合计为 100%。",
+  "ai.adjustment.fieldsDropped":
+    "已忽略 {count} 个赠款模板无法容纳的字段：{fields}。",
+  "ai.adjustment.proseRedacted": "已移除草稿写进自身文本中的隐私内容。",
+  "ai.adjustment.offlineDraft": "仅凭你的文字离线起草，未使用任何提供方。",
+  "ai.adjustment.scheduleCompressed":
+    "已把 {requested} 压缩为 {duration} 个演示单位，以便完整流程可以当场看到。",
+  "ai.adjustment.requestAddressIgnored":
+    "已忽略你请求中的钱包地址。每个钱包都由你自己选择。",
+  "ai.adjustment.requestSecretIgnored":
+    "已移除看起来像私钥或助记词的内容。请不要在这里粘贴它们。",
+  "ai.adjustment.requestActionIgnored":
+    "这里只起草模板。它不能签名、转账、批准、领取或撤销。",
+
+  "ai.error.unauthenticated": "请先登录再起草赠款。",
+  "ai.error.rateLimited": "草稿请求过多。请在 {seconds} 秒后重试。",
+  "ai.error.invalidPrompt": "请用 {min} 到 {max} 个字符描述这笔赠款。",
+  "ai.error.failed": "无法生成草稿。下面的向导仍然可用。",
+  "ai.disclaimer":
+    "草稿只是建议。每个值都由你确认，签名前协议自身的校验依然会执行。",
+
   "meta.title": "HashVest — 可编程资助",
   "meta.description":
     "在 HashKey Chain 上以时间、里程碑和混合方式解锁的全额注资代币资助。",
