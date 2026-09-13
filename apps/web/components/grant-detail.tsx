@@ -985,7 +985,9 @@ export function GrantDetail({ address }: { address: Address }) {
                   {g.milestones.map((milestone, index) => (
                     <li
                       key={index}
-                      className="flex flex-wrap items-center justify-between gap-4 py-5 first:pt-0 last:pb-0"
+                      // Anchored so a cited evidence note can point back here.
+                      id={`milestone-${index}`}
+                      className="flex scroll-mt-6 flex-wrap items-center justify-between gap-4 py-5 first:pt-0 last:pb-0"
                     >
                       <div className="flex min-w-0 gap-3">
                         <span
@@ -1085,6 +1087,7 @@ export function GrantDetail({ address }: { address: Address }) {
                           disabled={
                             grant.isRefetchError || grantEvidence.isFetching
                           }
+                          milestoneAnchor={(index) => `#milestone-${index}`}
                         />
                       )}
                   </div>

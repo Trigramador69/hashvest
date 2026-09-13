@@ -9,6 +9,25 @@ import type { TranslationDictionary } from "./en";
  * `min(...)` formula stay untranslated — they are technical literals.
  */
 export const zhCN: TranslationDictionary = {
+  "ai.action.copy": "复制为报告",
+  "ai.action.copied": "已复制到剪贴板。",
+  "ai.action.copyFailed": "剪贴板不可用。请选中文本后自行复制。",
+  "ai.action.regenerate": "重新生成",
+  "ai.action.cancel": "取消",
+  "ai.tools.replaceConfirm": "替换我的编辑",
+  "ai.templates.prompt.placeholder":
+    "例如：依据两个经审核的里程碑释放的可复用资助。",
+  "ai.templates.examples": "从这里开始：",
+  "ai.templates.example.milestones.label": "里程碑",
+  "ai.templates.example.milestones":
+    "一笔可复用的资助，依据两个经审核的里程碑释放：原型与发布。",
+  "ai.templates.example.vesting.label": "线性释放",
+  "ai.templates.example.vesting":
+    "为期一年的贡献者资助，三个月悬崖期后按日释放。",
+  "ai.templates.example.hybrid.label": "混合",
+  "ai.templates.example.hybrid":
+    "为期六个月的资助，既按时间释放，也依据两个经审核的里程碑释放。",
+  "ai.review.openMilestone": "前往里程碑 {index}",
   "ai.tools.forbidden": "你无权在此组织中使用此工具。",
   "ai.tools.failed": "无法完成分析。你可以继续手动操作并重试。",
   "ai.tools.working": "正在生成参考建议…",

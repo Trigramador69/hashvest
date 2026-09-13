@@ -9,7 +9,7 @@ import {
   type ReviewStatement,
 } from "@/lib/shared/ai-tools/review";
 import { useI18n } from "@/lib/shared/i18n/provider";
-import { AiToolSection } from "./ai-tool-section";
+import { AiCopyButton, AiToolSection } from "./ai-tool-section";
 import { Button } from "./ui/button";
 
 type Props = {
@@ -18,6 +18,11 @@ type Props = {
   currentStateKey: string;
   evidenceKey: string;
   disabled?: boolean;
+  /**
+   * Anchor for the milestone a cited note belongs to. Optional because the
+   * gated fixture renders this tool without a milestone list beside it.
+   */
+  milestoneAnchor?: (milestoneIndex: number) => string;
 };
 function subscribeHash(callback: () => void) {
   window.addEventListener("hashchange", callback);
@@ -43,6 +48,7 @@ export function EvidenceReviewTool({
   currentStateKey,
   evidenceKey,
   disabled = false,
+  milestoneAnchor,
 }: Props) {
   const { t, locale } = useI18n();
   const id = useId().replace(/:/g, "");
@@ -111,6 +117,35 @@ export function EvidenceReviewTool({
       setClock(Date.now());
     }
   }
+  /** Plain text for a reviewer's own notes; the citations travel with it. */
+  function asText() {
+    const review = result?.review;
+    if (!review) return "";
+    const sections = (
+      ["summary", "findings", "questions", "uncertainty"] as const
+    ).map(
+      (section) =>
+        `${t(`ai.review.${section}`)}\n${review[section]
+          .map(
+            (statement) =>
+              `- ${statement.text} (${statement.sourceIds
+                .map(sourceLabel)
+                .join("; ")})`,
+          )
+          .join("\n")}`,
+    );
+    return [
+      t("ai.review.title"),
+      t("ai.review.checkedAt", {
+        date: new Date(result!.checkedAt).toLocaleString(locale),
+        block: result!.snapshot.blockNumber,
+      }),
+      ...sections,
+      `${t("ai.review.recommendation")}\n- ${t(`ai.review.${review.recommendation.value}`)}: ${review.recommendation.rationale.text}`,
+      t("ai.review.linksUnread"),
+      t("ai.review.disclaimer"),
+    ].join("\n\n");
+  }
   return (
     <AiToolSection
       id="ai-evidence-review"
@@ -148,9 +183,21 @@ export function EvidenceReviewTool({
             })}
           </p>
           {stale && (
-            <p role="status" className="border border-border p-3 text-xs">
-              {t("ai.review.stale")}
-            </p>
+            <div
+              role="status"
+              className="space-y-2 border border-border p-3 text-xs"
+            >
+              <p>{t("ai.review.stale")}</p>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={disabled || ai.pending}
+                onClick={() => void analyze()}
+              >
+                {t("ai.action.regenerate")}
+              </Button>
+            </div>
           )}
           {result.missingNotes && (
             <p className="text-xs text-muted-foreground">
@@ -227,13 +274,26 @@ export function EvidenceReviewTool({
                       date: new Date(source.updatedAt).toLocaleString(locale),
                     })}
                   </p>
+                  {milestoneAnchor && source.kind === "evidence" && (
+                    <a
+                      className="text-primary underline"
+                      href={milestoneAnchor(source.milestoneIndex ?? 0)}
+                    >
+                      {t("ai.review.openMilestone", {
+                        index: (source.milestoneIndex ?? 0) + 1,
+                      })}
+                    </a>
+                  )}
                 </li>
               ))}
             </ol>
           </div>
-          <Button type="button" variant="outline" onClick={ai.clear}>
-            {t("ai.action.discard")}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {result.review && <AiCopyButton text={asText} />}
+            <Button type="button" variant="outline" onClick={ai.clear}>
+              {t("ai.action.discard")}
+            </Button>
+          </div>
         </div>
       )}
       <p className="text-xs leading-5 text-muted-foreground">

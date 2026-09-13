@@ -9,6 +9,26 @@ import type { TranslationDictionary } from "./en";
  * `min(...)` formula stay untranslated — they are technical literals.
  */
 export const es: TranslationDictionary = {
+  "ai.action.copy": "Copiar como informe",
+  "ai.action.copied": "Copiado al portapapeles.",
+  "ai.action.copyFailed":
+    "El portapapeles no está disponible. Selecciona el texto y cópialo.",
+  "ai.action.regenerate": "Generar de nuevo",
+  "ai.action.cancel": "Cancelar",
+  "ai.tools.replaceConfirm": "Reemplazar mis ediciones",
+  "ai.templates.prompt.placeholder":
+    "Por ejemplo: un grant reutilizable liberado contra dos milestones revisados.",
+  "ai.templates.examples": "Empieza desde:",
+  "ai.templates.example.milestones.label": "Milestones",
+  "ai.templates.example.milestones":
+    "Un grant reutilizable liberado contra dos milestones revisados: un prototipo y una versión.",
+  "ai.templates.example.vesting.label": "Vesting",
+  "ai.templates.example.vesting":
+    "Un grant de un año para una persona colaboradora, con vesting diario tras un cliff de tres meses.",
+  "ai.templates.example.hybrid.label": "Híbrido",
+  "ai.templates.example.hybrid":
+    "Un grant de seis meses que libera por tiempo y además con dos milestones revisados.",
+  "ai.review.openMilestone": "Ir al milestone {index}",
   "ai.tools.forbidden":
     "No tienes acceso a esta herramienta en esta organización.",
   "ai.tools.failed":

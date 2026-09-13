@@ -7,6 +7,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { useTranslations } from "@/lib/shared/i18n/provider";
 import { Button } from "./ui/button";
 const subscribeHydration = () => () => {};
 
@@ -86,6 +87,42 @@ export function AiToolSection({
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * Hand the analysis to the reviewer as text they can paste into a decision.
+ *
+ * The copy is user-initiated and goes to the clipboard, never to storage: an
+ * advisory reading that the product filed away would start to look like a
+ * record. `navigator.clipboard` is absent over plain HTTP and can be denied,
+ * so failure is shown rather than swallowed.
+ */
+export function AiCopyButton({ text }: { text: () => string }) {
+  const t = useTranslations();
+  const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text());
+      setState("copied");
+    } catch {
+      setState("failed");
+    }
+  }
+  return (
+    <span className="inline-flex items-center gap-2">
+      <Button type="button" variant="outline" onClick={() => void copy()}>
+        {t("ai.action.copy")}
+      </Button>
+      {state !== "idle" && (
+        <span
+          role="status"
+          className={`text-xs ${state === "failed" ? "text-destructive" : "text-muted-foreground"}`}
+        >
+          {t(state === "copied" ? "ai.action.copied" : "ai.action.copyFailed")}
+        </span>
+      )}
+    </span>
   );
 }
 

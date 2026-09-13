@@ -9,6 +9,26 @@
  * translation entirely. Never inline such a literal into a message string.
  */
 export const en = {
+  "ai.action.copy": "Copy as a report",
+  "ai.action.copied": "Copied to the clipboard.",
+  "ai.action.copyFailed":
+    "The clipboard is unavailable. Select the text and copy it.",
+  "ai.action.regenerate": "Generate it again",
+  "ai.action.cancel": "Cancel",
+  "ai.tools.replaceConfirm": "Replace my edits",
+  "ai.templates.prompt.placeholder":
+    "For example: a reusable grant released against two reviewed milestones.",
+  "ai.templates.examples": "Start from:",
+  "ai.templates.example.milestones.label": "Milestones",
+  "ai.templates.example.milestones":
+    "A reusable grant released against two reviewed milestones: a prototype and a release.",
+  "ai.templates.example.vesting.label": "Vesting",
+  "ai.templates.example.vesting":
+    "A one-year contributor grant vesting daily after a three-month cliff.",
+  "ai.templates.example.hybrid.label": "Hybrid",
+  "ai.templates.example.hybrid":
+    "A six-month grant that vests over time and also unlocks on two reviewed milestones.",
+  "ai.review.openMilestone": "Go to milestone {index}",
   "ai.tools.forbidden":
     "You do not have access to this tool in this organization.",
   "ai.tools.failed":
