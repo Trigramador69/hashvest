@@ -14,6 +14,8 @@ export const zhCN: TranslationDictionary = {
   "ai.action.copyFailed": "剪贴板不可用。请选中文本后自行复制。",
   "ai.action.regenerate": "重新生成",
   "ai.action.cancel": "取消",
+  // Shared by every confirmation dialog.
+  "dialog.cancel": "取消",
   "ai.tools.replaceConfirm": "替换我的编辑",
   "ai.templates.prompt.placeholder":
     "例如：依据两个经审核的里程碑释放的可复用资助。",
@@ -148,8 +150,10 @@ export const zhCN: TranslationDictionary = {
     "已解锁 = min(按时间归属的数量, 已批准的里程碑金额)。两个条件共同约束每一次领取。",
 
   // Protocol / Cloud 产品模型（HAS-36）。仅用于展示：不含计费。
+  // "Protocol" 与 "Cloud" 是两个产品层的名称，而非普通名词：整页保持不译，
+  // 与 "Free / Team / Enterprise" 一致。
   "productModel.eyebrow": "产品模型",
-  "productModel.title": "开放协议，专注 Cloud。",
+  "productModel.title": "开放 Protocol，专注 Cloud。",
   "productModel.lede": "HashVest 将链上保障与组织工作区清晰分开。",
   "productModel.summaryLink": "查看 Free / Team / Enterprise",
   "productModel.status.demo": "演示中可用",
@@ -281,6 +285,9 @@ export const zhCN: TranslationDictionary = {
   "wizard.review.vaultKind.sponsoredBody":
     "工厂将部署 SponsoredGrantVault。操作方仍需签署确切的领取或批准；组织可以支付 HSK gas。钱包付费路径仍然可用。",
   "wizard.review.vaultKind.directTitle": "直接 GrantVault",
+  "wizard.review.sponsoredUnsupported.title": "此 factory 不支持赞助创建",
+  "wizard.review.sponsoredUnsupported.body":
+    "部署在 {network} 上的 HashVestFactory 没有赞助资助的入口，因此无法从组织创建这笔资助。由你自己的钱包支付的直接资助仍然可用，并在链上保存同样的条款。",
   "wizard.review.vaultKind.directBody":
     "工厂将部署 GrantVault。领取和批准由操作方钱包支付。",
   "detail.claimReason.revokedAllClaimed":
@@ -372,6 +379,14 @@ export const zhCN: TranslationDictionary = {
   "overview.sponsorship.allowedVaultsHint":
     "每行输入一个已关联的 GrantVault 地址。最多：{max}。",
   "overview.sponsorship.maxActions": "组织操作上限",
+  // HAS-49：被拒绝的限额，若不给出下限便无从修正。
+  "overview.sponsorship.maxActionsFloor": "至少 {min}，即已预留的操作数。",
+  "overview.sponsorship.gasBudgetFloor":
+    "至少 {min} HSK，即已预留并已花费的部分。",
+  "overview.sponsorship.error.actionsBelowReserved":
+    "操作限额不能低于 {min}，即已预留的操作数。请至少提高到该值后重新保存。",
+  "overview.sponsorship.error.gasBudgetBelowCommitted":
+    "Gas 预算不能低于 {min} HSK，即已预留并已花费的部分。请至少提高到该值后重新保存。",
   "overview.sponsorship.maxActionsHint":
     "已预留操作会计入累计上限。最大值：{max}。",
   "overview.sponsorship.dailyLimit": "每个钱包每日操作数",
@@ -440,6 +455,7 @@ export const zhCN: TranslationDictionary = {
   "members.owner": "所有者",
   "members.edit": "编辑",
   "members.remove": "移除",
+  "members.removeTitle": "移除成员",
   "members.removeConfirm": "确定要将该成员移出此组织吗？",
   "neworg.eyebrow": "新建组织",
   "neworg.title": "创建一个工作区。",
@@ -715,6 +731,7 @@ export const zhCN: TranslationDictionary = {
   "templates.new": "新建模板",
   "templates.edit": "编辑",
   "templates.delete": "删除",
+  "templates.deleteTitle": "删除模板",
   "templates.deleteConfirm":
     "删除模板「{name}」？已根据它创建的资助条款不变，并仍会显示该名称。",
   "templates.save": "保存模板",
@@ -1087,6 +1104,8 @@ export const zhCN: TranslationDictionary = {
   "wizard.field.eligibility.hint":
     "留空则不做资格校验。该合约必须实现 isEligible(address)。此演示适配器不是 KYC 或合规方案。",
   "wizard.field.eligibility.placeholder": "无",
+  "wizard.review.fromPresetEdited":
+    "以「{preset}」预设为起点，之后已被修改。那只是工作区元数据 — 下面的条款才是上链的内容。",
   "wizard.review.fromPreset":
     "以「{preset}」预设为起点。那只是工作区元数据 — 下面的条款才是上链的内容。",
   "wizard.review.issuer": "发起方",
@@ -1142,6 +1161,9 @@ export const zhCN: TranslationDictionary = {
   "wizard.error.hybridInitialUnlockFull":
     "在混合资助中，初始解锁不能等于全部配额，因为里程碑必须覆盖剩余部分。",
   "wizard.error.reviewFirst": "请先复核资助并检查测试网部署，然后再继续。",
+  // HAS-48：当前部署的 factory 早于 createSponsoredGrant。
+  "wizard.error.sponsoredUnsupported":
+    "部署在 {network} 上的 factory 无法创建赞助资助。请改为创建直接资助，或重新部署 factory。",
   "wizard.error.eligibilityNoCode":
     "该资格校验合约在 {network} 上没有合约代码。",
   "wizard.error.reviewAgain": "请重新复核资助，然后再同步工作区元数据。",
@@ -1162,6 +1184,9 @@ export const zhCN: TranslationDictionary = {
   "wizard.preset.title": "从预设开始",
   "wizard.preset.lede":
     "可选。预设会填入一套策略、时间计划和里程碑拆分，你可以随时编辑或清除。它不会改变金库中存储的内容。",
+  // HAS-47：上方摘要是起点，而非当前表单。
+  "wizard.preset.editedNotice":
+    "你已修改这些值。此处描述的是这笔资助的起点，而不是它现在的样子 — 审阅步骤显示的才是将要创建的内容。",
   "wizard.preset.custom.name": "自定义 / 空白",
   "wizard.preset.custom.tagline": "所有数值都由你自己配置，和以前完全一样。",
   "wizard.preset.custom.meta": "清除预设填入的字段",
