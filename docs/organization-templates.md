@@ -1,6 +1,6 @@
 # Organization-owned grant templates
 
-Design for [HAS-12](https://linear.app/hashvest/issue/HAS-12): the smallest Supabase-backed model that lets an organization save its own repeatable grant configurations. It is the data and rules layer that [HAS-13](https://linear.app/hashvest/issue/HAS-13) builds its owner CRUD flows and wizard application on.
+Design for [HAS-12](https://linear.app/hashvest/issue/HAS-12): the smallest Supabase-backed model that lets an organization save its own repeatable grant configurations. [HAS-13](https://linear.app/hashvest/issue/HAS-13) built the owner CRUD flows and the wizard application on top of it; both have shipped, and the sections marked HAS-13 below describe what runs.
 
 ## What a template is
 
@@ -10,7 +10,7 @@ The rule from [`architecture.md`](architecture.md) holds unchanged: **HSK is aut
 
 ## Scope
 
-| In HAS-12 (this design)                                      | In HAS-13                                                       |
+| In HAS-12 (the data and rules layer)                         | In HAS-13 (routes, UI, wizard)                                  |
 | ------------------------------------------------------------ | --------------------------------------------------------------- |
 | `organization_templates` table, constraints, and RLS posture | Route Handlers for create, edit, list, and delete               |
 | Domain and database types                                    | Browser API client and TanStack Query hooks                     |
@@ -140,6 +140,56 @@ Owner-only mutation is enforced **inside the data-access functions**, not only a
 - A title or allocation the user already typed wins over the template's suggestion.
 - Applying the same template to its own result returns an identical draft. That idempotency is what lets HAS-13 re-apply on re-render without clobbering anything.
 
+## HTTP surface (HAS-13)
+
+Route Handlers stay thin, as for members and grants: they validate identifiers, parse the body, and call the owner- or member-guarded server functions above. Nothing new decides authorization.
+
+| Method   | Path                                                 | Allowed    | Body                            | Success             |
+| -------- | ---------------------------------------------------- | ---------- | ------------------------------- | ------------------- |
+| `GET`    | `/api/organizations/{organizationId}/templates`      | any member | —                               | `200 { templates }` |
+| `POST`   | `/api/organizations/{organizationId}/templates`      | owner      | template content                | `201 { template }`  |
+| `GET`    | `/api/organizations/{organizationId}/templates/{id}` | any member | —                               | `200 { template }`  |
+| `PATCH`  | `/api/organizations/{organizationId}/templates/{id}` | owner      | `{ template, expectedVersion }` | `200 { template }`  |
+| `DELETE` | `/api/organizations/{organizationId}/templates/{id}` | owner      | —                               | `200 { ok: true }`  |
+
+- **No session** returns `401`, **not a member** `403`, and a **member attempting a mutation** `403` — all before any write.
+- `GET …/templates?include=archived` also returns archived templates. It exists only so grant provenance can still name a template that was deleted after the grant was created.
+- Mutations require a same-origin request, like every other workspace write.
+- Reads are `Cache-Control: no-store`.
+
+## Applying a template in the wizard (HAS-13)
+
+The Template step is the only entry point, and applying a template goes through the same `selectPreset` field-ownership rules as a global preset or an AI draft. Nothing in this path signs, submits, or funds: the user still walks every step, and `prepare()` still validates what is submitted.
+
+| Path                                                      | Which templates                                                                                     | Reviewer default                                                                   | Provenance recorded                                          |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Organization-aware (`/app/organizations/{id}/grants/new`) | that organization's active templates                                                                | preselects the member in the reviewer picker                                       | yes: `org-template:<id>@v<version>` on the grant association |
+| Direct (`/grants/new`)                                    | active templates of an organization the signed-in workspace wallet belongs to, chosen from a picker | fills the reviewer address with that member's **current** wallet, as editable text | no: direct creation never writes workspace metadata          |
+
+Rules that hold on both paths:
+
+- **Beneficiary is never set by a template.** It was never stored.
+- **A reviewer default never overwrites a choice the user already made** — a picked member or a typed address stays. It is ignored for time vesting, and ignored when the member is no longer in the organization.
+- **Clearing or switching a template leaves the reviewer alone.** Field ownership covers the fields a template writes; the reviewer is only ever pre-filled, so it is the user's from the moment it appears.
+- **The external-wallet fallback is unchanged.** Choosing an external reviewer or beneficiary works exactly as before a template was applied.
+- Only a workspace session whose wallet matches the connected wallet can see organization templates, the same guard every workspace read uses.
+
+### Where it lives
+
+| Concern                        | Module                                                                                                                                                    |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Route Handlers                 | `apps/web/app/api/organizations/[organizationId]/templates/{route.ts,[templateId]/route.ts}`                                                              |
+| Browser client and query hooks | `lib/cloud/organizations/client.ts`, `hooks/use-organizations.ts` (`useOrganizationTemplates`, `useTemplateLabel`, create/update/archive mutations)       |
+| Template as a preset           | `lib/shared/grant-presets/organization-template.ts` (`organizationTemplatePreset`)                                                                        |
+| Reviewer default               | `lib/shared/grant-presets/wizard-state.ts` (`applyReviewerDefault`)                                                                                       |
+| Provenance name                | `lib/shared/grant-presets/provenance.ts` (`resolveTemplateLabel`)                                                                                         |
+| Editor form rules              | `lib/shared/grant-presets/template-form.ts`                                                                                                               |
+| UI                             | `components/organization-template-picker.tsx` (wizard), `components/templates-manager.tsx` and `components/template-editor.tsx` (workspace Templates tab) |
+
+### Provenance on grants
+
+Grant cards and the grant detail page resolve an `org-template:` key against the grant's organization, **including archived templates**, and show the template's name as metadata. A key that resolves to nothing — a template the viewer cannot read — shows no template rather than an error. The terms on screen always come from the vault, never from the template.
+
 ## Failure behavior
 
 | Situation                                            | Result                                                                          |
@@ -154,7 +204,9 @@ Owner-only mutation is enforced **inside the data-access functions**, not only a
 
 ## Migration and rollback
 
-The migration is additive: a new table, a new unique constraint that existing data already satisfies, closed RLS. No existing column, row, or constraint changes, and no application code depends on the table until HAS-13 ships its routes.
+The migration is additive: a new table, a new unique constraint that existing data already satisfies, closed RLS. No existing column, row, or constraint changes.
+
+**The migration must be applied before HAS-13 is deployed.** Until it is, every template route answers `503` like any other unavailable workspace read, the wizard's template section reports that templates are unavailable, and the built-in presets and direct onchain creation are unaffected.
 
 To roll back before HAS-13 is deployed:
 
@@ -176,3 +228,12 @@ After HAS-13, dropping the table would leave grants with `org-template:` keys th
 | Organization isolation | Data access never returns or mutates another organization's template.                                                                                                                                                                                                                                                                                                                                  |
 | Owner authorization    | Owner mutations succeed; member mutations are refused before any write.                                                                                                                                                                                                                                                                                                                                |
 | Application            | Idempotent; user-typed values survive; invalid stored templates refused; no amount or address in the output that the user did not enter.                                                                                                                                                                                                                                                               |
+
+### HAS-13
+
+| Area                 | Covered by                                                                                                                                                                                                                                                                                                                                                                                     |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Route authorization  | Vitest runs the real Route Handlers with a mocked session and database: unauthenticated, non-member, member, and owner against every method, in CI.                                                                                                                                                                                                                                            |
+| Validation over HTTP | The same route tests: malformed bodies, invalid combinations, stale versions, cross-organization ids.                                                                                                                                                                                                                                                                                          |
+| Wizard application   | Pure tests of template-to-preset mapping through `selectPreset`, reviewer-default resolution on both paths, and provenance lookup, in CI.                                                                                                                                                                                                                                                      |
+| Form states          | Pure tests of the template form model (`template-form.test.ts`) in CI. `tests/organization-templates.spec.ts` renders the form's empty, invalid, milestone-total and saving states at 390px against the guarded `/visual/templates` fixture, asserting that an invalid form sends no request and that no wallet is asked to sign. Like the AI builder spec, it is not part of `pnpm ci:check`. |

@@ -432,6 +432,75 @@ export const es: TranslationDictionary = {
   "workspace.tab.overview": "Resumen",
   "workspace.tab.grants": "Subvenciones",
   "workspace.tab.members": "Miembros",
+  "workspace.tab.templates": "Plantillas",
+
+  // Gestión de plantillas de organización (HAS-13).
+  "templates.title": "Plantillas",
+  "templates.lede.owner":
+    "Puntos de partida reutilizables para el asistente de subvenciones. Una plantilla solo rellena campos editables: nunca firma, financia ni otorga permisos.",
+  "templates.lede.member":
+    "Puntos de partida reutilizables para el asistente de subvenciones, guardados por el propietario de la organización. Puedes aplicar una al crear una subvención; solo el propietario puede modificarlas.",
+  "templates.loading.title": "Cargando plantillas",
+  "templates.loading.body": "Leyendo las plantillas de esta organización.",
+  "templates.error.title": "Plantillas no disponibles",
+  "templates.error.body":
+    "No se pudieron cargar las plantillas de esta organización. Crear una subvención sin plantilla sigue funcionando.",
+  "templates.retry": "Reintentar",
+  "templates.empty": "Aún no hay plantillas.",
+  "templates.new": "Nueva plantilla",
+  "templates.edit": "Editar",
+  "templates.delete": "Eliminar",
+  "templates.deleteConfirm":
+    "¿Eliminar la plantilla «{name}»? Las subvenciones ya creadas a partir de ella mantienen sus condiciones y siguen mostrando su nombre.",
+  "templates.save": "Guardar plantilla",
+  "templates.saving": "Guardando…",
+  "templates.cancel": "Cancelar",
+  "templates.form.lede":
+    "Todo lo de aquí es una sugerencia que el asistente rellena. Quien cree la subvención edita cada valor y elige a la persona beneficiaria.",
+  "templates.field.name": "Nombre",
+  "templates.field.name.placeholder": "Subvención para builders",
+  "templates.field.description": "Descripción",
+  "templates.field.description.placeholder":
+    "Cuándo debería tu equipo usar esta plantilla.",
+  "templates.field.strategy": "Estrategia de desbloqueo",
+  "templates.field.milestones": "Hitos",
+  "templates.field.milestones.hint":
+    "Partes de la asignación, en porcentajes enteros que sumen 100. Los importes se calculan en el asistente a partir de la asignación indicada allí.",
+  "templates.field.milestone.title": "Hito {index}",
+  "templates.field.milestone.percent": "Parte (%)",
+  "templates.field.reviewer": "Persona revisora por defecto",
+  "templates.field.reviewer.none": "Sin valor por defecto",
+  "templates.field.reviewer.hint":
+    "Preselecciona a este miembro en el asistente. Es una sugerencia, no un permiso: la persona revisora que queda en la cadena es aquella con la que se crea la subvención.",
+  "templates.field.allocation": "Asignación sugerida",
+  "templates.field.allocation.hint":
+    "Opcional. Un importe inicial que el asistente rellena; nunca se lee ni se concilia con una bóveda.",
+  "templates.milestone.add": "Añadir hito",
+  "templates.milestone.remove": "Quitar",
+  "templates.milestone.total": "Total: {total}%",
+  "templates.meta.milestones": "{count} hitos",
+  "templates.meta.reviewer": "revisión: {member}",
+  "templates.meta.formerMember": "miembro anterior",
+  "templates.meta.version": "v{version}",
+  "templates.error.name":
+    "Ponle a la plantilla un nombre de como máximo {max} caracteres.",
+  "templates.error.description":
+    "La descripción debe tener como máximo {max} caracteres.",
+  "templates.error.duration": "La duración debe ser un número entero positivo.",
+  "templates.error.cliff":
+    "El periodo de espera debe ser un número entero, cero o más.",
+  "templates.error.cliffTooLong":
+    "El periodo de espera no puede superar la duración total.",
+  "templates.error.milestoneCount":
+    "Esta estrategia necesita entre 1 y {max} hitos.",
+  "templates.error.milestoneTitle":
+    "El hito {index} necesita un título de como máximo {max} caracteres.",
+  "templates.error.percent":
+    "El hito {index} necesita una parte entera y positiva.",
+  "templates.error.percentSum":
+    "Las partes de los hitos deben sumar 100 %. Ahora suman {total} %.",
+  "templates.error.allocation":
+    "La asignación sugerida debe ser un importe positivo.",
   "workspace.loading.title": "Cargando el espacio de trabajo",
   "workspace.loading.body": "Leyendo el contexto de la organización…",
   "workspace.error.title": "No se pudo cargar el espacio de trabajo",
@@ -867,6 +936,22 @@ export const es: TranslationDictionary = {
   "wizard.preset.custom.meta": "Borra los campos que rellenó un preset",
   "wizard.preset.needsReviewer": "necesita revisor",
   "wizard.preset.allocationShare": "{percent}% de la asignación",
+
+  // Plantillas de organización en el paso Plantilla del asistente (HAS-13).
+  "wizard.orgTemplates.title": "Plantillas de tu organización",
+  "wizard.orgTemplates.lede":
+    "Opcional. Una plantilla guardada por el propietario de una organización rellena los mismos campos editables que un preajuste incorporado. Tú sigues eligiendo la persona beneficiaria y revisas cada valor antes de firmar.",
+  "wizard.orgTemplates.organization": "Organización",
+  "wizard.orgTemplates.chooseOrganization": "Elige una organización",
+  "wizard.orgTemplates.loading": "Cargando plantillas…",
+  "wizard.orgTemplates.error":
+    "Las plantillas no están disponibles ahora mismo. Los preajustes de abajo siguen funcionando.",
+  "wizard.orgTemplates.empty": "Esta organización aún no tiene plantillas.",
+  "wizard.orgTemplates.noDescription": "Sin descripción.",
+  "wizard.orgTemplates.suggestsReviewer": "sugiere una persona revisora",
+  "wizard.orgTemplates.manage": "Gestionar plantillas",
+  "wizard.orgTemplates.invalid":
+    "Esta plantilla ya no se puede aplicar. Pide al propietario de la organización que la actualice.",
 
   // Presets de subvención (HAS-8). Porcentajes, asignaciones, unidades de
   // calendario e índices de estrategia son datos, no copy: nunca se traducen.

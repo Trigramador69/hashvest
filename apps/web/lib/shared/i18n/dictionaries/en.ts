@@ -415,6 +415,75 @@ export const en = {
   "workspace.tab.overview": "Overview",
   "workspace.tab.grants": "Grants",
   "workspace.tab.members": "Members",
+  "workspace.tab.templates": "Templates",
+
+  // Organization template management (HAS-13). Owner-only writes; every
+  // member reads the same list.
+  "templates.title": "Templates",
+  "templates.lede.owner":
+    "Reusable starting points for the grant wizard. A template only fills editable fields — it never signs, funds, or grants permission.",
+  "templates.lede.member":
+    "Reusable starting points for the grant wizard, saved by the organization owner. You can apply one when creating a grant; only the owner can change them.",
+  "templates.loading.title": "Loading templates",
+  "templates.loading.body": "Reading this organization's templates.",
+  "templates.error.title": "Templates unavailable",
+  "templates.error.body":
+    "This organization's templates could not be loaded. Creating a grant without one still works.",
+  "templates.retry": "Try again",
+  "templates.empty": "No templates yet.",
+  "templates.new": "New template",
+  "templates.edit": "Edit",
+  "templates.delete": "Delete",
+  "templates.deleteConfirm":
+    "Delete the template “{name}”? Grants already created from it keep their terms and still show its name.",
+  "templates.save": "Save template",
+  "templates.saving": "Saving…",
+  "templates.cancel": "Cancel",
+  "templates.form.lede":
+    "Everything here is a suggestion the wizard fills in. The person creating the grant edits every value and chooses the beneficiary.",
+  "templates.field.name": "Name",
+  "templates.field.name.placeholder": "Builder grant",
+  "templates.field.description": "Description",
+  "templates.field.description.placeholder":
+    "When your team should reach for this template.",
+  "templates.field.strategy": "Unlock strategy",
+  "templates.field.milestones": "Milestones",
+  "templates.field.milestones.hint":
+    "Shares of the allocation, as whole percentages that add up to 100. Amounts are calculated in the wizard from the allocation entered there.",
+  "templates.field.milestone.title": "Milestone {index}",
+  "templates.field.milestone.percent": "Share (%)",
+  "templates.field.reviewer": "Default reviewer",
+  "templates.field.reviewer.none": "No default",
+  "templates.field.reviewer.hint":
+    "Preselects this member in the wizard. It is a suggestion, not permission: the reviewer recorded onchain is whoever the grant is created with.",
+  "templates.field.allocation": "Suggested allocation",
+  "templates.field.allocation.hint":
+    "Optional. A starting amount the wizard fills in; it is never read from or reconciled with a vault.",
+  "templates.milestone.add": "Add milestone",
+  "templates.milestone.remove": "Remove",
+  "templates.milestone.total": "Total: {total}%",
+  "templates.meta.milestones": "{count} milestones",
+  "templates.meta.reviewer": "reviewer: {member}",
+  "templates.meta.formerMember": "former member",
+  "templates.meta.version": "v{version}",
+  "templates.error.name":
+    "Give the template a name of at most {max} characters.",
+  "templates.error.description":
+    "The description must be at most {max} characters.",
+  "templates.error.duration": "Duration must be a positive whole number.",
+  "templates.error.cliff": "Cliff must be a whole number, zero or more.",
+  "templates.error.cliffTooLong":
+    "The cliff cannot be longer than the total duration.",
+  "templates.error.milestoneCount":
+    "This strategy needs between 1 and {max} milestones.",
+  "templates.error.milestoneTitle":
+    "Milestone {index} needs a title of at most {max} characters.",
+  "templates.error.percent":
+    "Milestone {index} needs a positive whole-number share.",
+  "templates.error.percentSum":
+    "Milestone shares must add up to 100%. They currently add up to {total}%.",
+  "templates.error.allocation":
+    "The suggested allocation must be a positive amount.",
   "workspace.loading.title": "Loading workspace",
   "workspace.loading.body": "Reading organization context…",
   "workspace.error.title": "Workspace could not be loaded",
@@ -843,6 +912,23 @@ export const en = {
   "wizard.preset.custom.meta": "Clears the fields a preset filled in",
   "wizard.preset.needsReviewer": "needs a reviewer",
   "wizard.preset.allocationShare": "{percent}% of the allocation",
+
+  // Organization templates in the wizard's Template step (HAS-13). A template
+  // only fills editable fields; it never signs, funds, or sets a beneficiary.
+  "wizard.orgTemplates.title": "Your organization's templates",
+  "wizard.orgTemplates.lede":
+    "Optional. A template saved by an organization owner fills the same editable fields as a built-in preset. You still choose the beneficiary and review every value before signing.",
+  "wizard.orgTemplates.organization": "Organization",
+  "wizard.orgTemplates.chooseOrganization": "Choose an organization",
+  "wizard.orgTemplates.loading": "Loading templates…",
+  "wizard.orgTemplates.error":
+    "Templates are unavailable right now. The built-in presets below still work.",
+  "wizard.orgTemplates.empty": "This organization has no templates yet.",
+  "wizard.orgTemplates.noDescription": "No description.",
+  "wizard.orgTemplates.suggestsReviewer": "suggests a reviewer",
+  "wizard.orgTemplates.manage": "Manage templates",
+  "wizard.orgTemplates.invalid":
+    "This template can no longer be applied. Ask the organization owner to update it.",
 
   // Grant presets (HAS-8). Keys mirror the catalog in
   // lib/shared/grant-presets/presets.ts and are resolved through

@@ -6,6 +6,7 @@ import { useAccount } from "wagmi";
 import { hskTestnet } from "@hashvest/web3";
 
 import { useGrant } from "@/hooks/use-grant";
+import { useTemplateLabel } from "@/hooks/use-organizations";
 import { findMemberByWallet } from "@/lib/cloud/members";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
 import { strategyKey } from "@/lib/shared/i18n/keys";
@@ -16,7 +17,6 @@ import type {
   OrganizationGrant,
   OrganizationMember,
 } from "@/lib/cloud/organizations/types";
-import { useGrantPresets } from "@/lib/shared/grant-presets/use-grant-presets";
 
 import {
   AddressDisplay,
@@ -78,8 +78,11 @@ export function GrantCard({
   members,
 }: GrantCardProps) {
   const t = useTranslations();
-  const { templateLabel } = useGrantPresets();
   const { address: walletAddress } = useAccount();
+  // Workspace metadata: which preset or organization template this grant
+  // started from. An unknown or unreadable key simply shows nothing; the
+  // vault's own terms are below.
+  const template = useTemplateLabel(organization?.id, metadata?.templateKey);
   const grant = useGrant(address);
   if (grant.isPending)
     return (
@@ -136,9 +139,6 @@ export function GrantCard({
     revoked: g.revoked,
   });
   const roles = resolveProtocolRoles(walletAddress, g);
-  // Workspace metadata: which preset this grant started from. An unknown or
-  // retired key simply shows nothing; the vault's own terms are above.
-  const template = templateLabel(metadata?.templateKey);
   const pendingMilestones = g.milestones.filter(
     (item) => !item.approved,
   ).length;

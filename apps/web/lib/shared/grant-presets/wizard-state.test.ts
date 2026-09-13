@@ -2,12 +2,16 @@ import { describe, expect, it } from "vitest";
 import { parseUnits } from "viem";
 
 import {
+  applyReviewerDefault,
   BLANK_PRESET_FIELDS,
   clearPreset,
   resyncMilestoneAmounts,
   selectPreset,
   type AppliedPreset,
+  type ReviewerSelection,
 } from "./wizard-state";
+import { organizationTemplatePreset } from "./organization-template";
+import { formatOrganizationTemplateKey } from "./template-key";
 import {
   GENERATED_PRESET_KEY,
   getGrantPreset,
@@ -375,5 +379,189 @@ describe("a generated draft (HAS-18)", () => {
 
     const cleared = clearPreset(applied.fields, applied);
     expect(cleared).toEqual(BLANK_PRESET_FIELDS);
+  });
+});
+
+describe("an organization template (HAS-13)", () => {
+  const TEMPLATE_ID = "9d1e4b2a-7c3f-4a8e-9b21-5f6c0d3ac2a4";
+  const template = organizationTemplatePreset({
+    id: TEMPLATE_ID,
+    version: 2,
+    name: "Partner integration",
+    description: "Integration work reviewed by the partnerships lead.",
+    strategy: 2,
+    schedule: { unitSeconds: 86400, cliffUnits: 7, durationUnits: 90 },
+    milestones: [
+      { title: "Integration", percentOfAllocation: 25 },
+      { title: "Adoption", percentOfAllocation: 75 },
+    ],
+    allocationSuggestion: "800",
+    defaultReviewerMemberId: "3b7c2d1e-8f4a-4c5b-9d6e-1a2b3c4d5e6f",
+  });
+
+  function applyTemplate(from = blank()) {
+    return selectPreset(template.key, from.fields, from.applied, {
+      preset: template,
+    });
+  }
+
+  it("refuses a template key with nothing to apply", () => {
+    expect(() =>
+      selectPreset(
+        formatOrganizationTemplateKey(TEMPLATE_ID, 2),
+        BLANK_PRESET_FIELDS,
+        undefined,
+      ),
+    ).toThrow("no catalog entry");
+  });
+
+  it("replaces what a previous preset suggested and keeps what the user typed", () => {
+    const builderApplied = selectPreset(
+      "builder-grant",
+      BLANK_PRESET_FIELDS,
+      undefined,
+    );
+    const edited = { ...builderApplied.fields, title: "Q4 partner work" };
+    const applied = applyTemplate({ fields: edited, applied: builderApplied });
+
+    expect(applied.key).toBe(template.key);
+    expect(applied.fields).toMatchObject({
+      title: "Q4 partner work",
+      allocation: "800",
+      strategy: 2,
+      unit: "86400",
+      cliff: "7",
+      duration: "90",
+    });
+    expect(applied.fields.milestones).toEqual([
+      { title: "Integration", amount: "200" },
+      { title: "Adoption", amount: "600" },
+    ]);
+    expect(applied.userOwned).toEqual(["title"]);
+  });
+
+  it("can be switched to a catalog preset or cleared without losing user edits", () => {
+    const applied = applyTemplate();
+    const edited = { ...applied.fields, cliff: "14" };
+
+    const switched = selectPreset("employee-vesting", edited, applied);
+    expect(switched.fields.cliff).toBe("14");
+    expect(switched.fields.title).toBe(employee.titleSuggestion);
+
+    expect(clearPreset(edited, applied)).toEqual({
+      ...BLANK_PRESET_FIELDS,
+      cliff: "14",
+    });
+  });
+
+  it("re-splits its own percentages when the allocation changes", () => {
+    const applied = applyTemplate();
+    const resynced = resyncMilestoneAmounts(
+      "1000",
+      applied.fields.milestones,
+      applied,
+    );
+    expect(resynced?.fields.milestones.map((item) => item.amount)).toEqual([
+      "250",
+      "750",
+    ]);
+  });
+});
+
+describe("applyReviewerDefault (HAS-13)", () => {
+  const LEAD = {
+    id: "lead",
+    walletAddress: "0x00000000000000000000000000000000000000a1",
+  };
+  const OTHER = {
+    id: "other",
+    walletAddress: "0x00000000000000000000000000000000000000b2",
+  };
+  const empty = (external: boolean): ReviewerSelection => ({
+    memberId: "",
+    address: "",
+    external,
+  });
+
+  function resolve(
+    path: "organization" | "direct",
+    current: ReviewerSelection,
+    overrides: Partial<Parameters<typeof applyReviewerDefault>[0]> = {},
+  ) {
+    return applyReviewerDefault({
+      path,
+      strategy: 1,
+      defaultReviewerMemberId: LEAD.id,
+      members: [OTHER, LEAD],
+      current,
+      ...overrides,
+    });
+  }
+
+  it("preselects the member in the organization-aware picker", () => {
+    expect(resolve("organization", empty(false))).toEqual({
+      memberId: LEAD.id,
+      address: LEAD.walletAddress,
+      external: false,
+    });
+  });
+
+  it("fills the member's current wallet as editable text when direct", () => {
+    expect(resolve("direct", empty(true))).toEqual({
+      memberId: "",
+      address: LEAD.walletAddress,
+      external: true,
+    });
+    expect(resolve("direct", empty(true), { strategy: 2 }).address).toBe(
+      LEAD.walletAddress,
+    );
+  });
+
+  it("never overwrites a member the user picked", () => {
+    const picked = {
+      memberId: OTHER.id,
+      address: OTHER.walletAddress,
+      external: false,
+    };
+    expect(resolve("organization", picked)).toBe(picked);
+  });
+
+  it("never overwrites an address the user typed, on either path", () => {
+    const typed = {
+      memberId: "",
+      address: "0x00000000000000000000000000000000000000c3",
+      external: true,
+    };
+    expect(resolve("organization", typed)).toBe(typed);
+    expect(resolve("direct", typed)).toBe(typed);
+  });
+
+  it("leaves a chosen external-wallet fallback alone, even while empty", () => {
+    const external = empty(true);
+    expect(resolve("organization", external)).toBe(external);
+  });
+
+  it("fills nothing for time vesting", () => {
+    expect(resolve("organization", empty(false), { strategy: 0 })).toEqual(
+      empty(false),
+    );
+    expect(resolve("direct", empty(true), { strategy: 0 })).toEqual(
+      empty(true),
+    );
+  });
+
+  it("fills nothing when the template has no default", () => {
+    expect(
+      resolve("organization", empty(false), { defaultReviewerMemberId: null }),
+    ).toEqual(empty(false));
+  });
+
+  it("fills nothing for a member who has left, or before members load", () => {
+    expect(resolve("organization", empty(false), { members: [OTHER] })).toEqual(
+      empty(false),
+    );
+    expect(resolve("direct", empty(true), { members: undefined })).toEqual(
+      empty(true),
+    );
   });
 });
