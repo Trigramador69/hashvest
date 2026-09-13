@@ -6,11 +6,11 @@ Submission for the **Ethereum Bolivia Buildathon 2026** (Cochabamba) and the **E
 
 ## Selected tracks
 
-| Portal                 | Track                                                                                        | Why HashVest fits                                                                                   |
-| ---------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Ethereum Bolivia · EAG | **Real World Applications powered by HSK Chain** — DeFi, Payments, Blockchain Infrastructure | Grant and vesting payouts are a real treasury workflow, built on and integrated with HSK Chain.     |
-| EAG Global             | **6. Real-World Ethereum Applications**                                                      | Public goods funding, contribution records, and applications for emerging regions.                  |
-| Ethereum Bolivia · EAG | **Road to ShanhaiWoo**                                                                       | A language selector for English, 简体中文, and Español, aimed at Shenzhen and Latin American users. |
+| Portal                 | Track                                                                                        | Why HashVest fits                                                                                       |
+| ---------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Ethereum Bolivia · EAG | **Real World Applications powered by HSK Chain** — DeFi, Payments, Blockchain Infrastructure | Grant and vesting payouts are a real treasury workflow, built on and integrated with HSK Chain.         |
+| EAG Global             | **6. Real-World Ethereum Applications**                                                      | Public goods funding, contribution records, and applications for emerging regions.                      |
+| Ethereum Bolivia · EAG | **Road to ShanhaiWoo**                                                                       | The product is fully localized in English, 简体中文, and Español for Shenzhen and Latin American users. |
 
 All IRL projects select **Bolivia Hackathon** on the EAG portal, and HSK Chain track entries select **HSK Chain** as well.
 
@@ -49,9 +49,10 @@ Verified against the current `main` branch:
 - **Beneficiary-only claims** and a designated reviewer for milestones.
 - **Optional eligibility adapter** through `IEligibilityProvider`, with a clearly labeled demo allowlist (not KYC).
 - **Organizations and members.** Pick beneficiaries and reviewers by name instead of pasting addresses; role labels are presentation only and grant no permission.
-- **Grant presets** — Builder Grant, Employee Vesting, Advisor Vesting, and Ecosystem Grant — that prefill the wizard and stay fully editable.
+- **Grant presets** — Builder Grant, Employee Vesting, Advisor Vesting, and Ecosystem Grant — chosen in the first step of a five-step creation wizard (Template, Grant, Strategy, Conditions, Review). Every prefilled value stays editable before signing.
 - **Lifecycle and funding health** (Active, Completed, Revoked) computed from live HSK reads, with no invented USD values.
-- **Language selector** for English, 简体中文, and Español, with typed English fallback. Localization of the full grant workflow is in review (HAS-10).
+- **Wallet dashboard analytics.** Grants by role, strategy, and lifecycle, plus a six-month activity timeline built from factory and vault events. It is a read-only projection of HSK state: a failed event read shows a partial timeline, never fabricated data.
+- **Full localization** in English, 简体中文, and Español across the landing page, workspace, creation wizard, presets, dashboard, and grant flows. English is the typed fallback, and addresses, hashes, and token symbols are never translated.
 - **Explorer proof** for every token approval, grant creation, milestone approval, claim, faucet, and revocation transaction.
 
 ## Core architecture
@@ -156,7 +157,7 @@ Planned in the team's issue tracker, in delivery order. Each step must preserve 
 **Then — intelligence and operations (P2)**
 
 - AI Review Copilot for milestone evidence and reports.
-- Organization analytics and notifications from live grant data.
+- Organization-level reporting and notifications, building on the wallet dashboard analytics shipped for the buildathon.
 - Multi-reviewer milestone quorum (1-of-N and M-of-N).
 - Design of a transparent, optional protocol fee.
 - Extraction of the protocol into a public `hashvest-protocol` repository and `@hashvest/protocol` package.

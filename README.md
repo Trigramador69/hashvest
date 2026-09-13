@@ -32,9 +32,10 @@ This is a hackathon MVP deployed on **HSK Chain Testnet**. It is unaudited, uses
 
 - Wallet sign-in (SIWE) for workspace access, kept separate from wallet connection.
 - Organizations and a member directory, so beneficiaries and reviewers are chosen by name instead of by pasted address.
-- Editable grant presets — Builder Grant, Employee Vesting, Advisor Vesting, and Ecosystem Grant — that prefill the creation wizard.
+- Editable grant presets — Builder Grant, Employee Vesting, Advisor Vesting, and Ecosystem Grant — in a five-step creation wizard (Template, Grant, Strategy, Conditions, Review).
 - Review and claim queues, plus lifecycle and funding health computed from live HSK reads.
-- A language selector for English, 简体中文, and Español with typed English fallback.
+- A wallet dashboard with grants by role, strategy, and lifecycle and a six-month activity timeline from HSK events, as a read-only projection of chain state.
+- Full English, 简体中文, and Español localization with typed English fallback.
 
 ## Architecture
 
