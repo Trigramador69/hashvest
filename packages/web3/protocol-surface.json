@@ -7,11 +7,15 @@
     "eligibilityProviderAbi",
     "grantVaultAbi",
     "hashVestFactoryAbi",
+    "sponsoredGrantVaultAbi",
     "hskChains",
     "hskMainnet",
     "hskTestnet",
     "HskChain",
     "testnetDeployment",
-    "transactionExplorerUrl"
+    "transactionExplorerUrl",
+    "SPONSORED_CLAIM_DOMAIN",
+    "SPONSORED_CLAIM_TYPES",
+    "SponsoredClaimMessage"
   ]
 }
