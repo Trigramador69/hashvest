@@ -5,6 +5,7 @@ import { GRANT_PRESETS, type GrantPreset } from "./presets";
 import {
   formatOrganizationTemplateKey,
   InvalidTemplateKeyError,
+  isOrganizationTemplateKey,
   parseTemplateKey,
   TEMPLATE_KEY_MAX_LENGTH,
 } from "./template-key";
@@ -81,6 +82,22 @@ describe("parseTemplateKey", () => {
       `org-template:${TEMPLATE_ID}@v99999999999`,
     ]) {
       expect(parseTemplateKey(key)?.kind).toBe("unknown");
+    }
+  });
+
+  it("recognizes exactly the keys the wizard can hold as organization keys", () => {
+    expect(
+      isOrganizationTemplateKey(formatOrganizationTemplateKey(TEMPLATE_ID, 2)),
+    ).toBe(true);
+    for (const key of [
+      "builder-grant",
+      "ai-draft",
+      ` org-template:${TEMPLATE_ID}@v2`,
+      `org-template:${TEMPLATE_ID.toUpperCase()}@v2`,
+      `org-template:${TEMPLATE_ID}@v0`,
+      `org-template:${TEMPLATE_ID}`,
+    ]) {
+      expect(isOrganizationTemplateKey(key)).toBe(false);
     }
   });
 

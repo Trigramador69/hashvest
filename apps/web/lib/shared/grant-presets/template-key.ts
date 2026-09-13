@@ -34,6 +34,10 @@ const UUID_PATTERN =
 const ORGANIZATION_KEY_PATTERN =
   /^org-template:([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})@v([1-9][0-9]{0,9})$/;
 
+/** A key `formatOrganizationTemplateKey` produced: `org-template:<uuid>@v<version>`. */
+export type OrganizationTemplateKey =
+  `${typeof ORGANIZATION_TEMPLATE_KEY_PREFIX}${string}@v${number}`;
+
 export type TemplateKeyReference =
   | { kind: "global"; key: string }
   | { kind: "organization"; templateId: string; version: number }
@@ -50,7 +54,7 @@ export class InvalidTemplateKeyError extends Error {
 export function formatOrganizationTemplateKey(
   templateId: string,
   version: number,
-): string {
+): OrganizationTemplateKey {
   const id = templateId.trim().toLowerCase();
   if (!UUID_PATTERN.test(id))
     throw new InvalidTemplateKeyError("Template ID must be a UUID.");
@@ -91,4 +95,20 @@ export function parseTemplateKey(
     return { kind: "global", key: value };
 
   return { kind: "unknown", key: value };
+}
+
+/**
+ * Whether `key` is exactly an organization template key, as the wizard holds
+ * it. Stricter than `parseTemplateKey`, which also accepts surrounding spaces
+ * in stored values.
+ */
+export function isOrganizationTemplateKey(
+  key: string,
+): key is OrganizationTemplateKey {
+  const reference = parseTemplateKey(key);
+  return (
+    reference?.kind === "organization" &&
+    key ===
+      `${ORGANIZATION_TEMPLATE_KEY_PREFIX}${reference.templateId}@v${reference.version}`
+  );
 }
