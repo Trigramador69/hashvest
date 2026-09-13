@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
   Building2,
@@ -107,6 +107,18 @@ function ShellNav({ onNavigate }: { onNavigate: () => void }) {
 
 function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const t = useTranslations();
+
+  // The drawer covers the page on a phone, so a keyboard user needs the
+  // conventional way out of it.
+  useEffect(() => {
+    if (!open) return;
+    const dismiss = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", dismiss);
+    return () => document.removeEventListener("keydown", dismiss);
+  }, [open, onClose]);
+
   return (
     <>
       {open && (
