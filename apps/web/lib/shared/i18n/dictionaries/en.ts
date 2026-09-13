@@ -772,8 +772,8 @@ export const en = {
   "detail.sponsor.confirm": "Sign and submit",
   "detail.sponsor.cancel": "Cancel",
   "detail.sponsor.signing": "Waiting for wallet signature…",
-  "detail.sponsor.submitting": "Submitting sponsored claim…",
-  "detail.sponsor.retry": "Retry sponsored claim",
+  "detail.sponsor.submitting": "Submitting sponsored action…",
+  "detail.sponsor.retry": "Retry sponsored action",
   "detail.sponsor.gasPayer": "Gas payer",
   "detail.sponsor.transaction": "Sponsored transaction",
   "detail.sponsor.status.requested": "Sponsorship request recorded",
@@ -789,7 +789,7 @@ export const en = {
   "detail.sponsor.failedFallback":
     "The relayer could not complete this request. Use the wallet-paid action or retry the same intent while it is valid.",
   "detail.sponsor.manualFallback":
-    "The normal beneficiary-paid claim remains available at all times.",
+    "The normal wallet-paid claim or approval remains available at all times.",
   "detail.sponsor.error":
     "The sponsored action could not be completed. Your wallet was not charged by HashVest; use the wallet-paid action or try again.",
   "detail.sponsor.unavailable":

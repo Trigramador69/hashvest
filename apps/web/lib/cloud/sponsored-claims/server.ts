@@ -1,11 +1,6 @@
 import "server-only";
 
-import {
-  recoverTypedDataAddress,
-  zeroAddress,
-  type Address,
-  type Hash,
-} from "viem";
+import { recoverTypedDataAddress, type Address, type Hash } from "viem";
 
 import {
   SPONSORED_ACTION_DOMAIN,
@@ -32,6 +27,14 @@ import {
   readTransactionReceipt,
   type SponsoredActionSnapshot,
 } from "@/lib/protocol/sponsored-claims-server";
+import {
+  assertLiveAction,
+  canAutoRecoverSponsoredRequest,
+  classifyRelayerFailure,
+  isFreshProcessingLease,
+  policyErrorFromReserve,
+  sameSignedBinding,
+} from "./policy";
 import { getSponsoredRelayer, getSponsoredRelayerAddress } from "./relayer";
 import {
   assertSponsoredActionDeadline,
@@ -279,6 +282,7 @@ async function findRequest(
     .eq("vault_address", vaultAddress.toLowerCase())
     .eq("action_type", actionType)
     .eq("nonce", nonce)
+    .neq("status", "abandoned")
     .maybeSingle();
   if (error) throw databaseUnavailable();
   return data;
@@ -301,24 +305,6 @@ async function findRequestById(
   if (error) throw databaseUnavailable();
   if (!data) throw new ApiError(404, "Sponsored action request not found.");
   return data;
-}
-
-function sameSignedBinding(
-  row: SponsoredActionRequestRow,
-  input: SponsoredActionInput,
-  actorWallet: string,
-): boolean {
-  return (
-    row.action_type === input.actionType &&
-    row.actor_wallet === actorWallet.toLowerCase() &&
-    row.claim_amount ===
-      (input.actionType === "claim" ? input.amount.toString() : null) &&
-    row.milestone_index === input.milestoneIndex &&
-    row.nonce === input.nonce.toString() &&
-    row.deadline === input.deadline.toString() &&
-    row.relayer_address === input.relayerAddress.toLowerCase() &&
-    row.signature.toLowerCase() === input.signature.toLowerCase()
-  );
 }
 
 type GasEnvelope = {
@@ -393,16 +379,7 @@ async function reserveRequest(
     p_estimated_gas_cost_wei: gas.estimatedCost.toString(),
   });
   if (error) {
-    const known: [string, number, string][] = [
-      ["SPONSORSHIP_DISABLED", 409, "Sponsorship is disabled."],
-      ["ACTION_NOT_ALLOWED", 403, "This action is not allowed by policy."],
-      ["VAULT_NOT_ALLOWED", 403, "This vault is not allowed by policy."],
-      ["ACTION_LIMIT_REACHED", 429, "The action limit has been reached."],
-      ["DAILY_RATE_LIMIT_REACHED", 429, "The daily wallet limit has been reached."],
-      ["GAS_BUDGET_REACHED", 429, "The organization gas budget has been reached."],
-      ["ACTION_BINDING_MISMATCH", 409, "A different request already uses this action nonce."],
-    ];
-    const match = known.find(([code]) => error.message.includes(code));
+    const match = policyErrorFromReserve(error.message);
     if (match) throw new ApiError(match[1], match[2]);
     throw databaseUnavailable();
   }
@@ -445,27 +422,6 @@ async function updateRequest(
     .single();
   if (error || !data) throw databaseUnavailable();
   return data;
-}
-
-function relayerFailure(error: unknown) {
-  const message = error instanceof Error ? error.message : "";
-  if (/insufficient funds|balance too low|insufficient balance/i.test(message))
-    return {
-      code: "relayer_insufficient_funds",
-      message:
-        "The organization relayer has insufficient HSK. Use the wallet-paid action or contact the organization owner.",
-    };
-  if (/timeout|timed out|fetch failed|network|429|cloudflare|1015/i.test(message))
-    return {
-      code: "relayer_unavailable",
-      message:
-        "The organization relayer is temporarily unavailable. The same intent can be retried before expiry.",
-    };
-  return {
-    code: "sponsored_action_rejected",
-    message:
-      "The sponsored action could not be submitted. Use the wallet-paid action.",
-  };
 }
 
 async function broadcastRequest(row: SponsoredActionRequestRow) {
@@ -552,16 +508,12 @@ async function refreshSubmittedRequest(
 async function processRequest(
   supabase: ReturnType<typeof createSupabaseAdmin>,
   row: SponsoredActionRequestRow,
+  options: { retryFailed: boolean } = { retryFailed: true },
 ): Promise<SponsoredActionRequest> {
   if (row.status === "submitted")
     return mapRequest(await refreshSubmittedRequest(supabase, row));
-  if (
-    row.status === "confirmed" ||
-    row.status === "processing" ||
-    row.status === "abandoned" ||
-    (row.status === "failed" && row.tx_hash)
-  )
-    return mapRequest(row);
+  if (!canAutoRecoverSponsoredRequest(row, options)) return mapRequest(row);
+  if (isFreshProcessingLease(row)) return mapRequest(row);
 
   if (BigInt(row.deadline) <= BigInt(Math.floor(Date.now() / 1000))) {
     await expireReservations(supabase, row.organization_id);
@@ -600,7 +552,7 @@ async function processRequest(
       }),
     );
   } catch (error) {
-    const failure = relayerFailure(error);
+    const failure = classifyRelayerFailure(error);
     return mapRequest(
       await updateRequest(supabase, leased.id, {
         status: "failed",
@@ -660,34 +612,6 @@ async function recoverActionSigner(
   }
 }
 
-function assertLiveAction(
-  input: SponsoredActionInput,
-  snapshot: Extract<SponsoredActionSnapshot, { supported: true }>,
-  actorWallet: string,
-) {
-  const actor = actorWallet.toLowerCase();
-  if (input.actionType === "claim") {
-    if (snapshot.beneficiary.toLowerCase() !== actor)
-      throw new ApiError(403, "Only the beneficiary can sponsor this claim.");
-    if (input.nonce !== snapshot.claimNonce)
-      throw new ApiError(409, "The sponsored claim nonce is stale.");
-    if (input.amount > snapshot.claimableAmount)
-      throw new ApiError(409, "The signed amount is no longer claimable.");
-    return snapshot.beneficiary;
-  }
-  if (snapshot.reviewer === zeroAddress || snapshot.reviewer.toLowerCase() !== actor)
-    throw new ApiError(403, "Only the reviewer can sponsor this approval.");
-  if (input.nonce !== snapshot.reviewNonce)
-    throw new ApiError(409, "The sponsored review nonce is stale.");
-  if (snapshot.revoked)
-    throw new ApiError(409, "A revoked grant cannot approve milestones.");
-  const milestone = snapshot.milestones[input.milestoneIndex];
-  if (!milestone) throw new ApiError(409, "The milestone no longer exists.");
-  if (milestone.approved)
-    throw new ApiError(409, "The milestone is already approved.");
-  return snapshot.reviewer;
-}
-
 export async function submitSponsoredAction(
   organizationId: string,
   vaultAddress: Address,
@@ -715,7 +639,7 @@ export async function submitSponsoredAction(
         409,
         "A different request already uses this action nonce.",
       );
-    return processRequest(access.supabase, existing);
+    return processRequest(access.supabase, existing, { retryFailed: true });
   }
 
   assertSponsoredActionDeadline(input.deadline);
@@ -748,7 +672,7 @@ export async function submitSponsoredAction(
     input,
     gas,
   );
-  return processRequest(access.supabase, reserved);
+  return processRequest(access.supabase, reserved, { retryFailed: true });
 }
 
 export async function getSponsoredActionStatus(
@@ -765,7 +689,7 @@ export async function getSponsoredActionStatus(
     vaultAddress,
     requestId,
   );
-  return mapRequest(await refreshSubmittedRequest(access.supabase, request));
+  return processRequest(access.supabase, request, { retryFailed: false });
 }
 
 export async function getSponsoredActionStatusByNonce(
@@ -785,5 +709,5 @@ export async function getSponsoredActionStatusByNonce(
     nonce.toString(),
   );
   if (!request) return null;
-  return mapRequest(await refreshSubmittedRequest(access.supabase, request));
+  return processRequest(access.supabase, request, { retryFailed: false });
 }

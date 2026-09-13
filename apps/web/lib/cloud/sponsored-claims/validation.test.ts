@@ -109,5 +109,34 @@ describe("sponsored action validation", () => {
         maxGasBudgetWei: "1",
       }),
     ).toThrow("10000");
+    expect(() =>
+      parseSponsorshipPolicyInput({
+        enabled: true,
+        allowedActions: ["transfer"],
+        allowedVaults: [address],
+        maxActions: 1,
+        maxActionsPerWalletPerDay: 1,
+        maxGasBudgetWei: "1",
+      }),
+    ).toThrow("claim and review");
+    expect(() =>
+      parseSponsorshipPolicyInput({
+        enabled: true,
+        allowedActions: ["claim"],
+        allowedVaults: [address],
+        maxActions: 1,
+        maxActionsPerWalletPerDay: 1,
+        maxGasBudgetWei: "0",
+      }),
+    ).toThrow("non-zero action limit and gas budget");
+    expect(() =>
+      parseSponsoredActionInput({
+        actionType: "transfer",
+        nonce: "0",
+        deadline: "1200",
+        relayerAddress: address,
+        signature,
+      }),
+    ).toThrow("claim or review");
   });
 });

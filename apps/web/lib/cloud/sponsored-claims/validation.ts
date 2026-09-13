@@ -71,7 +71,9 @@ function parseCommon(input: Record<string, unknown>): SponsoredActionCommon {
   };
 }
 
-export function parseSponsoredActionInput(value: unknown): SponsoredActionInput {
+export function parseSponsoredActionInput(
+  value: unknown,
+): SponsoredActionInput {
   if (!value || typeof value !== "object")
     throw new InputValidationError("Sponsored action input must be an object.");
   const input = value as Record<string, unknown>;
@@ -107,7 +109,9 @@ export function assertSponsoredActionDeadline(
   now = BigInt(Math.floor(Date.now() / 1000)),
 ) {
   if (deadline <= now)
-    throw new InputValidationError("The sponsored action signature has expired.");
+    throw new InputValidationError(
+      "The sponsored action signature has expired.",
+    );
   if (deadline > now + BigInt(SPONSORED_CLAIM_MAX_WINDOW_SECONDS))
     throw new InputValidationError(
       "The sponsored action deadline is too far in the future.",
@@ -141,7 +145,9 @@ export function parseSponsorshipPolicyInput(
   if (typeof input.enabled !== "boolean")
     throw new InputValidationError("Sponsorship enabled must be boolean.");
   if (!Array.isArray(input.allowedActions) || input.allowedActions.length === 0)
-    throw new InputValidationError("At least one sponsored action is required.");
+    throw new InputValidationError(
+      "At least one sponsored action is required.",
+    );
   const allowedActions = Array.from(new Set(input.allowedActions));
   if (
     allowedActions.length > 2 ||

@@ -798,8 +798,8 @@ export const es: TranslationDictionary = {
   "detail.sponsor.confirm": "Firmar y enviar",
   "detail.sponsor.cancel": "Cancelar",
   "detail.sponsor.signing": "Esperando la firma de tu wallet…",
-  "detail.sponsor.submitting": "Enviando el reclamo patrocinado…",
-  "detail.sponsor.retry": "Reintentar reclamo patrocinado",
+  "detail.sponsor.submitting": "Enviando la acción patrocinada…",
+  "detail.sponsor.retry": "Reintentar acción patrocinada",
   "detail.sponsor.gasPayer": "Pagador de gas",
   "detail.sponsor.transaction": "Transacción patrocinada",
   "detail.sponsor.status.requested": "Solicitud de patrocinio registrada",
@@ -816,7 +816,7 @@ export const es: TranslationDictionary = {
   "detail.sponsor.failedFallback":
     "El relayer no pudo completar esta solicitud. Usa la acción pagada por tu wallet o reintenta el mismo intent mientras siga vigente.",
   "detail.sponsor.manualFallback":
-    "El reclamo normal pagado por tu wallet siempre continúa disponible.",
+    "El reclamo o la aprobación pagados por tu wallet siempre continúan disponibles.",
   "detail.sponsor.error":
     "No se pudo completar la acción patrocinada. HashVest no cobró tu wallet; usa la acción normal o reintenta.",
   "detail.sponsor.unavailable":

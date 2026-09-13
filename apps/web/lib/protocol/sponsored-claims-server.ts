@@ -18,7 +18,11 @@ export type SponsoredActionSnapshot =
       claimNonce: bigint;
       reviewNonce: bigint;
       revoked: boolean;
-      milestones: readonly { title: string; amount: bigint; approved: boolean }[];
+      milestones: readonly {
+        title: string;
+        amount: bigint;
+        approved: boolean;
+      }[];
     };
 
 export function createHskPublicClient() {

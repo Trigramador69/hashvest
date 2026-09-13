@@ -309,19 +309,59 @@ type SponsorshipPolicyData = SponsorshipPolicy & {
   relayerConfigured: boolean;
 };
 
+function SponsorshipUsage({ policy }: { policy: SponsorshipPolicyData }) {
+  const t = useTranslations();
+  return (
+    <div className="grid gap-2 rounded-card border border-border bg-surface-1 p-3 text-xs sm:grid-cols-2">
+      <p>
+        <span className="text-muted-foreground">
+          {t("overview.sponsorship.usage")}:
+        </span>{" "}
+        {policy.usedActions} / {policy.maxActions}
+      </p>
+      <p>
+        <span className="text-muted-foreground">
+          {t("overview.sponsorship.remaining")}:
+        </span>{" "}
+        {policy.remainingActions}
+      </p>
+      <p>
+        <span className="text-muted-foreground">
+          {t("overview.sponsorship.gasSpent")}:
+        </span>{" "}
+        {formatEther(BigInt(policy.spentGasWei))} HSK
+      </p>
+      <p>
+        <span className="text-muted-foreground">
+          {t("overview.sponsorship.gasReserved")}:
+        </span>{" "}
+        {formatEther(BigInt(policy.reservedGasWei))} HSK
+      </p>
+      <p>
+        <span className="text-muted-foreground">
+          {t("overview.sponsorship.relayer")}:
+        </span>{" "}
+        {policy.relayerConfigured
+          ? t("overview.sponsorship.relayerReady")
+          : t("overview.sponsorship.relayerMissing")}
+      </p>
+    </div>
+  );
+}
+
 function SponsorshipPolicyForm({
   organizationId,
   policy,
+  canEdit,
 }: {
   organizationId: string;
   policy: SponsorshipPolicyData;
+  canEdit: boolean;
 }) {
   const t = useTranslations();
   const update = useUpdateOrganizationSponsorshipPolicy(organizationId);
   const [enabled, setEnabled] = useState(policy.enabled);
-  const [allowedActions, setAllowedActions] = useState(
-    policy.allowedActions,
-  );
+  const [allowedActions, setAllowedActions] = useState(policy.allowedActions);
   const [allowedVaults, setAllowedVaults] = useState(
     policy.allowedVaults.join("\n"),
   );
@@ -362,6 +402,17 @@ function SponsorshipPolicyForm({
     }
   }
 
+  if (!canEdit) {
+    return (
+      <div className="space-y-4">
+        <SponsorshipUsage policy={policy} />
+        <p className="text-xs leading-5 text-muted-foreground">
+          {t("overview.sponsorship.manualFallback")}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <form className="space-y-4" onSubmit={(event) => void save(event)}>
       <label className="flex cursor-pointer items-start gap-3">
@@ -390,9 +441,7 @@ function SponsorshipPolicyForm({
               <input
                 checked={allowedActions.includes(action)}
                 type="checkbox"
-                onChange={(event) =>
-                  toggleAction(action, event.target.checked)
-                }
+                onChange={(event) => toggleAction(action, event.target.checked)}
               />
               {t(`overview.sponsorship.action.${action}`)}
             </label>
@@ -464,40 +513,7 @@ function SponsorshipPolicyForm({
           />
         </label>
       </div>
-      <div className="grid gap-2 rounded-card border border-border bg-surface-1 p-3 text-xs sm:grid-cols-2">
-        <p>
-          <span className="text-muted-foreground">
-            {t("overview.sponsorship.usage")}:
-          </span>{" "}
-          {policy.usedActions} / {policy.maxActions}
-        </p>
-        <p>
-          <span className="text-muted-foreground">
-            {t("overview.sponsorship.remaining")}:
-          </span>{" "}
-          {policy.remainingActions}
-        </p>
-        <p>
-          <span className="text-muted-foreground">
-            {t("overview.sponsorship.gasSpent")}:
-          </span>{" "}
-          {formatEther(BigInt(policy.spentGasWei))} HSK
-        </p>
-        <p>
-          <span className="text-muted-foreground">
-            {t("overview.sponsorship.gasReserved")}:
-          </span>{" "}
-          {formatEther(BigInt(policy.reservedGasWei))} HSK
-        </p>
-        <p>
-          <span className="text-muted-foreground">
-            {t("overview.sponsorship.relayer")}:
-          </span>{" "}
-          {policy.relayerConfigured
-            ? t("overview.sponsorship.relayerReady")
-            : t("overview.sponsorship.relayerMissing")}
-        </p>
-      </div>
+      <SponsorshipUsage policy={policy} />
       {!policy.relayerConfigured && (
         <p className="text-xs leading-5 text-[#E9832D]">
           {t("overview.sponsorship.manualFallback")}
@@ -527,7 +543,13 @@ function SponsorshipPolicyForm({
   );
 }
 
-function SponsorshipPolicyCard({ organizationId }: { organizationId: string }) {
+function SponsorshipPolicyCard({
+  organizationId,
+  canEdit,
+}: {
+  organizationId: string;
+  canEdit: boolean;
+}) {
   const t = useTranslations();
   const policy = useOrganizationSponsorshipPolicy(organizationId);
 
@@ -554,6 +576,7 @@ function SponsorshipPolicyCard({ organizationId }: { organizationId: string }) {
           <SponsorshipPolicyForm
             organizationId={organizationId}
             policy={policy.data}
+            canEdit={canEdit}
           />
         )}
       </CardContent>
@@ -741,11 +764,12 @@ export function OrganizationOverview({
               <MembersPreview organizationId={organizationId} />
             </CardContent>
           </Card>
+          <SponsorshipPolicyCard
+            organizationId={organizationId}
+            canEdit={organization.data.membership.isOwner}
+          />
           {organization.data.membership.isOwner && (
-            <>
-              <SponsorshipPolicyCard organizationId={organizationId} />
-              <LinkExistingGrant organizationId={organizationId} />
-            </>
+            <LinkExistingGrant organizationId={organizationId} />
           )}
         </aside>
       </div>

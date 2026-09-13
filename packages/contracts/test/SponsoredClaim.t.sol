@@ -31,6 +31,18 @@ contract SponsoredClaimTest is HashVestTestBase {
             SponsoredGrantVault(factory.createSponsoredGrant(sponsoredConfig(UnlockStrategy.MILESTONE), milestones()));
     }
 
+    function createSponsoredRevocableMilestone() internal returns (SponsoredGrantVault vault) {
+        GrantConfig memory grant = sponsoredConfig(UnlockStrategy.MILESTONE);
+        grant.revocable = true;
+        vm.prank(issuer);
+        vault = SponsoredGrantVault(factory.createSponsoredGrant(grant, milestones()));
+    }
+
+    function createSponsoredHybrid() internal returns (SponsoredGrantVault vault) {
+        vm.prank(issuer);
+        vault = SponsoredGrantVault(factory.createSponsoredGrant(sponsoredConfig(UnlockStrategy.HYBRID), milestones()));
+    }
+
     function signClaim(SponsoredGrantVault vault, uint256 amount, uint256 nonce, uint256 deadline, address sender)
         internal
         view
@@ -143,5 +155,59 @@ contract SponsoredClaimTest is HashVestTestBase {
         GrantVault vault = createTime();
         (bool success,) = address(vault).call(abi.encodeWithSignature("supportsSponsoredActions()"));
         assertFalse(success);
+    }
+
+    function test_sponsoredReviewRejectsWrongRelayerExpiryAndRevocation() public {
+        SponsoredGrantVault vault = createSponsoredRevocableMilestone();
+        uint256 deadline = block.timestamp + 1 days;
+        bytes memory signature = signReview(vault, 0, 0, deadline, relayer);
+        address otherRelayer = makeAddr("other relayer");
+
+        vm.prank(otherRelayer);
+        vm.expectRevert(SponsoredGrantVault.UnauthorizedRelayer.selector);
+        vault.approveMilestoneWithSignature(0, 0, deadline, relayer, signature);
+
+        vm.prank(issuer);
+        vault.revoke();
+        vm.prank(relayer);
+        vm.expectRevert(GrantVault.AlreadyRevoked.selector);
+        vault.approveMilestoneWithSignature(0, 0, deadline, relayer, signature);
+
+        SponsoredGrantVault liveVault = createSponsoredMilestone();
+        bytes memory expired = signReview(liveVault, 0, 0, deadline, relayer);
+        vm.warp(deadline + 1);
+        vm.prank(relayer);
+        vm.expectRevert(SponsoredGrantVault.SponsoredActionExpired.selector);
+        liveVault.approveMilestoneWithSignature(0, 0, deadline, relayer, expired);
+    }
+
+    function test_sponsoredReviewRejectsAlreadyApprovedMilestone() public {
+        SponsoredGrantVault vault = createSponsoredMilestone();
+        uint256 deadline = block.timestamp + 1 days;
+        vm.prank(vm.addr(REVIEWER_PRIVATE_KEY));
+        vault.approveMilestone(0);
+        bytes memory signature = signReview(vault, 0, 0, deadline, relayer);
+        vm.prank(relayer);
+        vm.expectRevert(GrantVault.MilestoneAlreadyApproved.selector);
+        vault.approveMilestoneWithSignature(0, 0, deadline, relayer, signature);
+        assertEq(vault.sponsoredReviewNonce(), 0);
+    }
+
+    function test_claimAndReviewNoncesAreIndependent() public {
+        SponsoredGrantVault vault = createSponsoredHybrid();
+        vm.warp(START + 180 days);
+        uint256 deadline = START + 200 days;
+        bytes memory review = signReview(vault, 0, 0, deadline, relayer);
+        vm.prank(relayer);
+        vault.approveMilestoneWithSignature(0, 0, deadline, relayer, review);
+        assertEq(vault.sponsoredReviewNonce(), 1);
+        assertEq(vault.sponsoredClaimNonce(), 0);
+
+        uint256 claimable = vault.claimableAmount();
+        bytes memory claim = signClaim(vault, claimable, 0, deadline, relayer);
+        vm.prank(relayer);
+        vault.claimWithSignature(claimable, 0, deadline, relayer, claim);
+        assertEq(vault.sponsoredClaimNonce(), 1);
+        assertEq(vault.sponsoredReviewNonce(), 1);
     }
 }

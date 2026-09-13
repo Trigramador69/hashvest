@@ -45,7 +45,6 @@ create table if not exists public.organization_sponsorship_policies (
     max_gas_budget_wei >= 0
     and reserved_gas_wei >= 0
     and spent_gas_wei >= 0
-    and reserved_gas_wei + spent_gas_wei <= max_gas_budget_wei
   ),
   constraint organization_sponsorship_wallet_valid check (
     updated_by_wallet is null
@@ -125,7 +124,8 @@ create table if not exists public.sponsored_action_requests (
 );
 
 create unique index if not exists sponsored_actions_vault_type_nonce_idx
-  on public.sponsored_action_requests(chain_id, vault_address, action_type, nonce);
+  on public.sponsored_action_requests(chain_id, vault_address, action_type, nonce)
+  where status <> 'abandoned';
 create index if not exists sponsored_actions_organization_idx
   on public.sponsored_action_requests(organization_id, created_at desc);
 create index if not exists sponsored_actions_daily_actor_idx
@@ -162,7 +162,8 @@ begin
   where chain_id = p_chain_id
     and vault_address = p_vault_address
     and action_type = p_action_type
-    and nonce = p_nonce;
+    and nonce = p_nonce
+    and status <> 'abandoned';
 
   if found then
     if existing.organization_id <> p_organization_id
@@ -233,7 +234,8 @@ exception
     where chain_id = p_chain_id
       and vault_address = p_vault_address
       and action_type = p_action_type
-      and nonce = p_nonce;
+      and nonce = p_nonce
+      and status <> 'abandoned';
     if found
       and existing.organization_id = p_organization_id
       and existing.actor_wallet = p_actor_wallet
@@ -261,7 +263,16 @@ as $$
       updated_at = now()
   where id = p_request_id
     and deadline > extract(epoch from now())
-    and (status = 'requested' or (status = 'failed' and tx_hash is null))
+    and tx_hash is null
+    and (
+      status = 'requested'
+      or status = 'failed'
+      or (
+        status = 'processing'
+        and processing_at is not null
+        and processing_at < now() - interval '2 minutes'
+      )
+    )
   returning *;
 $$;
 
@@ -297,7 +308,7 @@ begin
     raise exception using message = 'ACTION_NOT_SUBMITTED';
   end if;
   update public.organization_sponsorship_policies
-  set reserved_gas_wei = reserved_gas_wei - request.estimated_gas_cost_wei,
+  set reserved_gas_wei = greatest(0, reserved_gas_wei - request.estimated_gas_cost_wei),
       spent_gas_wei = spent_gas_wei + p_actual_gas_cost_wei,
       updated_at = now()
   where organization_id = request.organization_id;
@@ -336,9 +347,11 @@ begin
   )
   select coalesce(sum(estimated_gas_cost_wei), 0), count(*)
   into released, expired_count from expired;
-  if released > 0 then
+  if expired_count > 0 then
     update public.organization_sponsorship_policies
-    set reserved_gas_wei = greatest(0, reserved_gas_wei - released), updated_at = now()
+    set reserved_gas_wei = greatest(0, reserved_gas_wei - released),
+        used_actions = greatest(0, used_actions - expired_count),
+        updated_at = now()
     where organization_id = p_organization_id;
   end if;
   return expired_count;

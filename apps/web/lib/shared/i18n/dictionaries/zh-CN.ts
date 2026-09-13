@@ -711,8 +711,8 @@ export const zhCN: TranslationDictionary = {
   "detail.sponsor.confirm": "签名并提交",
   "detail.sponsor.cancel": "取消",
   "detail.sponsor.signing": "等待钱包签名…",
-  "detail.sponsor.submitting": "正在提交赞助领取…",
-  "detail.sponsor.retry": "重试赞助领取",
+  "detail.sponsor.submitting": "正在提交赞助操作…",
+  "detail.sponsor.retry": "重试赞助操作",
   "detail.sponsor.gasPayer": "Gas 支付方",
   "detail.sponsor.transaction": "赞助交易",
   "detail.sponsor.status.requested": "赞助请求已记录",
@@ -727,7 +727,7 @@ export const zhCN: TranslationDictionary = {
     "此签名请求已过期。请开始新的赞助操作或使用钱包付费操作。",
   "detail.sponsor.failedFallback":
     "Relayer 无法完成此请求。请使用钱包付费操作，或在有效期内重试同一意图。",
-  "detail.sponsor.manualFallback": "由钱包支付费用的普通领取始终可用。",
+  "detail.sponsor.manualFallback": "由钱包支付费用的普通领取或批准始终可用。",
   "detail.sponsor.error":
     "无法完成赞助操作。HashVest 未向你的钱包收费；请使用普通操作或重试。",
   "detail.sponsor.unavailable": "赞助操作暂时不可用。钱包付费操作仍然可用。",
@@ -735,9 +735,11 @@ export const zhCN: TranslationDictionary = {
     "此 GrantVault 早于赞助操作功能。请使用钱包付费操作。",
   "detail.sponsor.noClaimable": "当前没有可赞助的可领取金额。",
   "detail.sponsor.checking": "正在检查组织赞助策略…",
-  "detail.sponsor.policyDisabled": "组织策略不允许此赞助操作。钱包付费操作仍然可用。",
+  "detail.sponsor.policyDisabled":
+    "组织策略不允许此赞助操作。钱包付费操作仍然可用。",
   "detail.sponsor.vaultNotAllowed": "此 GrantVault 不在组织赞助允许列表中。",
-  "detail.sponsor.limitReached": "操作上限或 HSK gas 预算已用尽。钱包付费操作仍然可用。",
+  "detail.sponsor.limitReached":
+    "操作上限或 HSK gas 预算已用尽。钱包付费操作仍然可用。",
   "detail.sponsor.relayerMissing":
     "组织 relayer 尚未配置或没有资金。请使用钱包付费操作。",
   "detail.eligibility.title": "资格校验",

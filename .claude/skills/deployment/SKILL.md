@@ -13,7 +13,7 @@ Use this skill for contract deployment, address or ABI synchronization, smoke te
 1. Read the deployment sections of [`README.md`](../../../README.md), [`docs/architecture.md`](../../../docs/architecture.md), and the exact script under `packages/web3/scripts/` before running it.
 2. Classify the action as read-only, local build/test, simulated, or broadcast. Treat deployment, demo transactions, faucet minting, grant creation, approvals, claims, and revocation as writes requiring explicit authorization for the exact action.
 3. Confirm the actual chain ID is HSK Testnet `133`, the RPC endpoint is appropriate, and the deployer has enough HSK for gas. A selected network or wallet label is not proof that RPC reads work.
-4. Keep `DEPLOYER_PRIVATE_KEY` only in `packages/contracts/.env`. The sponsored-claim relayer key is a separate server-only `SPONSORED_CLAIM_RELAYER_PRIVATE_KEY`; fund it with native HSK only after the organization policy and operational budget are approved. Never print environment values, private keys, signed payloads, or unnecessary personal data.
+4. Keep `DEPLOYER_PRIVATE_KEY` only in `packages/contracts/.env`. The sponsored-action relayer key is a separate server-only `SPONSORED_CLAIM_RELAYER_PRIVATE_KEY`; fund it with native HSK only after the organization policy and operational budget are approved. Never print environment values, private keys, signed payloads, or unnecessary personal data.
 5. Use the existing commands and guards:
 
    ```bash

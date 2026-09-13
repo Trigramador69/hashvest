@@ -257,7 +257,10 @@ function SponsoredActionPanel({
   else if (policy.isPending) availability = t("detail.sponsor.checking");
   else if (policy.isError || !policy.data)
     availability = t("detail.sponsor.unavailable");
-  else if (!policy.data.enabled || !policy.data.allowedActions.includes(actionType))
+  else if (
+    !policy.data.enabled ||
+    !policy.data.allowedActions.includes(actionType)
+  )
     availability = t("detail.sponsor.policyDisabled");
   else if (
     !policy.data.allowedVaults.some(
@@ -384,12 +387,12 @@ function SponsoredActionPanel({
       }
     >
       {!compact && (
-      <div>
-        <h3 className="font-medium">{t("detail.sponsor.title")}</h3>
-        <p className="mt-1 text-xs leading-5 text-muted-foreground">
-          {t("detail.sponsor.lede")}
-        </p>
-      </div>
+        <div>
+          <h3 className="font-medium">{t("detail.sponsor.title")}</h3>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            {t("detail.sponsor.lede")}
+          </p>
+        </div>
       )}
       {request && (
         <div
@@ -425,9 +428,11 @@ function SponsoredActionPanel({
       )}
       {!request && (
         <>
-          {!compact && <p className="text-xs leading-5 text-muted-foreground">
-            {availability}
-          </p>}
+          {!compact && (
+            <p className="text-xs leading-5 text-muted-foreground">
+              {availability}
+            </p>
+          )}
           {confirming ? (
             <div
               aria-labelledby={confirmationId}
@@ -447,7 +452,8 @@ function SponsoredActionPanel({
                       amount: `${tokenAmount(grant.claimableAmount, grant.decimals)} ${grant.symbol}`,
                     })
                   : t("detail.sponsor.reviewConfirmBody", {
-                      milestone: grant.milestones[milestoneIndex as number].title,
+                      milestone:
+                        grant.milestones[milestoneIndex as number].title,
                     })}
               </p>
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
@@ -479,6 +485,7 @@ function SponsoredActionPanel({
             <Button
               className="h-auto min-h-10 w-full whitespace-normal py-2"
               disabled={!sponsorshipReady}
+              title={availability}
               onClick={() => setConfirming(true)}
             >
               {t(
@@ -503,9 +510,11 @@ function SponsoredActionPanel({
         </Button>
       )}
       {error && <p className="text-xs text-destructive">{error}</p>}
-      {!compact && <p className="text-xs leading-5 text-muted-foreground">
-        {t("detail.sponsor.manualFallback")}
-      </p>}
+      {!compact && (
+        <p className="text-xs leading-5 text-muted-foreground">
+          {t("detail.sponsor.manualFallback")}
+        </p>
+      )}
     </section>
   );
 }
