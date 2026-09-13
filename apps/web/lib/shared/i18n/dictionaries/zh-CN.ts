@@ -317,16 +317,14 @@ export const zhCN: TranslationDictionary = {
   "orgs.empty.action": "建立工作区",
   "orgs.counts": "{members} 位成员 · {grants} 份资助",
   "dashboard.direct.title": "直接资助",
-  "dashboard.direct.lede":
-    "此钱包作为发行方、受益人或审核人的链上资助。",
+  "dashboard.direct.lede": "此钱包作为发行方、受益人或审核人的链上资助。",
   "dashboard.hero.rail": "想法\n数据\n人员\n影响",
   "dashboard.connect.eyebrow": "工作区概览",
   "dashboard.connect.title": "连接钱包以查看工作。",
   "dashboard.connect.body":
     "连接钱包后，你的资助、审核队列和链上活动会显示在这里。",
   "dashboard.analytics.loading": "正在读取 HSK 实时活动…",
-  "dashboard.analytics.error":
-    "仪表盘数据暂时不可用。请刷新页面后重试。",
+  "dashboard.analytics.error": "仪表盘数据暂时不可用。请刷新页面后重试。",
   "dashboard.analytics.partial":
     "部分事件历史无法读取。当前资助状态仍是实时的；重试以完成时间线。",
   "dashboard.metric.active": "活跃资助",

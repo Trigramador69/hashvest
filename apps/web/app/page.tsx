@@ -44,7 +44,10 @@ export default async function Home() {
           </p>
         </div>
         <div className="relative overflow-hidden border border-border bg-surface-1 p-6 lg:col-span-5 lg:ml-8 sm:p-8">
-          <DataArt variant="mesh" className="absolute -right-8 -top-2 h-36 w-48 opacity-70" />
+          <DataArt
+            variant="mesh"
+            className="absolute -right-8 -top-2 h-36 w-48 opacity-70"
+          />
           <p className="relative z-10 mb-7 font-mono text-[10px] font-medium uppercase tracking-[.08em] text-muted-foreground">
             {t("home.steps.title")}
           </p>

@@ -15,7 +15,9 @@ const beneficiary = "0x2222222222222222222222222222222222222222" as Address;
 const reviewer = "0x3333333333333333333333333333333333333333" as Address;
 const vault = "0x4444444444444444444444444444444444444444" as Address;
 
-function snapshot(overrides: Partial<DashboardGrantSnapshot> = {}): DashboardGrantSnapshot {
+function snapshot(
+  overrides: Partial<DashboardGrantSnapshot> = {},
+): DashboardGrantSnapshot {
   return {
     vaultAddress: vault,
     title: "Customer churn",
@@ -57,7 +59,10 @@ describe("dashboard analytics", () => {
     expect(rolesForWallet(beneficiary, snapshot())).toEqual(["beneficiary"]);
     expect(rolesForWallet(reviewer, snapshot())).toEqual(["reviewer"]);
     expect(
-      rolesForWallet(issuer, snapshot({ reviewer: "0x0000000000000000000000000000000000000000" })),
+      rolesForWallet(
+        issuer,
+        snapshot({ reviewer: "0x0000000000000000000000000000000000000000" }),
+      ),
     ).toEqual(["issuer"]);
   });
 
@@ -82,7 +87,11 @@ describe("dashboard analytics", () => {
       { strategy: "HYBRID", count: 1 },
     ]);
     expect(result.activity).toHaveLength(6);
-    expect(result.activity.at(-1)).toMatchObject({ created: 1, approved: 1, claimed: 1 });
+    expect(result.activity.at(-1)).toMatchObject({
+      created: 1,
+      approved: 1,
+      claimed: 1,
+    });
   });
 
   it("does not hide partial log failures or treat revoked grants as active", () => {
@@ -96,4 +105,3 @@ describe("dashboard analytics", () => {
     expect(result.grants[0]?.lifecycle).toBe("REVOKED");
   });
 });
-

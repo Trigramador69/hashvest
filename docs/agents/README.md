@@ -15,8 +15,8 @@ Canonical skills live in `.agents/skills/`; Claude adapters are generated in `.c
 - [`ci-preflight`](../../.agents/skills/ci-preflight/SKILL.md) — Reproduce the HashVest GitHub CI validation locally, diagnose failures without hiding them, and produce exact evidence before a pull request is created or updated.
 - [`deployment`](../../.agents/skills/deployment/SKILL.md) — Plan, rehearse, execute, or verify HashVest HSK Testnet operations with chain guards, explicit transaction authority, safe secrets, and evidence-backed state changes.
 - [`localization`](../../.agents/skills/localization/SKILL.md) — Add or update HashVest localized strings for selected languages using the typed English source dictionary, safe fallbacks, preserved technical literals, and focused validation.
-- [`pr-delivery`](../../.agents/skills/pr-delivery/SKILL.md) — Deliver focused HashVest work through Linear-linked branches, incremental commits, evidence-backed review, and a validated pull-request workflow.
-- [`ui-ux`](../../.agents/skills/ui-ux/SKILL.md) — Make small, accessible, responsive UI improvements on the current HashVest surface while preserving wallet, session, transaction, and localization behavior before the planned redesign.
+- [`pr-delivery`](../../.agents/skills/pr-delivery/SKILL.md) — Deliver focused HashVest work through incremental commits, evidence-backed review, and a validated pull-request workflow, with Linear linkage when required by the requester.
+- [`ui-ux`](../../.agents/skills/ui-ux/SKILL.md) — Implement the HashVest design specification as accessible, responsive UI while preserving wallet, session, transaction, analytics authority, and localization behavior.
 - [`workspace-setup`](../../.agents/skills/workspace-setup/SKILL.md) — Set up or diagnose the HashVest monorepo safely, including Node, pnpm, Foundry, package-local environment templates, and reproducible dependencies.
 
 After changing a skill, run `pnpm agents:sync` and `pnpm agents:check`.

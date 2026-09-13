@@ -1,6 +1,9 @@
 import type { Address, Hex } from "viem";
 
-import { deriveGrantLifecycle, type GrantLifecycle } from "../protocol/grant-state";
+import {
+  deriveGrantLifecycle,
+  type GrantLifecycle,
+} from "../protocol/grant-state";
 
 export type DashboardRole = "issuer" | "beneficiary" | "reviewer";
 export type DashboardStrategy = "TIME" | "MILESTONE" | "HYBRID";
@@ -80,7 +83,9 @@ function monthLabel(date: Date) {
 
 function activityBuckets(now: Date): DashboardActivityBucket[] {
   return Array.from({ length: 6 }, (_, index) => {
-    const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 5 + index, 1));
+    const date = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 5 + index, 1),
+    );
     return {
       key: monthKey(date),
       label: monthLabel(date),
@@ -105,7 +110,8 @@ export function rolesForWallet(
   const normalized = wallet.toLowerCase();
   const roles: DashboardRole[] = [];
   if (snapshot.issuer.toLowerCase() === normalized) roles.push("issuer");
-  if (snapshot.beneficiary.toLowerCase() === normalized) roles.push("beneficiary");
+  if (snapshot.beneficiary.toLowerCase() === normalized)
+    roles.push("beneficiary");
   if (
     snapshot.reviewer !== "0x0000000000000000000000000000000000000000" &&
     snapshot.reviewer.toLowerCase() === normalized
@@ -140,8 +146,10 @@ export function aggregateDashboardAnalytics({
     eventsByVault.set(key, current);
   }
   const grants = snapshots.map((snapshot) => {
-    const grantEvents = eventsByVault.get(snapshot.vaultAddress.toLowerCase()) ?? [];
-    const lastActivityAt = grantEvents.find((event) => event.timestamp)?.timestamp ?? null;
+    const grantEvents =
+      eventsByVault.get(snapshot.vaultAddress.toLowerCase()) ?? [];
+    const lastActivityAt =
+      grantEvents.find((event) => event.timestamp)?.timestamp ?? null;
     return {
       ...snapshot,
       lifecycle: deriveGrantLifecycle(snapshot),
@@ -177,10 +185,14 @@ export function aggregateDashboardAnalytics({
     strategyDistribution,
     activeGrants: grants.filter((grant) => grant.lifecycle === "ACTIVE").length,
     pendingReviews: grants.filter(
-      (grant) => grant.roles.includes("reviewer") && grant.pendingMilestones > 0 && !grant.revoked,
+      (grant) =>
+        grant.roles.includes("reviewer") &&
+        grant.pendingMilestones > 0 &&
+        !grant.revoked,
     ).length,
     claimableGrants: grants.filter(
-      (grant) => grant.roles.includes("beneficiary") && grant.claimableAmount > 0n,
+      (grant) =>
+        grant.roles.includes("beneficiary") && grant.claimableAmount > 0n,
     ).length,
     partial,
   };

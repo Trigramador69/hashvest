@@ -193,7 +193,10 @@ export function OrganizationHeader({
   const { organization: data } = organization.data;
   return (
     <div className="space-y-5">
-      <Link className="font-mono text-xs text-primary hover:underline" href="/app">
+      <Link
+        className="font-mono text-xs text-primary hover:underline"
+        href="/app"
+      >
         <span aria-hidden>←</span> {t("workspace.backToOrganizations")}
       </Link>
       <PageHeading

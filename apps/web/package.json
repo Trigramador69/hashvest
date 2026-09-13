@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
-    "lint": "eslint .",
+    "lint": "eslint . --ignore-pattern .next --ignore-pattern .next-visual --ignore-pattern test-results",
     "typecheck": "next typegen && tsc --noEmit",
     "visual": "playwright test"
   },

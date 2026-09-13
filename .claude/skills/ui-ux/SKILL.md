@@ -1,24 +1,24 @@
 ---
 name: ui-ux
-description: Make small, accessible, responsive UI improvements on the current HashVest surface while preserving wallet, session, transaction, and localization behavior before the planned redesign.
+description: Implement the HashVest design specification as accessible, responsive UI while preserving wallet, session, transaction, analytics authority, and localization behavior.
 compatibility: Codex, Claude Code, and Agy with browser inspection when available
 ---
 
-# Current UI and UX
+# HashVest design-system implementation
 
-Use this skill for focused UI fixes or incremental product-flow improvements. A total visual redesign is intentionally out of scope until its dedicated PR and design direction arrive.
+Use this skill for the dedicated design refactor and for follow-up UI slices. [`design.md`](../../../design.md) is the visual source of truth: near-black surfaces, warm mono typography, green primary state, cobalt blue secondary state, orange warnings, one-pixel borders, restrained radii, point/data-art, and dense responsive layouts. Do not copy a generic SaaS dashboard or introduce purple, glassmorphism, gradients, or decorative product data.
 
 ## Procedure
 
-1. Read the relevant Linear issue, existing component, page, shared UI conventions, and current locale keys before editing.
-2. Preserve the current information architecture, wallet/session boundaries, transaction states, loading/error/empty states, and technical literals.
-3. Prefer semantic HTML, keyboard access, visible focus, useful labels, readable contrast, and responsive behavior. Keep styling changes local and avoid introducing a new design system or broad visual refactor.
-4. Reuse existing components and translation keys. If text changes, use the [`localization`](../localization/SKILL.md) skill as well.
-5. Validate focused logic/component tests and perform a manual desktop/mobile pass when the surface is visual. Do not add a Cypress UI suite unless a Linear issue explicitly requires it.
+1. Read [`design.md`](../../../design.md), the existing component/page, shared UI conventions, and current locale keys before editing. A Linear issue is optional when the requester explicitly asks for an issue-free design branch.
+2. Preserve the current information architecture, HSK wallet/session boundaries, transaction states, loading/error/empty/partial states, live event-derived analytics, and technical literals.
+3. Prefer semantic HTML, keyboard access, visible focus, useful labels, readable contrast, reduced-motion behavior, and responsive behavior. Build reusable primitives (`Panel`, `MetricCard`, `DataArt`) instead of duplicating visual rules.
+4. Reuse existing components and translation keys. Every new user-visible string must be added to the typed English source dictionary and translated for ES and zh-CN; use the [`localization`](../localization/SKILL.md) skill as well.
+5. Validate focused logic/component tests, `pnpm --filter @hashvest/web typecheck`, `pnpm --filter @hashvest/web lint`, and the Playwright visual contract (`pnpm --filter @hashvest/web visual`). Use deterministic fixtures only in guarded visual-test routes; never fabricate production analytics or token values.
 
 ## Completion criteria
 
-The requested current-surface behavior works without changing product scope, technical values, authorization, or transaction semantics. Accessibility and responsive checks are recorded, and the diff is small enough to be safely replaced by the future redesign.
+The requested surface follows `design.md` without changing product scope, technical values, authorization, or transaction semantics. Accessibility and responsive checks are recorded, visual snapshots are deterministic, and HSK remains authoritative for every value and permission.
 
 ## Obligatory maintenance
 

@@ -10,11 +10,11 @@ Use this skill for new modules, data flows, APIs, persistence, contracts, cross-
 
 ## Procedure
 
-1. Read [`docs/architecture.md`](../../../docs/architecture.md), [`README.md`](../../../README.md), the relevant source, tests, and Linear issue before proposing a design.
+1. Read [`docs/architecture.md`](../../../docs/architecture.md), [`README.md`](../../../README.md), the relevant source, tests, and (when present) the Linear issue before proposing a design. An explicitly requested issue-free design branch is valid when its scope is documented.
 2. State the ownership and authority of every new field or operation. HSK remains authoritative for value and permission; Supabase remains product context.
 3. Preserve the one-way integration path: Cloud → `@hashvest/web3` → Protocol → HSK. `packages/contracts`, `packages/web3`, `apps/web/lib/protocol`, and `apps/web/lib/shared` must not acquire Cloud dependencies.
 4. Prefer an existing seam and the smallest change. Record material alternatives, invariants, and migration or rollback implications in the relevant design document or ADR before implementation.
-5. Respect the hackathon scope: do not split the repository or add deferred P1/P2/P3 product functionality. Use a Linear issue for ideas outside the active milestone.
+5. Respect the hackathon scope: do not split the repository or add deferred P1/P2/P3 product functionality. Use a Linear issue for ideas outside the active milestone unless the requester explicitly asks to defer issue tracking.
 6. Validate with `pnpm boundary:check`, focused tests, and the full preflight when the change is ready for a PR.
 
 ## Review questions

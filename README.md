@@ -21,8 +21,8 @@ Canonical skills live in `.agents/skills/`; Claude adapters are generated in `.c
 - [`ci-preflight`](.agents/skills/ci-preflight/SKILL.md) — Reproduce the HashVest GitHub CI validation locally, diagnose failures without hiding them, and produce exact evidence before a pull request is created or updated.
 - [`deployment`](.agents/skills/deployment/SKILL.md) — Plan, rehearse, execute, or verify HashVest HSK Testnet operations with chain guards, explicit transaction authority, safe secrets, and evidence-backed state changes.
 - [`localization`](.agents/skills/localization/SKILL.md) — Add or update HashVest localized strings for selected languages using the typed English source dictionary, safe fallbacks, preserved technical literals, and focused validation.
-- [`pr-delivery`](.agents/skills/pr-delivery/SKILL.md) — Deliver focused HashVest work through Linear-linked branches, incremental commits, evidence-backed review, and a validated pull-request workflow.
-- [`ui-ux`](.agents/skills/ui-ux/SKILL.md) — Make small, accessible, responsive UI improvements on the current HashVest surface while preserving wallet, session, transaction, and localization behavior before the planned redesign.
+- [`pr-delivery`](.agents/skills/pr-delivery/SKILL.md) — Deliver focused HashVest work through incremental commits, evidence-backed review, and a validated pull-request workflow, with Linear linkage when required by the requester.
+- [`ui-ux`](.agents/skills/ui-ux/SKILL.md) — Implement the HashVest design specification as accessible, responsive UI while preserving wallet, session, transaction, analytics authority, and localization behavior.
 - [`workspace-setup`](.agents/skills/workspace-setup/SKILL.md) — Set up or diagnose the HashVest monorepo safely, including Node, pnpm, Foundry, package-local environment templates, and reproducible dependencies.
 
 After changing a skill, run `pnpm agents:sync` and `pnpm agents:check`.
@@ -57,6 +57,23 @@ GrantVault #1, #2, #3 ...
 ```
 
 Each vault stores the issuer, beneficiary, reviewer, token, allocation, strategy, vesting schedule, milestone titles and amounts, eligibility provider, and revocable mode as immutable terms. Milestone approvals, claims, and the optional one-way revocation state are the only lifecycle changes after creation. Revocation freezes earned value and returns only unearned allocation to the issuer; non-revocable grants and previously deployed vaults remain permanent. Organization metadata is an optional off-chain product layer and never replaces contract state.
+
+### Design refactor and live dashboard analytics
+
+[`design.md`](design.md) is the prescriptive visual source of truth for the
+dark dashboard language: near-black surfaces, warm mono typography, green
+primary state, cobalt secondary state, restrained borders/radii, and point/data
+art. The reusable primitives live in `apps/web/components/ui/`; the shell is
+responsive from a 192px desktop rail to a mobile drawer.
+
+`apps/web/hooks/use-dashboard-analytics.ts` reads the factory's role-discovery
+arrays, derives grant state from live GrantVault snapshots, and reads only the
+factory/vault lifecycle events needed for the six-month activity view. The pure
+aggregation lives in `apps/web/lib/dashboard/analytics.ts` and is unit-tested.
+This is a read-only presentation projection: HSK remains authoritative for
+roles, amounts, permissions, and lifecycle; Supabase only enriches workspace
+names and associations. Failed event windows render a partial timeline instead
+of replacing live grant state with fabricated data.
 
 The web UI keeps user-visible failures inside the localization boundary: generic and known HSK RPC errors use the active locale, while validation and wallet-guard messages that are already translated remain intact. Protocol and Cloud helpers may still retain English defaults for non-UI callers.
 

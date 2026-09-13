@@ -8,6 +8,7 @@ export const root = fileURLToPath(new URL("../", import.meta.url));
 const IGNORED_DIRECTORIES = new Set([
   ".git",
   ".next",
+  ".next-visual",
   ".turbo",
   "cache",
   "coverage",

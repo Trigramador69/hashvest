@@ -196,7 +196,9 @@ export function GrantCard({
       </CardHeader>
       <CardContent className="flex grow flex-col gap-5">
         <div>
-          <p className="text-xs text-muted-foreground">{t("card.totalAllocation")}</p>
+          <p className="text-xs text-muted-foreground">
+            {t("card.totalAllocation")}
+          </p>
           <p className="mt-1 font-mono text-[28px] font-medium tabular-nums">
             {tokenAmount(g.totalAllocation, g.decimals)}{" "}
             <span className="text-sm font-normal text-muted-foreground">

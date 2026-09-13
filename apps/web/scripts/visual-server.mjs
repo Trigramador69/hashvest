@@ -1,9 +1,11 @@
-const { spawn } = require("node:child_process");
-const path = require("node:path");
+import { spawn } from "node:child_process";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
+const scriptsDirectory = path.dirname(fileURLToPath(import.meta.url));
+const appDirectory = path.join(scriptsDirectory, "..");
 const nextBin = path.join(
-  __dirname,
-  "..",
+  appDirectory,
   "node_modules",
   "next",
   "dist",
@@ -14,7 +16,7 @@ const child = spawn(
   process.execPath,
   [nextBin, "dev", "--hostname", "127.0.0.1", "--port", "3100"],
   {
-    cwd: path.join(__dirname, ".."),
+    cwd: appDirectory,
     env: { ...process.env, VISUAL_TEST_MODE: "1" },
     stdio: "inherit",
   },

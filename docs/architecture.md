@@ -42,6 +42,23 @@ The Cloud is the product layer. It makes the Protocol usable — workspaces, nam
 | `apps/web/lib/shared/grant-presets/**`  | Grant preset catalog, wizard mapping, and field ownership   |
 | `supabase/migrations/**`                | Organizations, members, grant associations, auth nonces     |
 
+### Dashboard presentation projection
+
+The redesign in [`design.md`](../design.md) changes presentation structure,
+not authority. `apps/web/hooks/use-dashboard-analytics.ts` discovers vaults
+from the factory's issuer/beneficiary/reviewer arrays, reads each GrantVault's
+current snapshot, and fetches the factory/vault lifecycle logs for the activity
+timeline. `apps/web/lib/dashboard/analytics.ts` is a pure reducer that derives
+roles, lifecycle counts, claimable/pending queues, strategy distribution, and
+six monthly buckets from those reads.
+
+The analytics object is intentionally ephemeral and read-only. It is not stored
+in Supabase, does not aggregate token units into a currency, and never grants a
+permission. If a log range or optional workspace enrichment fails, the UI marks
+the timeline partial while retaining the live snapshot. The guarded
+`/visual/dashboard` route supplies deterministic fixture data only to local
+Playwright snapshots and returns 404 in production.
+
 Cloud authority stops at workspace access. The SIWE statement in `apps/web/lib/cloud/auth/constants.ts` says so explicitly: the signature _"authenticates workspace access only; it does not authorize onchain actions."_
 
 ## Integration path

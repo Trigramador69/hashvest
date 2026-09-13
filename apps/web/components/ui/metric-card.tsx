@@ -22,7 +22,9 @@ export function MetricCard({
   className?: string;
 }) {
   return (
-    <Panel className={cn("relative min-h-[128px] overflow-hidden p-5", className)}>
+    <Panel
+      className={cn("relative min-h-[128px] overflow-hidden p-5", className)}
+    >
       <div className="relative z-10">
         <p className="font-mono text-[28px] font-medium leading-none tracking-[-0.03em] tabular-nums text-foreground">
           {value}
@@ -39,7 +41,10 @@ export function MetricCard({
               trendTone === "neutral" && "text-muted-foreground",
             )}
           >
-            {trend} {comparison && <span className="text-muted-foreground">{comparison}</span>}
+            {trend}{" "}
+            {comparison && (
+              <span className="text-muted-foreground">{comparison}</span>
+            )}
           </p>
         )}
       </div>
@@ -50,4 +55,3 @@ export function MetricCard({
     </Panel>
   );
 }
-

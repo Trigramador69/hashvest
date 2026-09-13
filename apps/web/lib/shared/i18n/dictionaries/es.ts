@@ -384,7 +384,8 @@ export const es: TranslationDictionary = {
   "dashboard.chart.activity.title": "Actividad de subvenciones",
   "dashboard.chart.activity.lede":
     "Eventos onchain de tus subvenciones durante los últimos seis meses.",
-  "dashboard.chart.activity.aria": "Actividad de subvenciones de los últimos seis meses",
+  "dashboard.chart.activity.aria":
+    "Actividad de subvenciones de los últimos seis meses",
   "dashboard.chart.activity.sr":
     "Cada punto representa un evento onchain del panel.",
   "dashboard.chart.series.created": "Creadas",

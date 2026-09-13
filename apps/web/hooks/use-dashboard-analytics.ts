@@ -2,13 +2,12 @@
 
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { useAccount, usePublicClient } from "wagmi";
+import { getAddress, parseAbiItem, type Address, type Hex } from "viem";
 import {
-  getAddress,
-  parseAbiItem,
-  type Address,
-  type Hex,
-} from "viem";
-import { grantVaultAbi, hashVestFactoryAbi, testnetDeployment } from "@hashvest/web3";
+  grantVaultAbi,
+  hashVestFactoryAbi,
+  testnetDeployment,
+} from "@hashvest/web3";
 
 import { useOrganizations } from "@/hooks/use-organizations";
 import { organizationApi } from "@/lib/cloud/organizations/client";
@@ -37,7 +36,9 @@ const grantRevokedEvent = parseAbiItem(
 );
 
 type PublicClient = NonNullable<ReturnType<typeof usePublicClient>>;
-type EventAbi = NonNullable<NonNullable<Parameters<PublicClient["getLogs"]>[0]>["event"]>;
+type EventAbi = NonNullable<
+  NonNullable<Parameters<PublicClient["getLogs"]>[0]>["event"]
+>;
 type RawLog = {
   address: Address;
   blockNumber: bigint;
@@ -46,7 +47,11 @@ type RawLog = {
 };
 
 function uniqueAddresses(addresses: readonly Address[]) {
-  return [...new Map(addresses.map((address) => [address.toLowerCase(), address])).values()];
+  return [
+    ...new Map(
+      addresses.map((address) => [address.toLowerCase(), address]),
+    ).values(),
+  ];
 }
 
 async function batched<T>(
@@ -106,7 +111,8 @@ async function readDashboardData({
   organizationNames: Map<string, string>;
 }): Promise<DashboardAnalytics> {
   const factoryAddress = testnetDeployment.factory;
-  if (!factoryAddress) throw new Error("HSK Testnet factory is not configured.");
+  if (!factoryAddress)
+    throw new Error("HSK Testnet factory is not configured.");
   const blockNumber = await client.getBlockNumber();
   const [issued, received, review] = await Promise.all([
     client.readContract({
@@ -128,15 +134,28 @@ async function readDashboardData({
       args: [wallet],
     }),
   ]);
-  const addresses = uniqueAddresses([...issued, ...received, ...review] as Address[]);
+  const addresses = uniqueAddresses([
+    ...issued,
+    ...received,
+    ...review,
+  ] as Address[]);
   if (!addresses.length)
-    return aggregateDashboardAnalytics({ wallet, snapshots: [], events: [], now: new Date() });
+    return aggregateDashboardAnalytics({
+      wallet,
+      snapshots: [],
+      events: [],
+      now: new Date(),
+    });
 
   const snapshots: DashboardGrantSnapshot[] = [];
   let partial = false;
   await batched(addresses, async (vaultAddress) => {
     try {
-      const contract = { address: vaultAddress, abi: grantVaultAbi, blockNumber } as const;
+      const contract = {
+        address: vaultAddress,
+        abi: grantVaultAbi,
+        blockNumber,
+      } as const;
       const [
         title,
         strategy,
@@ -171,7 +190,8 @@ async function readDashboardData({
         beneficiary,
         reviewer,
         revoked,
-        pendingMilestones: milestones.filter((milestone) => !milestone.approved).length,
+        pendingMilestones: milestones.filter((milestone) => !milestone.approved)
+          .length,
         organizationName: organizationNames.get(vaultAddress.toLowerCase()),
       });
     } catch {
@@ -187,7 +207,9 @@ async function readDashboardData({
       fromBlock: FACTORY_START_BLOCK,
       toBlock: blockNumber,
     })) as unknown as RawLog[];
-    const addressSet = new Set(addresses.map((address) => address.toLowerCase()));
+    const addressSet = new Set(
+      addresses.map((address) => address.toLowerCase()),
+    );
     const creationByVault = new Map<string, RawLog>();
     for (const log of creationLogs) {
       const vault = readArg<Address>(log, "vault", ZERO_ADDRESS).toLowerCase();
@@ -260,17 +282,26 @@ async function readDashboardData({
         timestamp: null,
         amount: readArg(log, "recoveredAmount", 0n),
       });
-    const blockNumbers = [...new Set(events.map((event) => event.blockNumber.toString()))].map(BigInt);
+    const blockNumbers = [
+      ...new Set(events.map((event) => event.blockNumber.toString())),
+    ].map(BigInt);
     const timestamps = new Map<string, number>();
     await batched(blockNumbers, async (eventBlock) => {
       const block = await client.getBlock({ blockNumber: eventBlock });
       timestamps.set(eventBlock.toString(), Number(block.timestamp));
     });
-    for (const event of events) event.timestamp = timestamps.get(event.blockNumber.toString()) ?? null;
+    for (const event of events)
+      event.timestamp = timestamps.get(event.blockNumber.toString()) ?? null;
   } catch {
     partial = true;
   }
-  return aggregateDashboardAnalytics({ wallet, snapshots, events, partial, now: new Date() });
+  return aggregateDashboardAnalytics({
+    wallet,
+    snapshots,
+    events,
+    partial,
+    now: new Date(),
+  });
 }
 
 export function useDashboardAnalytics() {
@@ -288,10 +319,18 @@ export function useDashboardAnalytics() {
   const organizationNames = new Map<string, string>();
   organizations.data?.forEach((organization, index) => {
     const grants = organizationQueries[index]?.data?.grants ?? [];
-    for (const grant of grants) organizationNames.set(grant.vaultAddress.toLowerCase(), organization.name);
+    for (const grant of grants)
+      organizationNames.set(
+        grant.vaultAddress.toLowerCase(),
+        organization.name,
+      );
   });
   const query = useQuery({
-    queryKey: ["wallet-dashboard-analytics", address?.toLowerCase(), [...organizationNames.keys()].sort()],
+    queryKey: [
+      "wallet-dashboard-analytics",
+      address?.toLowerCase(),
+      [...organizationNames.keys()].sort(),
+    ],
     queryFn: () =>
       readDashboardData({
         client: client as PublicClient,

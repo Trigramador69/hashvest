@@ -87,7 +87,7 @@ fuchsia
 El reemplazo oficial es:
 
 ```css
---accent-blue: #4D6AD9;
+--accent-blue: #4d6ad9;
 ```
 
 Se eligió azul cobalto porque:
@@ -107,19 +107,19 @@ Se eligió azul cobalto porque:
 :root {
   --canvas: #070808;
   --canvas-deep: #020202;
-  --surface-1: #0B0C0C;
+  --surface-1: #0b0c0c;
   --surface-2: #101111;
   --surface-3: #151616;
-  --surface-hover: #181A1A;
+  --surface-hover: #181a1a;
 
-  --text-primary: #F5F5F1;
-  --text-secondary: #A2A39F;
+  --text-primary: #f5f5f1;
+  --text-secondary: #a2a39f;
   --text-muted: #747672;
-  --text-disabled: #50524F;
+  --text-disabled: #50524f;
 
-  --border-soft: rgba(245,245,241,0.06);
-  --border-default: rgba(245,245,241,0.10);
-  --border-strong: rgba(245,245,241,0.16);
+  --border-soft: rgba(245, 245, 241, 0.06);
+  --border-default: rgba(245, 245, 241, 0.1);
+  --border-strong: rgba(245, 245, 241, 0.16);
 }
 ```
 
@@ -135,18 +135,18 @@ Se eligió azul cobalto porque:
 
 ```css
 :root {
-  --accent-green: #57D98B;
-  --accent-green-brand: #058A45;
-  --accent-green-deep: #0A5C35;
-  --accent-green-soft: rgba(87,217,139,0.12);
+  --accent-green: #57d98b;
+  --accent-green-brand: #058a45;
+  --accent-green-deep: #0a5c35;
+  --accent-green-soft: rgba(87, 217, 139, 0.12);
 
-  --accent-blue: #4D6AD9;
-  --accent-blue-soft: rgba(77,106,217,0.12);
+  --accent-blue: #4d6ad9;
+  --accent-blue-soft: rgba(77, 106, 217, 0.12);
 
-  --accent-orange: #E9832D;
-  --accent-orange-soft: rgba(233,131,45,0.12);
+  --accent-orange: #e9832d;
+  --accent-orange-soft: rgba(233, 131, 45, 0.12);
 
-  --accent-white: #E8E8E3;
+  --accent-white: #e8e8e3;
 }
 ```
 
@@ -170,7 +170,8 @@ El azul y naranja **no son decorativos**. Deben representar series, categorías 
 ## 3.1. Familias
 
 ```css
---font-mono: "Geist Mono", "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+--font-mono:
+  "Geist Mono", "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
 --font-sans: "Geist", "Inter", "Helvetica Neue", Arial, sans-serif;
 ```
 
@@ -348,7 +349,7 @@ padding: 20px 10px;
 Activo:
 
 ```css
-background: rgba(87,217,139,0.10);
+background: rgba(87, 217, 139, 0.1);
 color: var(--accent-green);
 ```
 
@@ -364,7 +365,7 @@ color: var(--accent-green);
 .topbar {
   height: 84px;
   border-bottom: 1px solid var(--border-soft);
-  background: rgba(7,8,8,0.96);
+  background: rgba(7, 8, 8, 0.96);
 }
 ```
 
@@ -534,7 +535,7 @@ color: var(--text-secondary);
 ```css
 .card.interactive:hover {
   border-color: var(--border-strong);
-  background: #0D0E0E;
+  background: #0d0e0e;
 }
 ```
 
@@ -643,11 +644,11 @@ Un chart compatible con este sistema debe verse como una extensión de una termi
 Orden recomendado:
 
 ```css
---chart-series-1: #57D98B; /* primary green */
---chart-series-2: #4D6AD9; /* cobalt blue */
---chart-series-3: #D8D9D5; /* neutral light */
---chart-series-4: #E9832D; /* warning/orange */
---chart-series-muted: #5A5D59;
+--chart-series-1: #57d98b; /* primary green */
+--chart-series-2: #4d6ad9; /* cobalt blue */
+--chart-series-3: #d8d9d5; /* neutral light */
+--chart-series-4: #e9832d; /* warning/orange */
+--chart-series-muted: #5a5d59;
 ```
 
 Purple está prohibido en cualquier serie.
@@ -697,15 +698,15 @@ verde → azul → gris claro → gris medio → naranja
 ## 9.6. Gridline
 
 ```css
-stroke: rgba(245,245,241,0.07);
+stroke: rgba(245, 245, 241, 0.07);
 stroke-dasharray: 2 3;
 ```
 
 ## 9.7. Tooltip
 
 ```css
-background: #0A0B0B;
-border: 1px solid rgba(245,245,241,0.12);
+background: #0a0b0b;
+border: 1px solid rgba(245, 245, 241, 0.12);
 border-radius: 6px;
 font: 10px/1.4 var(--font-mono);
 box-shadow: none;
@@ -795,7 +796,7 @@ Colores:
 
 ```css
 height: 6px;
-background: #2A2C2B;
+background: #2a2c2b;
 border-radius: 99px;
 ```
 
@@ -851,8 +852,8 @@ Permitido:
 
 ```css
 background:
-  radial-gradient(circle at 100% 0%, rgba(87,217,139,.13), transparent 48%),
-  #07110C;
+  radial-gradient(circle at 100% 0%, rgba(87, 217, 139, 0.13), transparent 48%),
+  #07110c;
 ```
 
 Este es uno de los pocos casos donde un gradiente está permitido.
@@ -883,7 +884,7 @@ Este es uno de los pocos casos donde un gradiente está permitido.
 .search {
   height: 40px;
   max-width: 440px;
-  background: #090A0A;
+  background: #090a0a;
   border: 1px solid var(--border-default);
   border-radius: 7px;
   color: var(--text-primary);
@@ -900,7 +901,7 @@ Focus:
 
 ```css
 border-color: var(--border-strong);
-box-shadow: 0 0 0 2px rgba(245,245,241,0.03);
+box-shadow: 0 0 0 2px rgba(245, 245, 241, 0.03);
 ```
 
 NO glow verde.
@@ -1001,7 +1002,7 @@ box-shadow: none;
 Solo menús flotantes / tooltip:
 
 ```css
-box-shadow: 0 10px 28px rgba(0,0,0,.28);
+box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
 ```
 
 ---
@@ -1033,7 +1034,7 @@ No inventar valores como 17px, 19px, 23px salvo requisitos de geometría de icon
 --motion-fast: 120ms;
 --motion-base: 180ms;
 --motion-slow: 280ms;
---ease-standard: cubic-bezier(.2,.8,.2,1);
+--ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
 ```
 
 Permitido:
@@ -1115,39 +1116,39 @@ Prohibido:
   /* Canvas */
   --canvas: #070808;
   --canvas-deep: #020202;
-  --surface-1: #0B0C0C;
+  --surface-1: #0b0c0c;
   --surface-2: #101111;
   --surface-3: #151616;
-  --surface-hover: #181A1A;
+  --surface-hover: #181a1a;
 
   /* Text */
-  --text-primary: #F5F5F1;
-  --text-secondary: #A2A39F;
+  --text-primary: #f5f5f1;
+  --text-secondary: #a2a39f;
   --text-muted: #747672;
-  --text-disabled: #50524F;
+  --text-disabled: #50524f;
 
   /* Border */
-  --border-soft: rgba(245,245,241,0.06);
-  --border-default: rgba(245,245,241,0.10);
-  --border-strong: rgba(245,245,241,0.16);
+  --border-soft: rgba(245, 245, 241, 0.06);
+  --border-default: rgba(245, 245, 241, 0.1);
+  --border-strong: rgba(245, 245, 241, 0.16);
 
   /* Accent */
-  --accent-green: #57D98B;
-  --accent-green-brand: #058A45;
-  --accent-green-deep: #0A5C35;
-  --accent-green-soft: rgba(87,217,139,0.12);
+  --accent-green: #57d98b;
+  --accent-green-brand: #058a45;
+  --accent-green-deep: #0a5c35;
+  --accent-green-soft: rgba(87, 217, 139, 0.12);
 
-  --accent-blue: #4D6AD9;
-  --accent-blue-soft: rgba(77,106,217,0.12);
+  --accent-blue: #4d6ad9;
+  --accent-blue-soft: rgba(77, 106, 217, 0.12);
 
-  --accent-orange: #E9832D;
-  --accent-orange-soft: rgba(233,131,45,0.12);
+  --accent-orange: #e9832d;
+  --accent-orange-soft: rgba(233, 131, 45, 0.12);
 
-  --chart-series-1: #57D98B;
-  --chart-series-2: #4D6AD9;
-  --chart-series-3: #D8D9D5;
-  --chart-series-4: #E9832D;
-  --chart-series-muted: #5A5D59;
+  --chart-series-1: #57d98b;
+  --chart-series-2: #4d6ad9;
+  --chart-series-3: #d8d9d5;
+  --chart-series-4: #e9832d;
+  --chart-series-muted: #5a5d59;
 
   /* Type */
   --font-mono: "Geist Mono", "IBM Plex Mono", monospace;
@@ -1177,7 +1178,7 @@ Prohibido:
   --motion-fast: 120ms;
   --motion-base: 180ms;
   --motion-slow: 280ms;
-  --ease-standard: cubic-bezier(.2,.8,.2,1);
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 ```
 
@@ -1191,44 +1192,44 @@ export default {
     extend: {
       colors: {
         canvas: {
-          DEFAULT: '#070808',
-          deep: '#020202',
+          DEFAULT: "#070808",
+          deep: "#020202",
         },
         surface: {
-          1: '#0B0C0C',
-          2: '#101111',
-          3: '#151616',
-          hover: '#181A1A',
+          1: "#0B0C0C",
+          2: "#101111",
+          3: "#151616",
+          hover: "#181A1A",
         },
         ink: {
-          DEFAULT: '#F5F5F1',
-          secondary: '#A2A39F',
-          muted: '#747672',
-          disabled: '#50524F',
+          DEFAULT: "#F5F5F1",
+          secondary: "#A2A39F",
+          muted: "#747672",
+          disabled: "#50524F",
         },
         accent: {
-          green: '#57D98B',
-          greenBrand: '#058A45',
-          blue: '#4D6AD9',
-          orange: '#E9832D',
+          green: "#57D98B",
+          greenBrand: "#058A45",
+          blue: "#4D6AD9",
+          orange: "#E9832D",
         },
       },
       fontFamily: {
-        mono: ['Geist Mono', 'IBM Plex Mono', 'monospace'],
-        sans: ['Geist', 'Inter', 'sans-serif'],
+        mono: ["Geist Mono", "IBM Plex Mono", "monospace"],
+        sans: ["Geist", "Inter", "sans-serif"],
       },
       borderRadius: {
-        control: '6px',
-        card: '8px',
-        large: '10px',
+        control: "6px",
+        card: "8px",
+        large: "10px",
       },
       spacing: {
-        sidebar: '192px',
-        topbar: '84px',
+        sidebar: "192px",
+        topbar: "84px",
       },
     },
   },
-}
+};
 ```
 
 **No añadir purple/fuchsia/violet al theme.**
@@ -1489,12 +1490,12 @@ body {
 }
 
 ::selection {
-  background: rgba(87,217,139,.25);
+  background: rgba(87, 217, 139, 0.25);
   color: var(--text-primary);
 }
 
 :focus-visible {
-  outline: 1px solid rgba(245,245,241,.55);
+  outline: 1px solid rgba(245, 245, 241, 0.55);
   outline-offset: 2px;
 }
 ```

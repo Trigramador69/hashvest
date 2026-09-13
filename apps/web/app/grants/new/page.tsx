@@ -855,7 +855,9 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             <div className="grid size-12 place-items-center rounded-full bg-primary/10 text-2xl text-primary">
               ✓
             </div>
-            <h2 className="font-mono text-[22px] font-normal">{prepared?.config.title}</h2>
+            <h2 className="font-mono text-[22px] font-normal">
+              {prepared?.config.title}
+            </h2>
             {createdAddress ? (
               <>
                 <AddressDisplay address={createdAddress} full />

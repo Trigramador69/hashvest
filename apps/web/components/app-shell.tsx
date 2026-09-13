@@ -117,7 +117,9 @@ function GlobalSearch({ onNavigate }: { onNavigate: () => void }) {
   );
   const results = entries
     .filter((entry) =>
-      `${entry.label} ${entry.detail}`.toLowerCase().includes(query.toLowerCase()),
+      `${entry.label} ${entry.detail}`
+        .toLowerCase()
+        .includes(query.toLowerCase()),
     )
     .slice(0, 6);
 
@@ -288,7 +290,9 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
             <Sparkles className="size-3 text-primary" strokeWidth={1.25} />
             <span>{t("shell.brand")}</span>
           </div>
-          <p className="font-mono text-[10px] text-[#50524F]">{t("shell.version")}</p>
+          <p className="font-mono text-[10px] text-[#50524F]">
+            {t("shell.version")}
+          </p>
         </div>
       </aside>
     </>
@@ -326,7 +330,10 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
             chainStatus="icon"
             showBalance={false}
           />
-          <ChevronDown className="hidden size-4 text-muted-foreground lg:block" strokeWidth={1.25} />
+          <ChevronDown
+            className="hidden size-4 text-muted-foreground lg:block"
+            strokeWidth={1.25}
+          />
         </div>
       </div>
     </header>

@@ -351,7 +351,9 @@ export function OrganizationOverview({
             </div>
             {!grantsData.length ? (
               <div className="rounded-card border border-dashed border-border p-8 text-center">
-                <p className="font-mono text-sm">{t("overview.recent.empty")}</p>
+                <p className="font-mono text-sm">
+                  {t("overview.recent.empty")}
+                </p>
                 <Link
                   className={`${buttonVariants()} mt-4`}
                   href={`/app/organizations/${organizationId}/grants/new`}

@@ -200,7 +200,10 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
           ) : (
             <div className="space-y-3">
               {memberList.map((member) => (
-                <div key={member.id} className="rounded-card border border-border bg-surface-1 p-4">
+                <div
+                  key={member.id}
+                  className="rounded-card border border-border bg-surface-1 p-4"
+                >
                   {editingId === member.id ? (
                     <form
                       className="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end"

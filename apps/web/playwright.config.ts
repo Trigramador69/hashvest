@@ -23,7 +23,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "node scripts/visual-server.cjs",
+    command: "node scripts/visual-server.mjs",
     env: { VISUAL_TEST_MODE: "1" },
     url: "http://127.0.0.1:3100",
     reuseExistingServer: !process.env.CI,

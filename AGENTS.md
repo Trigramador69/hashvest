@@ -7,7 +7,7 @@ This file is the shared project contract for Codex, Claude Code, and Agy. Keep i
 1. Read [`README.md`](README.md) for setup, scripts, product scope, and demo safety.
 2. Read [`docs/architecture.md`](docs/architecture.md) before changing boundaries, contracts, persistence, or integration paths.
 3. Read the relevant skill before acting. The canonical skills are in `.agents/skills/`; run `pnpm agents:check` if their state is uncertain.
-4. Inspect the real checkout, package scripts, types, callers, tests, and current Linear issue before editing.
+4. Inspect the real checkout, package scripts, types, callers, tests, and current Linear issue when one exists before editing. An explicitly requested issue-free design branch records its scope in `design.md` and the final handoff.
 
 ## Non-negotiable project rules
 
@@ -22,7 +22,7 @@ This file is the shared project contract for Codex, Claude Code, and Agy. Keep i
 
 ## Delivery contract
 
-- Work from a branch tied to the relevant Linear issue.
+- Work from a branch tied to the relevant Linear issue when one exists; an explicitly requested issue-free branch is acceptable for a documented design refactor.
 - Make incremental, logically grouped commits. Do not add AI attribution or co-author trailers.
 - Before creating or updating a PR, run `pnpm agents:sync`, `pnpm agents:check`, and `pnpm ci:check`.
 - Report exact checks, results, blockers, manual verification, and remaining uncertainty. A local commit does not change a remote PR until it is pushed and verified.
@@ -45,8 +45,8 @@ Canonical skills live in `.agents/skills/`; Claude adapters are generated in `.c
 - [`ci-preflight`](.agents/skills/ci-preflight/SKILL.md) — Reproduce the HashVest GitHub CI validation locally, diagnose failures without hiding them, and produce exact evidence before a pull request is created or updated.
 - [`deployment`](.agents/skills/deployment/SKILL.md) — Plan, rehearse, execute, or verify HashVest HSK Testnet operations with chain guards, explicit transaction authority, safe secrets, and evidence-backed state changes.
 - [`localization`](.agents/skills/localization/SKILL.md) — Add or update HashVest localized strings for selected languages using the typed English source dictionary, safe fallbacks, preserved technical literals, and focused validation.
-- [`pr-delivery`](.agents/skills/pr-delivery/SKILL.md) — Deliver focused HashVest work through Linear-linked branches, incremental commits, evidence-backed review, and a validated pull-request workflow.
-- [`ui-ux`](.agents/skills/ui-ux/SKILL.md) — Make small, accessible, responsive UI improvements on the current HashVest surface while preserving wallet, session, transaction, and localization behavior before the planned redesign.
+- [`pr-delivery`](.agents/skills/pr-delivery/SKILL.md) — Deliver focused HashVest work through incremental commits, evidence-backed review, and a validated pull-request workflow, with Linear linkage when required by the requester.
+- [`ui-ux`](.agents/skills/ui-ux/SKILL.md) — Implement the HashVest design specification as accessible, responsive UI while preserving wallet, session, transaction, analytics authority, and localization behavior.
 - [`workspace-setup`](.agents/skills/workspace-setup/SKILL.md) — Set up or diagnose the HashVest monorepo safely, including Node, pnpm, Foundry, package-local environment templates, and reproducible dependencies.
 
 After changing a skill, run `pnpm agents:sync` and `pnpm agents:check`.
