@@ -14,8 +14,10 @@ Use this skill for translation work, locale selection, message extraction, langu
 2. Treat `apps/web/lib/shared/i18n/dictionaries/en.ts` as the source of truth. Add stable dot-namespaced keys there first, then update only the selected locale dictionaries with typed keys and complete, natural translations.
 3. Keep locale selection and fallback behavior consistent with the existing cookie/provider/server boundary. If adding a language rather than filling an existing one, update the locale type, registry, dictionary exports, fallback tests, and documentation together.
 4. Replace user-facing literals at the relevant surface, including landing, workspace, switcher, members, queues, wizard, templates, grant detail, actions, status, funding, and business-model messages when the issue includes them.
-5. Never translate or interpolate-chain technical literals such as addresses, hashes, contract identifiers, token symbols, chain IDs, explorer URLs, or wallet-provider UI. Use placeholders for values that must remain identical across locales.
-6. Validate focused dictionary/logic tests, formatting, lint, typecheck, and build. Perform a visual desktop/mobile pass in every selected locale; do not invent new product behavior while translating.
+5. For grant templates, read catalog copy through `useGrantPresets`/`localizeGrantPreset`, including editable title, description, milestone, timing, and assumption suggestions. Keep `template_key`, strategy indexes, percentages, addresses, and other protocol values unchanged.
+6. Route user-visible unknown errors through `errorMessage` with a localized fallback and localized RPC diagnostic; preserve validation and wallet-guard messages that were already translated by the caller.
+7. Never translate or interpolate-chain technical literals such as addresses, hashes, contract identifiers, token symbols, chain IDs, explorer URLs, or wallet-provider UI. Use placeholders for values that must remain identical across locales.
+8. Validate focused dictionary/logic tests, formatting, lint, typecheck, and build. Perform a visual desktop/mobile pass in every selected locale; do not invent new product behavior while translating.
 
 ## Completion criteria
 

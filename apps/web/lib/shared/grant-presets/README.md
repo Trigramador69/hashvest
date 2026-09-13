@@ -9,17 +9,19 @@ metadata (`organization_grants.template_key`), and only for organization-aware
 creation.
 
 This file is the contract for adding or changing a preset — by hand, or by
-asking an assistant to do it. Adding a preset is a data edit plus a test run;
-it should never require touching the wizard.
+asking an assistant to do it. Adding a preset is a catalog and localization
+data edit plus a test run; it should never require touching the wizard.
 
 ## Where things live
 
-| File              | Role                                                                |
-| ----------------- | ------------------------------------------------------------------- |
-| `presets.ts`      | The catalog: types + the four global presets                        |
-| `apply-preset.ts` | Pure mapping (`applyPresetToDraft`) and rules (`assertValidPreset`) |
-| `wizard-state.ts` | Which fields the preset still owns and which now belong to the user |
-| `*.test.ts`       | Catalog integrity, mapping, field ownership, invalid combinations   |
+| File                   | Role                                                                |
+| ---------------------- | ------------------------------------------------------------------- |
+| `presets.ts`           | The catalog: types + the four global presets                        |
+| `localize.ts`          | Locale-aware display and editable suggestions with English fallback |
+| `use-grant-presets.ts` | React access to localized catalog entries and stored template keys  |
+| `apply-preset.ts`      | Pure mapping (`applyPresetToDraft`) and rules (`assertValidPreset`) |
+| `wizard-state.ts`      | Which fields the preset still owns and which now belong to the user |
+| `*.test.ts`            | Catalog integrity, mapping, field ownership, invalid combinations   |
 
 `lib/shared` is layer-neutral: this module must import **neither** `@/lib/cloud`
 nor `@/lib/protocol` (`scripts/check-boundary.mjs` fails CI otherwise). That is
@@ -93,6 +95,12 @@ allocation").
    catalog, so an invalid combination fails there rather than in the demo.
 
 No wizard change is needed: the picker renders whatever is in `GRANT_PRESETS`.
+For every new preset, add the matching `preset.<key>.*` entries to the English,
+Spanish, and Simplified Chinese dictionaries when translated copy is available;
+the English catalog remains the intentional fallback. The same localized copy
+is used for the editable title, description, milestone names, timing note, and
+assumptions, so a user does not accidentally submit English suggestions from a
+translated wizard.
 **Validity is whatever `assertValidPreset` accepts — read that function, not this
 prose.** Two things it cannot check for you:
 

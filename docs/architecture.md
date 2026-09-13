@@ -71,7 +71,7 @@ Inside `apps/web/lib`, the same direction holds between three trees:
 - `lib/cloud/**` — Supabase, sessions, organizations. May import `lib/protocol/**`.
 - `lib/shared/**` — layer-neutral utilities, including the i18n boundary. Imported by both, imports neither.
 
-Localization is presentation state, so it lives in `lib/shared/i18n/**` and imports neither layer. English is the source of truth: `dictionaries/en.ts` defines `TranslationKey`, and every other locale is typed as a subset of it, so a missing or blank string falls back to English instead of surfacing a raw key. The locale is a cookie, not a route segment — no URL carries a language, and `router.refresh()` applies a change without remounting the wallet providers. Technical literals (addresses, hashes, token symbols, chain ids, explorer URLs) are never written into a message; they arrive through `{placeholder}` substitution so they stay identical in all three locales.
+Localization is presentation state, so it lives in `lib/shared/i18n/**` and imports neither layer. English is the source of truth: `dictionaries/en.ts` defines `TranslationKey`, and every other locale is typed as a subset of it, so a missing or blank string falls back to English instead of surfacing a raw key. The locale is a cookie, not a route segment — no URL carries a language, and `router.refresh()` applies a change without remounting the wallet providers. User-visible generic and HSK RPC errors use localized `errorMessage` options; already-translated validation and wallet-guard errors are preserved. Technical literals (addresses, hashes, token symbols, chain ids, explorer URLs) are never written into a message; they arrive through `{placeholder}` substitution so they stay identical in all three locales.
 
 ## Authority: which layer owns which field
 
@@ -97,7 +97,7 @@ Amounts are never cached in Supabase. Dashboard counts in `apps/web/hooks/use-or
 The Protocol is usable without this application. Anyone integrating should depend on the contract ABIs and the factory's role discovery arrays, not on the Cloud API.
 
 - **Alternative frontends** — consume `@hashvest/web3`'s protocol surface (or the raw ABIs) and read role discovery from `HashVestFactory`. No Supabase, no session, no Route Handler required.
-- **Grant workflows** — build vaults through `HashVestFactory` directly. The wizard at `/grants/new` is one client, not the interface.
+- **Grant workflows** — build vaults through `HashVestFactory` directly. The shared five-step wizard at `/grants/new` is one client, not the interface; its template choice and localized suggestions are Cloud presentation metadata, while submitted terms remain onchain truth.
 - **Eligibility and compliance adapters** — implement `IEligibilityProvider` and pass the address at creation. `DemoEligibilityProvider` is a reference implementation, not KYC.
 - **Third-party integrations** — read-only indexing, reporting, and notification services can be built entirely from chain state and explorer data.
 

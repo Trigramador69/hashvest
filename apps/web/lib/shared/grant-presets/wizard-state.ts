@@ -21,12 +21,24 @@ import {
   FALLBACK_DECIMALS,
   type AppliedPresetDraft,
 } from "./apply-preset";
-import { getGrantPreset, type GrantPresetKey } from "./presets";
+import {
+  getGrantPreset,
+  type GrantPreset,
+  type GrantPresetKey,
+} from "./presets";
 
 export type PresetMilestoneFields = AppliedPresetDraft["milestones"][number];
 
-/** The two fields a preset suggests but the user may also have typed first. */
-export type UserOwnedField = "title" | "allocation";
+/** Every editable field a preset may suggest and the user may take ownership of. */
+export type UserOwnedField =
+  | "title"
+  | "description"
+  | "allocation"
+  | "strategy"
+  | "unit"
+  | "cliff"
+  | "duration"
+  | "milestones";
 
 /**
  * What the wizard shows when no preset is applied. These are the wizard's own
@@ -87,9 +99,21 @@ function isUserOwned(
   current: Pick<AppliedPresetDraft, UserOwnedField>,
   applied: AppliedPreset | undefined,
 ): boolean {
+  if (field === "milestones") {
+    if (!applied)
+      return !sameMilestones(
+        current.milestones,
+        BLANK_PRESET_FIELDS.milestones,
+      );
+    if (applied.userOwned.includes(field)) return true;
+    return !sameMilestones(current.milestones, applied.fields.milestones);
+  }
   const value = current[field];
-  if (!value.trim()) return false;
-  if (!applied) return true;
+  const blank = BLANK_PRESET_FIELDS[field];
+  if (!applied)
+    return (
+      value !== blank && (typeof value !== "string" || value.trim().length > 0)
+    );
   if (applied.userOwned.includes(field)) return true;
   return value !== applied.fields[field];
 }
@@ -98,9 +122,18 @@ function userOwnedFields(
   current: Pick<AppliedPresetDraft, UserOwnedField>,
   applied: AppliedPreset | undefined,
 ): UserOwnedField[] {
-  return (["title", "allocation"] as const).filter((field) =>
-    isUserOwned(field, current, applied),
-  );
+  return (
+    [
+      "title",
+      "description",
+      "allocation",
+      "strategy",
+      "unit",
+      "cliff",
+      "duration",
+      "milestones",
+    ] as const
+  ).filter((field) => isUserOwned(field, current, applied));
 }
 
 /**
@@ -113,12 +146,17 @@ function userOwnedFields(
  */
 export function selectPreset(
   key: GrantPresetKey,
-  current: Pick<AppliedPresetDraft, UserOwnedField | "description">,
+  current: Pick<AppliedPresetDraft, UserOwnedField>,
   applied: AppliedPreset | undefined,
-  options: { decimals?: number; applyDescription?: boolean } = {},
+  options: {
+    decimals?: number;
+    applyDescription?: boolean;
+    /** A locale-resolved copy for user-facing title and milestone suggestions. */
+    preset?: GrantPreset;
+  } = {},
 ): AppliedPreset {
   const userOwned = userOwnedFields(current, applied);
-  const draft = applyPresetToDraft(getGrantPreset(key), {
+  const draft = applyPresetToDraft(options.preset ?? getGrantPreset(key), {
     title: userOwned.includes("title") ? current.title : "",
     allocationDecimal: userOwned.includes("allocation")
       ? current.allocation
@@ -129,18 +167,25 @@ export function selectPreset(
     key,
     fields: {
       ...draft,
-      // The workspace description field only exists for organization-aware
-      // creation. Recording a description that was never written would make
-      // `fields` a false record of the form.
-      description:
-        options.applyDescription === false
+      description: userOwned.includes("description")
+        ? current.description
+        : options.applyDescription === false
           ? current.description
           : draft.description,
-      // The wizard always renders at least one milestone row, so the snapshot
-      // has to match what it actually shows for TIME presets too.
-      milestones: draft.milestones.length
-        ? draft.milestones
-        : BLANK_PRESET_FIELDS.milestones,
+      strategy: userOwned.includes("strategy")
+        ? current.strategy
+        : draft.strategy,
+      unit: userOwned.includes("unit") ? current.unit : draft.unit,
+      cliff: userOwned.includes("cliff") ? current.cliff : draft.cliff,
+      duration: userOwned.includes("duration")
+        ? current.duration
+        : draft.duration,
+      // The wizard always renders at least one milestone row for TIME presets.
+      milestones: userOwned.includes("milestones")
+        ? current.milestones
+        : draft.milestones.length
+          ? draft.milestones
+          : BLANK_PRESET_FIELDS.milestones,
     },
     userOwned,
   };
@@ -175,21 +220,29 @@ export function clearPreset(
     title: ownedByUser("title")
       ? current.title
       : restore(current.title, fields.title, blank.title),
-    description: restore(
-      current.description,
-      fields.description,
-      blank.description,
-    ),
+    description: ownedByUser("description")
+      ? current.description
+      : restore(current.description, fields.description, blank.description),
     allocation: ownedByUser("allocation")
       ? current.allocation
       : restore(current.allocation, fields.allocation, blank.allocation),
-    strategy: restore(current.strategy, fields.strategy, blank.strategy),
-    unit: restore(current.unit, fields.unit, blank.unit),
-    cliff: restore(current.cliff, fields.cliff, blank.cliff),
-    duration: restore(current.duration, fields.duration, blank.duration),
-    milestones: sameMilestones(current.milestones, fields.milestones)
-      ? blank.milestones
-      : current.milestones,
+    strategy: ownedByUser("strategy")
+      ? current.strategy
+      : restore(current.strategy, fields.strategy, blank.strategy),
+    unit: ownedByUser("unit")
+      ? current.unit
+      : restore(current.unit, fields.unit, blank.unit),
+    cliff: ownedByUser("cliff")
+      ? current.cliff
+      : restore(current.cliff, fields.cliff, blank.cliff),
+    duration: ownedByUser("duration")
+      ? current.duration
+      : restore(current.duration, fields.duration, blank.duration),
+    milestones: ownedByUser("milestones")
+      ? current.milestones
+      : sameMilestones(current.milestones, fields.milestones)
+        ? blank.milestones
+        : current.milestones,
     reviewerRequired: false,
   };
 }

@@ -28,6 +28,32 @@ function blank() {
 }
 
 describe("switching presets", () => {
+  it("uses the locale-resolved copy for editable suggestions", () => {
+    const localized = {
+      ...builder,
+      titleSuggestion: "Subvención para builders",
+      milestones: builder.milestones!.map((milestone, index) => ({
+        ...milestone,
+        title: ["Arranque y diseño", "Implementación principal", "Entrega"][
+          index
+        ],
+      })),
+    };
+    const applied = selectPreset(
+      "builder-grant",
+      BLANK_PRESET_FIELDS,
+      undefined,
+      { preset: localized },
+    );
+
+    expect(applied.fields.title).toBe("Subvención para builders");
+    expect(applied.fields.milestones.map((item) => item.title)).toEqual([
+      "Arranque y diseño",
+      "Implementación principal",
+      "Entrega",
+    ]);
+  });
+
   it("replaces a title and allocation the previous preset suggested", () => {
     const first = apply("builder-grant");
     expect(first.fields.title).toBe(builder.titleSuggestion);
@@ -69,6 +95,39 @@ describe("switching presets", () => {
     const second = apply("employee-vesting", edited);
     expect(second.fields.title).toBe("Renamed by hand");
     expect(second.applied.userOwned).toContain("title");
+  });
+
+  it("carries edits to description, schedule, and milestones across a switch", () => {
+    const first = apply("builder-grant");
+    const edited = {
+      fields: {
+        ...first.fields,
+        description: "Hand-written workspace context.",
+        unit: "3600",
+        cliff: "2",
+        duration: "12",
+        milestones: first.fields.milestones.map((milestone, index) =>
+          index === 0 ? { ...milestone, title: "Custom kickoff" } : milestone,
+        ),
+      },
+      applied: first.applied,
+    };
+
+    const second = apply("employee-vesting", edited);
+
+    expect(second.fields.description).toBe("Hand-written workspace context.");
+    expect(second.fields.unit).toBe("3600");
+    expect(second.fields.cliff).toBe("2");
+    expect(second.fields.duration).toBe("12");
+    expect(second.fields.milestones[0]?.title).toBe("Custom kickoff");
+    expect(second.fields.strategy).toBe(employee.strategy);
+    expect(second.applied.userOwned).toEqual([
+      "description",
+      "unit",
+      "cliff",
+      "duration",
+      "milestones",
+    ]);
   });
 
   it("re-splits the milestone amounts against the carried allocation", () => {

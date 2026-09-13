@@ -3,18 +3,27 @@
 import { useQuery } from "@tanstack/react-query";
 import { usePublicClient } from "wagmi";
 import { erc20Abi, zeroAddress, type Address } from "viem";
-import { grantVaultAbi, eligibilityProviderAbi } from "@hashvest/web3";
+import {
+  grantVaultAbi,
+  eligibilityProviderAbi,
+  hskTestnet,
+} from "@hashvest/web3";
 
 import { readRevocationState } from "@/lib/protocol/revocation";
+import { useTranslations } from "@/lib/shared/i18n/provider";
+
+const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
 export function useToken(address: Address | undefined) {
+  const t = useTranslations();
   const client = usePublicClient({ chainId: 133 });
   return useQuery({
     queryKey: ["token", 133, address],
     enabled: Boolean(address && client),
     staleTime: 60000,
     queryFn: async () => {
-      if (!client || !address) throw new Error("Token address is required.");
+      if (!client || !address)
+        throw new Error(t("tx.error.tokenAddressRequired"));
       const [decimals, symbol] = await Promise.all([
         client.readContract({
           address,
@@ -29,13 +38,14 @@ export function useToken(address: Address | undefined) {
 }
 
 export function useGrant(address: Address) {
+  const t = useTranslations();
   const client = usePublicClient({ chainId: 133 });
   return useQuery({
     queryKey: ["grant", 133, address],
     enabled: Boolean(client),
     refetchInterval: 7000,
     queryFn: async () => {
-      if (!client) throw new Error("HSK Testnet RPC is unavailable.");
+      if (!client) throw new Error(t("tx.error.rpcUnavailable", NETWORK));
       // One block snapshot keeps related metrics consistent as time advances.
       const blockNumber = await client.getBlockNumber();
       const contract = { address, abi: grantVaultAbi, blockNumber };

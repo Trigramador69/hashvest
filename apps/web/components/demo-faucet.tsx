@@ -3,12 +3,23 @@
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
 import { erc20Abi } from "viem";
 import { demoTokenAbi, testnetDeployment } from "@hashvest/web3";
+import { useTranslations } from "@/lib/shared/i18n/provider";
 import { Button } from "@/components/ui/button";
 import { AddressDisplay, TransactionStatus } from "@/components/grant-ui";
-import { useTransaction, assertTestnetWallet } from "@/hooks/use-transaction";
+import {
+  assertTestnetWallet,
+  getWalletGuardMessages,
+  useTransaction,
+} from "@/hooks/use-transaction";
 import { tokenAmount } from "@/lib/protocol/grants";
 
+/** The demo token's symbol and decimals are protocol literals. */
+const DEMO_SYMBOL = "hvUSD";
+const DEMO_DECIMALS = 18;
+
 export function DemoFaucet() {
+  const t = useTranslations();
+  const walletMessages = getWalletGuardMessages(t);
   const { address, chainId } = useAccount();
   const token = testnetDeployment.demoToken;
   const { writeContractAsync } = useWriteContract();
@@ -26,22 +37,26 @@ export function DemoFaucet() {
     <div className="space-y-4 rounded-card border border-primary/20 bg-[rgba(87,217,139,.05)] p-5">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="font-mono text-[15px] font-medium">Demo token · hvUSD</p>
+          <p className="font-mono text-[15px] font-medium">
+            {t("faucet.title", { symbol: DEMO_SYMBOL })}
+          </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            Test tokens for your first grant. No monetary value.
+            {t("faucet.lede")}
           </p>
           <div className="mt-2">
             <AddressDisplay address={token} />
           </div>
           {balance.data !== undefined && (
             <p className="mt-2 text-sm">
-              Your balance:{" "}
-              <strong>{tokenAmount(balance.data, 18)} hvUSD</strong>
+              {t("faucet.balance")}{" "}
+              <strong>
+                {tokenAmount(balance.data, DEMO_DECIMALS)} {DEMO_SYMBOL}
+              </strong>
             </p>
           )}
           {balance.isError && (
             <p className="mt-2 text-xs text-destructive">
-              Token balance is unavailable. Check the Testnet RPC.
+              {t("faucet.balanceError")}
             </p>
           )}
         </div>
@@ -50,20 +65,24 @@ export function DemoFaucet() {
           disabled={!address || chainId !== 133 || tx.pending}
           onClick={() =>
             void tx.run(async () => {
-              const account = assertTestnetWallet(address);
-              await tx.confirm("Get demo hvUSD", () =>
-                writeContractAsync({
-                  address: token,
-                  abi: demoTokenAbi,
-                  functionName: "faucet",
-                  chainId: 133,
-                  account,
-                }),
+              const account = assertTestnetWallet(address, walletMessages);
+              await tx.confirm(
+                t("faucet.action", { symbol: DEMO_SYMBOL }),
+                () =>
+                  writeContractAsync({
+                    address: token,
+                    abi: demoTokenAbi,
+                    functionName: "faucet",
+                    chainId: 133,
+                    account,
+                  }),
               );
             })
           }
         >
-          {tx.pending ? "Minting…" : "Get demo hvUSD"}
+          {tx.pending
+            ? t("faucet.minting")
+            : t("faucet.action", { symbol: DEMO_SYMBOL })}
         </Button>
       </div>
       <TransactionStatus {...tx} />

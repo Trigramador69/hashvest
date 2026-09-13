@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { getAddress, zeroAddress, type Address } from "viem";
-import { grantVaultAbi } from "@hashvest/web3";
+import { grantVaultAbi, hskTestnet } from "@hashvest/web3";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -22,22 +22,34 @@ import {
   useGrantContext,
   useOrganizationMembers,
 } from "@/hooks/use-organizations";
-import { assertTestnetWallet, useTransaction } from "@/hooks/use-transaction";
+import {
+  assertTestnetWallet,
+  getWalletGuardMessages,
+  useTransaction,
+} from "@/hooks/use-transaction";
 import {
   dateLabel,
   errorMessage,
   percent,
-  strategies,
-  strategyDescriptions,
   tokenAmount,
 } from "@/lib/protocol/grants";
+import { strategyKey } from "@/lib/shared/i18n/keys";
+import { useTranslations } from "@/lib/shared/i18n/provider";
 import { deriveGrantState } from "@/lib/protocol/grant-state";
 import { deriveRevocationPreview } from "@/lib/protocol/revocation";
 import { ParticipantIdentity } from "./grant-card";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
-import { findGrantPreset } from "@/lib/shared/grant-presets/presets";
+import { useGrantPresets } from "@/lib/shared/grant-presets/use-grant-presets";
+
+/** Protocol literals: never translated, only interpolated into messages. */
+const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
+/** Matches the refetch interval in useGrant. */
+const REFRESH_SECONDS = 7;
 
 export function GrantDetail({ address }: { address: Address }) {
+  const t = useTranslations();
+  const walletMessages = getWalletGuardMessages(t);
+  const { findPreset: localizedTemplate } = useGrantPresets();
   const [showRevokeModal, setShowRevokeModal] = useState(false);
   const grant = useGrant(address);
   const grantContext = useGrantContext(address);
@@ -51,22 +63,24 @@ export function GrantDetail({ address }: { address: Address }) {
 
   if (grant.isPending)
     return (
-      <Notice title="Loading grant">
-        <p>Reading the vault and token on HSK Testnet…</p>
+      <Notice title={t("detail.loading.title")}>
+        <p>{t("detail.loading.body", NETWORK)}</p>
       </Notice>
     );
   if (!grant.data)
     return (
       <div className="space-y-5">
         <Link className="text-sm text-primary" href="/app">
-          ← My grants
+          <span aria-hidden>←</span> {t("detail.back")}
         </Link>
-        <Notice title="Unable to read this grant" error>
-          <p>
-            Check that this is a HashVest GrantVault on HSK Testnet. The RPC may
-            also be temporarily unavailable.
+        <Notice title={t("detail.error.title")} error>
+          <p>{t("detail.error.body", NETWORK)}</p>
+          <p className="mt-2 break-words">
+            {errorMessage(grant.error, {
+              fallback: t("ui.error.requestFailed"),
+              rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+            })}
           </p>
-          <p className="mt-2 break-words">{errorMessage(grant.error)}</p>
           <div className="mt-3">
             <AddressDisplay address={address} full />
           </div>
@@ -75,7 +89,7 @@ export function GrantDetail({ address }: { address: Address }) {
             variant="outline"
             onClick={() => void grant.refetch()}
           >
-            Retry
+            {t("detail.retry")}
           </Button>
         </Notice>
       </div>
@@ -84,14 +98,16 @@ export function GrantDetail({ address }: { address: Address }) {
     return (
       <div className="space-y-5">
         <Link className="text-sm text-primary" href="/app">
-          ← My grants
+          <span aria-hidden>←</span> {t("detail.back")}
         </Link>
-        <Notice title="Live grant state is unavailable" error>
-          <p>
-            The last HSK read could not be refreshed, so current grant values
-            are hidden until the live state is available again.
+        <Notice title={t("detail.stale.title")} error>
+          <p>{t("detail.stale.body")}</p>
+          <p className="mt-2 break-words">
+            {errorMessage(grant.error, {
+              fallback: t("ui.error.requestFailed"),
+              rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+            })}
           </p>
-          <p className="mt-2 break-words">{errorMessage(grant.error)}</p>
           <div className="mt-3">
             <AddressDisplay address={address} full />
           </div>
@@ -100,7 +116,7 @@ export function GrantDetail({ address }: { address: Address }) {
             variant="outline"
             onClick={() => void grant.refetch()}
           >
-            Retry
+            {t("detail.retry")}
           </Button>
         </Notice>
       </div>
@@ -120,7 +136,7 @@ export function GrantDetail({ address }: { address: Address }) {
   const roles = resolveProtocolRoles(wallet.address, g);
   // Workspace metadata: which preset this grant started from. An unknown or
   // retired key simply shows nothing; the vault's own terms are authoritative.
-  const template = findGrantPreset(grantContext.data?.grant.templateKey);
+  const template = localizedTemplate(grantContext.data?.grant.templateKey);
   const isBeneficiary = roles.isBeneficiary;
   const isReviewer = roles.isReviewer;
   const isIssuer = roles.isIssuer;
@@ -134,56 +150,54 @@ export function GrantDetail({ address }: { address: Address }) {
   const showMilestones = g.strategy !== 0;
   const amount = (value: bigint) =>
     `${tokenAmount(value, g.decimals)} ${g.symbol}`;
+  /** The Terms row is a value, not an address, so it is resolved up front. */
+  const termsValue = g.revocable
+    ? g.revoked
+      ? t("detail.terms.revocableRevoked")
+      : t("detail.terms.revocable")
+    : t("detail.terms.nonRevocable");
 
-  let claimReason = "Connect the beneficiary wallet to claim tokens.";
+  let claimReason = t("detail.claimReason.connect");
   if (isBeneficiary) {
     if (g.revoked && g.claimableAmount === 0n)
-      claimReason =
-        "The grant was revoked. All earned tokens have already been claimed.";
-    else if (g.revoked)
-      claimReason =
-        "The grant was revoked by the issuer. You can claim all remaining earned tokens.";
+      claimReason = t("detail.claimReason.revokedAllClaimed");
+    else if (g.revoked) claimReason = t("detail.claimReason.revokedClaimable");
     else if (g.eligibility.error)
-      claimReason =
-        "The eligibility provider could not be read. Claims remain blocked until it is available.";
+      claimReason = t("detail.claimReason.providerError");
     else if (!g.eligibility.eligible)
-      claimReason =
-        "The configured provider has not marked the beneficiary eligible.";
+      claimReason = t("detail.claimReason.notEligible");
     else if (state.lifecycle === "COMPLETED")
-      claimReason = "The full allocation has been claimed.";
+      claimReason = t("detail.claimReason.completed");
     else if (
       g.claimableAmount === 0n &&
       showMilestones &&
       g.milestoneUnlockedAmount === 0n
     )
-      claimReason = "Waiting for the reviewer to approve a milestone.";
+      claimReason = t("detail.claimReason.awaitingMilestone");
     else if (g.claimableAmount === 0n && showTime && g.vestedByTime === 0n)
-      claimReason = "Tokens are waiting for the vesting start or cliff.";
+      claimReason = t("detail.claimReason.awaitingCliff");
     else if (g.claimableAmount === 0n)
-      claimReason =
-        "All currently unlocked tokens have been claimed. More time or milestone progress is needed.";
-    else
-      claimReason =
-        "Claim the currently unlocked amount directly to your beneficiary wallet.";
+      claimReason = t("detail.claimReason.allClaimed");
+    else claimReason = t("detail.claimReason.ready");
   }
 
   async function handleRevoke() {
     await tx.run(async () => {
-      if (!client) throw new Error("HSK Testnet RPC is unavailable.");
-      const account = assertTestnetWallet(g.issuer);
+      if (!client) throw new Error(t("tx.error.rpcUnavailable", NETWORK));
+      const account = assertTestnetWallet(g.issuer, walletMessages);
       await client.simulateContract({
         address,
         abi: grantVaultAbi,
         functionName: "revoke",
         account,
       });
-      await tx.confirm("Revoke grant and recover unearned tokens", () =>
+      await tx.confirm(t("detail.revoke.tx"), () =>
         writeContractAsync({
           address,
           abi: grantVaultAbi,
           functionName: "revoke",
           chainId: 133,
-          account: assertTestnetWallet(g.issuer),
+          account: assertTestnetWallet(g.issuer, walletMessages),
         }),
       );
       setShowRevokeModal(false);
@@ -192,21 +206,21 @@ export function GrantDetail({ address }: { address: Address }) {
 
   async function claim() {
     await tx.run(async () => {
-      if (!client) throw new Error("HSK Testnet RPC is unavailable.");
-      const account = assertTestnetWallet(g.beneficiary);
+      if (!client) throw new Error(t("detail.rpcUnavailable", NETWORK));
+      const account = assertTestnetWallet(g.beneficiary, walletMessages);
       await client.simulateContract({
         address,
         abi: grantVaultAbi,
         functionName: "claim",
         account,
       });
-      await tx.confirm("Claim tokens", () =>
+      await tx.confirm(t("detail.tx.claim"), () =>
         writeContractAsync({
           address,
           abi: grantVaultAbi,
           functionName: "claim",
           chainId: 133,
-          account: assertTestnetWallet(g.beneficiary),
+          account: assertTestnetWallet(g.beneficiary, walletMessages),
         }),
       );
     });
@@ -214,8 +228,8 @@ export function GrantDetail({ address }: { address: Address }) {
 
   async function approve(index: number) {
     await tx.run(async () => {
-      if (!client) throw new Error("HSK Testnet RPC is unavailable.");
-      const account = assertTestnetWallet(g.reviewer);
+      if (!client) throw new Error(t("detail.rpcUnavailable", NETWORK));
+      const account = assertTestnetWallet(g.reviewer, walletMessages);
       await client.simulateContract({
         address,
         abi: grantVaultAbi,
@@ -223,15 +237,17 @@ export function GrantDetail({ address }: { address: Address }) {
         args: [BigInt(index)],
         account,
       });
-      await tx.confirm(`Approve milestone ${index + 1}`, () =>
-        writeContractAsync({
-          address,
-          abi: grantVaultAbi,
-          functionName: "approveMilestone",
-          args: [BigInt(index)],
-          chainId: 133,
-          account: assertTestnetWallet(g.reviewer),
-        }),
+      await tx.confirm(
+        t("detail.tx.approveMilestone", { index: index + 1 }),
+        () =>
+          writeContractAsync({
+            address,
+            abi: grantVaultAbi,
+            functionName: "approveMilestone",
+            args: [BigInt(index)],
+            chainId: 133,
+            account: assertTestnetWallet(g.reviewer, walletMessages),
+          }),
       );
     });
   }
@@ -240,7 +256,7 @@ export function GrantDetail({ address }: { address: Address }) {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
         <Link className="text-primary" href="/app">
-          ← My grants
+          <span aria-hidden>←</span> {t("detail.back")}
         </Link>
         {grantContext.data && (
           <>
@@ -257,16 +273,18 @@ export function GrantDetail({ address }: { address: Address }) {
         )}
       </div>
       <PageHeading
-        eyebrow="Grant vault · HSK Testnet"
+        eyebrow={t("detail.eyebrow", NETWORK)}
         title={g.title}
         action={
           <div className="flex flex-wrap items-center gap-2">
             <GrantLifecycleBadge lifecycle={state.lifecycle} />
             <span className="border border-primary/20 bg-[rgba(87,217,139,.05)] px-3 py-2 font-mono text-xs text-primary">
-              {strategies[g.strategy]}
+              {t(strategyKey(g.strategy, "name"))}
             </span>
             <span className="border border-primary/20 bg-secondary px-2 py-1 font-mono text-[10px] text-muted-foreground">
-              {g.revocable ? "Revocable" : "Non-revocable"}
+              {g.revocable
+                ? t("detail.badge.revocable")
+                : t("detail.badge.nonRevocable")}
             </span>
             {canRevoke && (
               <Button
@@ -275,7 +293,7 @@ export function GrantDetail({ address }: { address: Address }) {
                 className="border-destructive/40 text-destructive hover:bg-destructive/10"
                 onClick={() => setShowRevokeModal(true)}
               >
-                Revoke grant
+                {t("detail.revoke.action")}
               </Button>
             )}
           </div>
@@ -289,7 +307,9 @@ export function GrantDetail({ address }: { address: Address }) {
         )}
         {template && (
           <p className="mt-3 text-sm text-muted-foreground">
-            From the {template.name} template · workspace metadata only
+            {t("detail.fromTemplate", {
+              template: template.name,
+            })}
           </p>
         )}
         <div className="mt-3 flex flex-wrap gap-2">
@@ -298,38 +318,43 @@ export function GrantDetail({ address }: { address: Address }) {
               className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium"
               key={String(role)}
             >
-              You are the {String(role).toLowerCase()}
+              {t(`detail.youAre.${role}`)}
             </span>
           ))}
         </div>
       </PageHeading>
       <NetworkNotice />
       {g.revoked && (
-        <Notice title={`Grant Revoked on ${dateLabel(g.revokedAt)}`}>
+        <Notice
+          title={t("detail.revoked.title", { date: dateLabel(g.revokedAt) })}
+        >
           <p>
-            This grant was revoked by the issuer. The beneficiary’s earned
-            entitlement was locked at{" "}
-            <strong>{amount(revocationPreview.earnedAmount)}</strong> at the
-            time of revocation. Unearned tokens (
-            {amount(revocationPreview.recoveredAmount)}) were recovered by the
-            issuer.
+            {t("detail.revoked.body.before")}
+            <strong>{amount(revocationPreview.earnedAmount)}</strong>
+            {t("detail.revoked.body.middle", {
+              recovered: amount(revocationPreview.recoveredAmount),
+            })}
             {g.claimableAmount > 0n
-              ? ` The beneficiary preserves the remaining ${amount(g.claimableAmount)} of earned value and can claim it below.`
-              : " All earned tokens have been claimed."}
+              ? t("detail.revoked.body.claimable", {
+                  amount: amount(g.claimableAmount),
+                })
+              : t("detail.revoked.body.allClaimed")}
           </p>
         </Notice>
       )}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          ["Total allocated", g.totalAllocation],
-          ["Unlocked", g.unlockedAmount],
-          ["Claimable", g.claimableAmount],
-          ["Claimed", g.claimedAmount],
-        ].map(([label, value]) => (
-          <Card key={String(label)}>
+          ["totalAllocated", g.totalAllocation],
+          ["unlocked", g.unlockedAmount],
+          ["claimable", g.claimableAmount],
+          ["claimed", g.claimedAmount],
+        ].map(([field, value]) => (
+          <Card key={String(field)}>
             <CardContent className="p-5">
               <p className="text-xs font-medium text-muted-foreground">
-                {String(label)}
+                {t(
+                  `detail.stat.${field as "totalAllocated" | "unlocked" | "claimable" | "claimed"}`,
+                )}
               </p>
               <p className="mt-3 break-all font-mono text-[28px] font-medium tracking-tight tabular-nums">
                 {typeof value === "bigint"
@@ -353,16 +378,19 @@ export function GrantDetail({ address }: { address: Address }) {
           {showTime && (
             <Card>
               <CardHeader>
-                 <CardTitle className="text-[18px]">Vesting schedule</CardTitle>
+                <CardTitle className="text-[18px]">
+                  {t("detail.schedule.title")}
+                </CardTitle>
                 <p className="text-sm leading-6 text-muted-foreground">
-                  Linear from the start. The cliff delays claiming without
-                  restarting the curve.
+                  {t("detail.schedule.lede")}
                 </p>
               </CardHeader>
               <CardContent className="space-y-5">
                 <div className="flex flex-wrap justify-between gap-3 text-sm">
                   <span className="font-medium">
-                    {amount(g.vestedByTime)} vested by time
+                    {t("detail.schedule.vestedByTime", {
+                      amount: amount(g.vestedByTime),
+                    })}
                   </span>
                   <span className="text-muted-foreground">
                     {percent(g.vestedByTime, g.totalAllocation)}%
@@ -370,17 +398,19 @@ export function GrantDetail({ address }: { address: Address }) {
                 </div>
                 <Progress
                   value={percent(g.vestedByTime, g.totalAllocation)}
-                  label="Time vested"
+                  label={t("detail.schedule.progressLabel")}
                 />
                 <dl className="grid gap-5 text-sm sm:grid-cols-3">
                   {[
-                    ["Start", g.start],
-                    ["Cliff reached", g.start + g.cliff],
-                    ["Fully vested", g.start + g.duration],
-                  ].map(([label, value]) => (
-                    <div key={String(label)}>
+                    ["start", g.start],
+                    ["cliffReached", g.start + g.cliff],
+                    ["fullyVested", g.start + g.duration],
+                  ].map(([field, value]) => (
+                    <div key={String(field)}>
                       <dt className="mb-2 text-xs text-muted-foreground">
-                        {String(label)}
+                        {t(
+                          `detail.schedule.${field as "start" | "cliffReached" | "fullyVested"}`,
+                        )}
                       </dt>
                       <dd className="text-sm font-medium">
                         {typeof value === "bigint" ? dateLabel(value) : ""}
@@ -389,17 +419,21 @@ export function GrantDetail({ address }: { address: Address }) {
                   ))}
                 </dl>
                 {g.strategy === 2 && (
-                   <div className="rounded-card border border-border-soft bg-secondary/70 p-4 text-sm leading-6">
-                    <p className="font-medium">
-                      Hybrid = min(time vested, approved milestones)
-                    </p>
+                  <div className="rounded-card border border-border-soft bg-secondary/70 p-4 text-sm leading-6">
+                    <p className="font-medium">{t("detail.hybrid.formula")}</p>
                     <p className="mt-2 text-muted-foreground">
-                      Time vested: {amount(g.vestedByTime)}
+                      {t("detail.hybrid.timeVested", {
+                        amount: amount(g.vestedByTime),
+                      })}
                       <br />
-                      Milestones approved: {amount(g.milestoneUnlockedAmount)}
+                      {t("detail.hybrid.milestonesApproved", {
+                        amount: amount(g.milestoneUnlockedAmount),
+                      })}
                       <br />
                       <strong className="font-semibold text-primary">
-                        Unlocked: {amount(g.unlockedAmount)}
+                        {t("detail.hybrid.unlocked", {
+                          amount: amount(g.unlockedAmount),
+                        })}
                       </strong>
                     </p>
                   </div>
@@ -410,11 +444,16 @@ export function GrantDetail({ address }: { address: Address }) {
           {showMilestones && (
             <Card>
               <CardHeader>
-               <CardTitle className="text-[18px]">Milestones</CardTitle>
+                <CardTitle className="text-[18px]">
+                  {t("detail.milestones.title")}
+                </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  {g.milestones.filter((item) => item.approved).length} of{" "}
-                  {g.milestones.length} approved ·{" "}
-                  {amount(g.milestoneUnlockedAmount)}
+                  {t("detail.milestones.summary", {
+                    approved: g.milestones.filter((item) => item.approved)
+                      .length,
+                    total: g.milestones.length,
+                    amount: amount(g.milestoneUnlockedAmount),
+                  })}
                 </p>
               </CardHeader>
               <CardContent>
@@ -443,13 +482,15 @@ export function GrantDetail({ address }: { address: Address }) {
                         <span
                           className={`text-xs font-medium ${milestone.approved ? "text-primary" : "text-muted-foreground"}`}
                         >
-                          {milestone.approved ? "Approved" : "Pending"}
+                          {milestone.approved
+                            ? t("detail.milestone.approved")
+                            : t("detail.milestone.pending")}
                         </span>
                         {isReviewer &&
                           !milestone.approved &&
                           (g.revoked ? (
                             <span className="text-xs text-muted-foreground">
-                              Grant revoked; milestones locked.
+                              {t("detail.milestone.lockedByRevocation")}
                             </span>
                           ) : (
                             <Button
@@ -458,7 +499,7 @@ export function GrantDetail({ address }: { address: Address }) {
                               disabled={!canWrite}
                               onClick={() => void approve(index)}
                             >
-                              Approve milestone
+                              {t("detail.milestone.approveAction")}
                             </Button>
                           ))}
                       </div>
@@ -470,45 +511,46 @@ export function GrantDetail({ address }: { address: Address }) {
           )}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Grant terms</CardTitle>
+              <CardTitle className="text-lg">
+                {t("detail.terms.title")}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-5 text-sm">
               <p className="leading-7 text-muted-foreground">
-                {strategyDescriptions[g.strategy]}{" "}
+                {t(strategyKey(g.strategy, "description"))}{" "}
                 {g.revocable
                   ? g.revoked
-                    ? `Revocable grant: revoked on ${dateLabel(g.revokedAt)}. Beneficiary earned entitlement is strictly preserved.`
-                    : "This grant is revocable by the issuer for unearned tokens."
-                  : "Terms and allocation are fixed. This grant cannot be revoked."}
+                    ? t("detail.terms.revokedNote", {
+                        date: dateLabel(g.revokedAt),
+                      })
+                    : t("detail.terms.revocableNote")
+                  : t("detail.terms.fixed")}
               </p>
               <dl className="space-y-4">
                 {[
-                  [
-                    "Terms",
-                    g.revocable
-                      ? g.revoked
-                        ? "Revocable (Revoked)"
-                        : "Revocable"
-                      : "Non-revocable (Immutable)",
-                  ],
-                  ["Issuer", g.issuer],
-                  ["Beneficiary", g.beneficiary],
+                  ["terms", termsValue],
+                  ["issuer", g.issuer],
+                  ["beneficiary", g.beneficiary],
                   ...(g.reviewer !== zeroAddress
-                    ? [["Reviewer", g.reviewer]]
+                    ? [["reviewer", g.reviewer]]
                     : []),
-                  ["Token", g.token],
-                ].map(([label, party]) => (
+                  ["token", g.token],
+                ].map(([field, party]) => (
                   <div
-                    key={label}
+                    key={field}
                     className="flex flex-wrap justify-between gap-2"
                   >
-                    <dt className="text-muted-foreground">{label}</dt>
+                    <dt className="text-muted-foreground">
+                      {t(
+                        `party.${field as "issuer" | "beneficiary" | "reviewer" | "token"}`,
+                      )}
+                    </dt>
                     <dd>
-                      {label === "Terms" ? (
+                      {field === "terms" ? (
                         <span className="font-medium text-foreground">
                           {party}
                         </span>
-                      ) : label === "Token" ? (
+                      ) : field === "token" ? (
                         <AddressDisplay address={getAddress(party)} />
                       ) : (
                         <ParticipantIdentity
@@ -526,7 +568,9 @@ export function GrantDetail({ address }: { address: Address }) {
         <aside className="space-y-3 lg:col-span-4">
           <Card className="border-primary/25 bg-[rgba(87,217,139,.04)]">
             <CardHeader>
-              <CardTitle className="text-[18px]">Ready to claim</CardTitle>
+              <CardTitle className="text-[18px]">
+                {t("detail.claim.title")}
+              </CardTitle>
               <p className="pt-3 font-mono text-[28px] font-medium text-primary tabular-nums">
                 {tokenAmount(g.claimableAmount, g.decimals)}{" "}
                 <span className="text-base font-normal">{g.symbol}</span>
@@ -548,14 +592,16 @@ export function GrantDetail({ address }: { address: Address }) {
                   onClick={() => void claim()}
                 >
                   {tx.pending
-                    ? "Transaction in progress…"
-                    : `Claim ${amount(g.claimableAmount)}`}
+                    ? t("detail.claim.pending")
+                    : t("detail.claim.action", {
+                        amount: amount(g.claimableAmount),
+                      })}
                 </Button>
               )}
               <div className="space-y-2 border-t pt-4 text-xs">
                 <div className="flex justify-between gap-2">
                   <span className="text-muted-foreground">
-                    Beneficiary token balance
+                    {t("detail.claim.beneficiaryBalance")}
                   </span>
                   <span className="break-all text-right">
                     {amount(g.beneficiaryBalance)}
@@ -566,13 +612,14 @@ export function GrantDetail({ address }: { address: Address }) {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Eligibility</CardTitle>
+              <CardTitle className="text-base">
+                {t("detail.eligibility.title")}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               {!g.eligibility.enabled ? (
                 <p className="text-muted-foreground">
-                  No provider configured. Claims do not require an eligibility
-                  check.
+                  {t("detail.eligibility.none")}
                 </p>
               ) : (
                 <>
@@ -580,15 +627,14 @@ export function GrantDetail({ address }: { address: Address }) {
                     className={`font-medium ${g.eligibility.eligible ? "text-primary" : "text-destructive"}`}
                   >
                     {g.eligibility.error
-                      ? "Provider unavailable"
+                      ? t("detail.eligibility.unavailable")
                       : g.eligibility.eligible
-                        ? "Beneficiary is eligible"
-                        : "Beneficiary is not eligible"}
+                        ? t("detail.eligibility.eligible")
+                        : t("detail.eligibility.notEligible")}
                   </p>
                   <AddressDisplay address={g.eligibilityProvider} />
                   <p className="text-xs leading-6 text-muted-foreground">
-                    The provider controls beneficiary eligibility. The demo
-                    adapter is not real KYC or compliance.
+                    {t("detail.eligibility.note")}
                   </p>
                 </>
               )}
@@ -596,9 +642,9 @@ export function GrantDetail({ address }: { address: Address }) {
           </Card>
           <TransactionStatus {...tx} />
           <p className="text-xs leading-6 text-muted-foreground">
-            Live contract reads · Block {g.blockNumber.toString()}
+            {t("detail.footer.block", { block: g.blockNumber.toString() })}
             <br />
-            Refreshes every 7 seconds and after transactions.
+            {t("detail.footer.refresh", { seconds: REFRESH_SECONDS })}
           </p>
         </aside>
       </div>
@@ -607,18 +653,17 @@ export function GrantDetail({ address }: { address: Address }) {
           <Card className="w-full max-w-lg border-[#E9832D]/40">
             <CardHeader>
               <CardTitle className="text-xl text-destructive">
-                Confirm Grant Revocation
+                {t("detail.revoke.modal.title")}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Preview the clawback and preserved entitlements before
-                confirming.
+                {t("detail.revoke.modal.lede")}
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="divide-y rounded-card border border-border text-sm">
                 <div className="flex justify-between p-3">
                   <span className="text-muted-foreground">
-                    Total Allocation:
+                    {t("detail.revoke.modal.totalAllocation")}
                   </span>
                   <span className="font-semibold">
                     {amount(g.totalAllocation)}
@@ -626,7 +671,7 @@ export function GrantDetail({ address }: { address: Address }) {
                 </div>
                 <div className="flex justify-between p-3">
                   <span className="text-muted-foreground">
-                    Already Claimed by Beneficiary:
+                    {t("detail.revoke.modal.alreadyClaimed")}
                   </span>
                   <span className="font-semibold">
                     {amount(g.claimedAmount)}
@@ -634,7 +679,7 @@ export function GrantDetail({ address }: { address: Address }) {
                 </div>
                 <div className="flex justify-between p-3">
                   <span className="text-muted-foreground">
-                    Beneficiary Earned Entitlement:
+                    {t("detail.revoke.modal.earnedEntitlement")}
                   </span>
                   <span className="font-semibold text-primary">
                     {amount(revocationPreview.earnedAmount)}
@@ -642,26 +687,26 @@ export function GrantDetail({ address }: { address: Address }) {
                 </div>
                 <div className="flex justify-between p-3">
                   <span className="text-muted-foreground">
-                    Earned but Unclaimed:
+                    {t("detail.revoke.modal.earnedUnclaimed")}
                   </span>
                   <span className="font-semibold">
                     {amount(revocationPreview.earnedUnclaimedAmount)}
                   </span>
                 </div>
                 <div className="flex justify-between bg-secondary/50 p-3">
-                  <span className="font-medium">Issuer Treasury Clawback:</span>
+                  <span className="font-medium">
+                    {t("detail.revoke.modal.clawback")}
+                  </span>
                   <span className="font-bold text-destructive">
                     {amount(revocationPreview.recoveredAmount)}
                   </span>
                 </div>
               </div>
               <div className="rounded-card border border-[#E9832D]/30 bg-[rgba(233,131,45,.08)] p-3 text-xs leading-5 text-[#E9832D]">
-                <strong>Irreversible Action:</strong> Revoking stops all future
-                vesting and milestone approvals permanently. Tokens already
-                earned or claimed by the beneficiary remain strictly in their
-                custody or claimable. Unearned tokens (
-                {amount(revocationPreview.recoveredAmount)}) will return
-                immediately to your connected wallet.
+                <strong>{t("detail.revoke.modal.warningLabel")}</strong>{" "}
+                {t("detail.revoke.modal.warningBody", {
+                  recovered: amount(revocationPreview.recoveredAmount),
+                })}
               </div>
               <div className="flex justify-end gap-3 pt-2">
                 <Button
@@ -669,7 +714,7 @@ export function GrantDetail({ address }: { address: Address }) {
                   disabled={tx.pending}
                   onClick={() => setShowRevokeModal(false)}
                 >
-                  Cancel
+                  {t("detail.revoke.modal.cancel")}
                 </Button>
                 <Button
                   variant="default"
@@ -677,7 +722,9 @@ export function GrantDetail({ address }: { address: Address }) {
                   disabled={!canWrite || tx.pending}
                   onClick={() => void handleRevoke()}
                 >
-                  {tx.pending ? "Clawing back…" : "Confirm Clawback"}
+                  {tx.pending
+                    ? t("detail.revoke.modal.pending")
+                    : t("detail.revoke.modal.confirm")}
                 </Button>
               </div>
             </CardContent>
