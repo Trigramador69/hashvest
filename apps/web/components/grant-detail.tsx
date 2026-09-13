@@ -26,6 +26,7 @@ import {
 } from "@hashvest/web3";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   AddressDisplay,
   FundingHealthSummary,
@@ -1247,89 +1248,66 @@ export function GrantDetail({ address }: { address: Address }) {
           </p>
         </aside>
       </div>
-      {showRevokeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <Card className="w-full max-w-lg border-[#E9832D]/40">
-            <CardHeader>
-              <CardTitle className="text-xl text-destructive">
-                {t("detail.revoke.modal.title")}
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {t("detail.revoke.modal.lede")}
-              </p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="divide-y rounded-card border border-border text-sm">
-                <div className="flex justify-between p-3">
-                  <span className="text-muted-foreground">
-                    {t("detail.revoke.modal.totalAllocation")}
-                  </span>
-                  <span className="font-semibold">
-                    {amount(g.totalAllocation)}
-                  </span>
-                </div>
-                <div className="flex justify-between p-3">
-                  <span className="text-muted-foreground">
-                    {t("detail.revoke.modal.alreadyClaimed")}
-                  </span>
-                  <span className="font-semibold">
-                    {amount(g.claimedAmount)}
-                  </span>
-                </div>
-                <div className="flex justify-between p-3">
-                  <span className="text-muted-foreground">
-                    {t("detail.revoke.modal.earnedEntitlement")}
-                  </span>
-                  <span className="font-semibold text-primary">
-                    {amount(revocationPreview.earnedAmount)}
-                  </span>
-                </div>
-                <div className="flex justify-between p-3">
-                  <span className="text-muted-foreground">
-                    {t("detail.revoke.modal.earnedUnclaimed")}
-                  </span>
-                  <span className="font-semibold">
-                    {amount(revocationPreview.earnedUnclaimedAmount)}
-                  </span>
-                </div>
-                <div className="flex justify-between bg-secondary/50 p-3">
-                  <span className="font-medium">
-                    {t("detail.revoke.modal.clawback")}
-                  </span>
-                  <span className="font-bold text-destructive">
-                    {amount(revocationPreview.recoveredAmount)}
-                  </span>
-                </div>
-              </div>
-              <div className="rounded-card border border-[#E9832D]/30 bg-[rgba(233,131,45,.08)] p-3 text-xs leading-5 text-[#E9832D]">
-                <strong>{t("detail.revoke.modal.warningLabel")}</strong>{" "}
-                {t("detail.revoke.modal.warningBody", {
-                  recovered: amount(revocationPreview.recoveredAmount),
-                })}
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <Button
-                  variant="outline"
-                  disabled={tx.pending}
-                  onClick={() => setShowRevokeModal(false)}
-                >
-                  {t("detail.revoke.modal.cancel")}
-                </Button>
-                <Button
-                  variant="default"
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  disabled={!canWrite || tx.pending}
-                  onClick={() => void handleRevoke()}
-                >
-                  {tx.pending
-                    ? t("detail.revoke.modal.pending")
-                    : t("detail.revoke.modal.confirm")}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+      <ConfirmDialog
+        open={showRevokeModal}
+        title={t("detail.revoke.modal.title")}
+        description={t("detail.revoke.modal.lede")}
+        confirmLabel={
+          tx.pending
+            ? t("detail.revoke.modal.pending")
+            : t("detail.revoke.modal.confirm")
+        }
+        cancelLabel={t("detail.revoke.modal.cancel")}
+        pending={tx.pending}
+        confirmDisabled={!canWrite}
+        onCancel={() => setShowRevokeModal(false)}
+        onConfirm={() => void handleRevoke()}
+      >
+        <div className="divide-y rounded-card border border-border text-sm">
+          <div className="flex justify-between p-3">
+            <span className="text-muted-foreground">
+              {t("detail.revoke.modal.totalAllocation")}
+            </span>
+            <span className="font-semibold">{amount(g.totalAllocation)}</span>
+          </div>
+          <div className="flex justify-between p-3">
+            <span className="text-muted-foreground">
+              {t("detail.revoke.modal.alreadyClaimed")}
+            </span>
+            <span className="font-semibold">{amount(g.claimedAmount)}</span>
+          </div>
+          <div className="flex justify-between p-3">
+            <span className="text-muted-foreground">
+              {t("detail.revoke.modal.earnedEntitlement")}
+            </span>
+            <span className="font-semibold text-primary">
+              {amount(revocationPreview.earnedAmount)}
+            </span>
+          </div>
+          <div className="flex justify-between p-3">
+            <span className="text-muted-foreground">
+              {t("detail.revoke.modal.earnedUnclaimed")}
+            </span>
+            <span className="font-semibold">
+              {amount(revocationPreview.earnedUnclaimedAmount)}
+            </span>
+          </div>
+          <div className="flex justify-between bg-secondary/50 p-3">
+            <span className="font-medium">
+              {t("detail.revoke.modal.clawback")}
+            </span>
+            <span className="font-bold text-destructive">
+              {amount(revocationPreview.recoveredAmount)}
+            </span>
+          </div>
         </div>
-      )}
+        <div className="rounded-card border border-[#E9832D]/30 bg-[rgba(233,131,45,.08)] p-3 text-xs leading-5 text-[#E9832D]">
+          <strong>{t("detail.revoke.modal.warningLabel")}</strong>{" "}
+          {t("detail.revoke.modal.warningBody", {
+            recovered: amount(revocationPreview.recoveredAmount),
+          })}
+        </div>
+      </ConfirmDialog>
     </div>
   );
 }

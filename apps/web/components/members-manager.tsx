@@ -19,6 +19,7 @@ import { AddressDisplay, Notice } from "./grant-ui";
 import { MemberIdentity } from "./organization-ui";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { ConfirmDialog } from "./ui/confirm-dialog";
 
 const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
@@ -34,6 +35,8 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
   const [displayName, setDisplayName] = useState("");
   const [roleLabel, setRoleLabel] = useState("");
   const [editingId, setEditingId] = useState<string>();
+  /** The member awaiting confirmation, or undefined when no dialog is open. */
+  const [pendingRemoval, setPendingRemoval] = useState<string>();
   const [editingName, setEditingName] = useState("");
   const [editingRole, setEditingRole] = useState("");
 
@@ -91,11 +94,13 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
   }
 
   async function remove(memberId: string) {
-    if (!window.confirm(t("members.removeConfirm"))) return;
     try {
       await removeMember.mutateAsync(memberId);
+      setPendingRemoval(undefined);
     } catch {
-      // The server-safe mutation error is rendered below.
+      // The server-safe mutation error is rendered below. The dialog closes
+      // either way: the error belongs on the page, not behind a modal.
+      setPendingRemoval(undefined);
     }
   }
 
@@ -296,7 +301,7 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => void remove(member.id)}
+                                onClick={() => setPendingRemoval(member.id)}
                                 disabled={removeMember.isPending}
                               >
                                 {t("members.remove")}
@@ -321,6 +326,18 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
           )}
         </CardContent>
       </Card>
+      <ConfirmDialog
+        open={Boolean(pendingRemoval)}
+        title={t("members.removeTitle")}
+        description={t("members.removeConfirm")}
+        confirmLabel={t("members.remove")}
+        cancelLabel={t("dialog.cancel")}
+        pending={removeMember.isPending}
+        onCancel={() => setPendingRemoval(undefined)}
+        onConfirm={() => {
+          if (pendingRemoval) void remove(pendingRemoval);
+        }}
+      />
     </div>
   );
 }

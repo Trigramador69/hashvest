@@ -29,6 +29,7 @@ import { TemplateEditor } from "./template-editor";
 import { AiTemplateBuilder } from "./ai-template-builder";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { ConfirmDialog } from "./ui/confirm-dialog";
 
 /** Which template the editor is open for, if any. */
 type Editor =
@@ -60,6 +61,9 @@ export function TemplatesManager({
   const updateTemplate = useUpdateTemplate(organizationId);
   const archiveTemplate = useArchiveTemplate(organizationId);
   const [editor, setEditor] = useState<Editor>();
+  /** The template awaiting confirmation, or undefined when no dialog is open. */
+  const [pendingDeletion, setPendingDeletion] =
+    useState<OrganizationTemplate>();
   const [form, setForm] = useState<TemplateForm>(BLANK_TEMPLATE_FORM);
   const [showIssues, setShowIssues] = useState(false);
   const [formError, setFormError] = useState("");
@@ -137,14 +141,16 @@ export function TemplatesManager({
   }
 
   async function remove(template: OrganizationTemplate) {
-    if (!window.confirm(t("templates.deleteConfirm", { name: template.name })))
-      return;
     try {
       await archiveTemplate.mutateAsync(template.id);
       if (editor?.mode === "edit" && editor.id === template.id)
         setEditor(undefined);
     } catch {
       // The server-safe mutation error is rendered below.
+    } finally {
+      // The dialog closes either way: the error belongs on the page, not
+      // behind a modal.
+      setPendingDeletion(undefined);
     }
   }
 
@@ -251,7 +257,7 @@ export function TemplatesManager({
                         size="sm"
                         variant="outline"
                         disabled={archiveTemplate.isPending}
-                        onClick={() => void remove(template)}
+                        onClick={() => setPendingDeletion(template)}
                       >
                         {t("templates.delete")}
                       </Button>
@@ -270,6 +276,22 @@ export function TemplatesManager({
           )}
         </CardContent>
       </Card>
+      <ConfirmDialog
+        open={Boolean(pendingDeletion)}
+        title={t("templates.deleteTitle")}
+        description={
+          pendingDeletion
+            ? t("templates.deleteConfirm", { name: pendingDeletion.name })
+            : ""
+        }
+        confirmLabel={t("templates.delete")}
+        cancelLabel={t("dialog.cancel")}
+        pending={archiveTemplate.isPending}
+        onCancel={() => setPendingDeletion(undefined)}
+        onConfirm={() => {
+          if (pendingDeletion) void remove(pendingDeletion);
+        }}
+      />
     </div>
   );
 }
