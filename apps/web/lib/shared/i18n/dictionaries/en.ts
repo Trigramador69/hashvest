@@ -29,7 +29,7 @@ export const en = {
   "ai.templates.example.hybrid":
     "A six-month grant that vests over time and also unlocks on two reviewed milestones.",
   "ai.review.openMilestone": "Go to milestone {index}",
-  "ai.report.title": "Read this report with AI",
+  "ai.report.title": "Read this report back to me",
   "ai.report.lede":
     "An advisory reading of the figures on this page, with every sentence pointing at the section it came from.",
   "ai.report.generate": "Summarize this report",
@@ -61,7 +61,7 @@ export const en = {
     "Sensitive text was removed before processing or displaying the suggestion.",
   "ai.tools.replace":
     "Replace the current template fields with this suggestion? Your edits will be replaced.",
-  "ai.templates.title": "Generate a template with AI",
+  "ai.templates.title": "Generate a reusable template",
   "ai.templates.lede":
     "Describe a reusable configuration, then review and edit it before saving.",
   "ai.templates.prompt": "What should this template describe?",
@@ -72,7 +72,7 @@ export const en = {
     "The owner reviews and explicitly saves the template. Applying a suggestion does not save it or request a wallet transaction. Choose any default reviewer yourself.",
   "ai.review.title": "Evidence analysis",
   "ai.review.lede":
-    "Summarize private workspace notes and current grant reads to support your review.",
+    "An advisory reading of private workspace notes and current grant reads, to support the review you make yourself.",
   "ai.review.generate": "Analyze evidence",
   "ai.review.unavailable":
     "The copilot is unavailable. Manual review and approval remain available.",

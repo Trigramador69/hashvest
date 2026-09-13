@@ -47,6 +47,7 @@ export function AiGrantBuilder({
       title={t("ai.panel.title")}
       label={t("ai.launcher.label")}
       description={t("ai.panel.lede")}
+      tone="draft"
       open={open}
       onOpenChange={setOpen}
       disabled={disabled}

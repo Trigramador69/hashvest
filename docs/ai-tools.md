@@ -9,6 +9,25 @@ Navigation is unchanged — Overview, Grants, Organizations and Settings — and
 tool adds a destination of its own. Every result is advisory; HSK owns all value
 and permission.
 
+## Why these four look different
+
+The AI sections are a deliberate, scoped exception to `design.md`. §18 forbids
+looping background particles and §10.4 allows particles only inside a controlled
+zone; the tool sections break both with `components/ui/pixel-canvas.tsx`, an
+animated field that blooms on hover and focus, and each carries its own accent
+outside the restrained palette.
+
+The exception is the product argument: a reader should be able to tell at a
+glance that a panel was written by a model rather than derived from the chain,
+and the `IA` chip plus a surface that behaves unlike every other surface is how
+that is said without a sentence. Motion still yields to
+`prefers-reduced-motion`, and the field draws nothing at rest, which is why the
+visual snapshots stay stable.
+
+The exception stops at the AI tools. `PixelCanvas` has no other caller and must
+not acquire one; anything that reports chain state follows `design.md` as
+written.
+
 A reviewer can copy any analysis as plain text, citations included, to paste into
 a decision of their own. The copy is user-initiated and goes to the clipboard;
 nothing is filed away, because an advisory reading the product stored would start
