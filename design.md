@@ -395,7 +395,7 @@ margin-inline: auto;
 
 ## 4.4. Product navigation contract
 
-The shell exposes only product surfaces that have a working destination:
+The authenticated app shell exposes only product surfaces that have a working destination:
 
 - `/app` — overview and live HSK analytics;
 - `/app/grants` — direct grants grouped by Issued, Received, and Review;
@@ -406,6 +406,17 @@ Organizations belong under Settings. Do not add generic SaaS modules, duplicate
 grant lists, dead search inputs, notification buttons without a backing feed, or
 decorative CTAs that do not perform an action. Legacy paths may redirect to the
 canonical route, but must not render a second shell or page.
+
+The public product-model presentation is a separate, non-transactional surface:
+
+- `/plans` — Protocol versus Cloud explanation and the Free / Team / Enterprise value ladder;
+- the landing page `#product-model` section — a concise summary linking to `/plans`.
+
+These cards are packaging communication, not billing UI. They MUST NOT show
+prices, checkout, invoices, metering, entitlements, or claim that plan limits
+are enforced. Every capability that is not available in the current demo is
+marked `Roadmap`; the presentation never changes wallet, session, protocol, or
+HSK behavior.
 
 ---
 
