@@ -65,4 +65,16 @@ describe("createAiRateLimiter", () => {
     expect(AI_REQUESTS_PER_MINUTE).toBeGreaterThan(1);
     expect(AI_REQUESTS_PER_DAY).toBeGreaterThan(AI_REQUESTS_PER_MINUTE);
   });
+
+  it("rejects concurrent bursts beyond the limit at the exact same millisecond", () => {
+    const limiter = createAiRateLimiter({ perMinute: 5 });
+    const results = Array.from({ length: 8 }, () =>
+      limiter.consume("wallet", 1_000),
+    );
+    const allowed = results.filter((r) => r.allowed).length;
+    const rejected = results.filter((r) => !r.allowed).length;
+    expect(allowed).toBe(5);
+    expect(rejected).toBe(3);
+    expect(results[5]).toMatchObject({ retryAfterSeconds: 60 });
+  });
 });

@@ -202,9 +202,19 @@ describe("sponsored action policy", () => {
       "This vault is not allowed by policy.",
     ]);
     expect(policyErrorFromReserve("DAILY_RATE_LIMIT_REACHED")?.[1]).toBe(429);
+    expect(policyErrorFromReserve("ACTION_LIMIT_REACHED")?.[1]).toBe(429);
+    expect(policyErrorFromReserve("GAS_BUDGET_REACHED")?.[1]).toBe(429);
+    expect(policyErrorFromReserve("SPONSORSHIP_DISABLED")?.[1]).toBe(409);
+    expect(policyErrorFromReserve("ACTION_NOT_ALLOWED")?.[1]).toBe(403);
     expect(policyErrorFromReserve("ACTION_BINDING_MISMATCH")?.[0]).toBe(
       "ACTION_BINDING_MISMATCH",
     );
     expect(policyErrorFromReserve("unknown")).toBeUndefined();
+  });
+
+  it("handles upstream RPC 429 rate limit responses gracefully", () => {
+    expect(
+      classifyRelayerFailure(new Error("RPC response 429: Too Many Requests")),
+    ).toMatchObject({ code: "relayer_unavailable" });
   });
 });
