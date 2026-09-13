@@ -1,5 +1,7 @@
 import "server-only";
 
+import { AI_MAX_OUTPUT_TOKENS } from "../../shared/ai-grant-draft/schema";
+
 /**
  * AI provider configuration (HAS-16).
  *
@@ -25,11 +27,19 @@ export type AiProviderConfig = {
   baseUrl: string;
   model: string;
   apiKey: string;
+  /** Output ceiling for one draft. See AI_MAX_OUTPUT_TOKENS for why it moves. */
+  maxOutputTokens: number;
 };
 
 /** xAI's Grok is the default: it is the one the demo is rehearsed against. */
 const DEFAULT_BASE_URL = "https://api.x.ai/v1";
 const DEFAULT_MODEL = "grok-4.6";
+
+/** Ignore a non-numeric or nonsensical override rather than failing a request. */
+function positiveInteger(value: string | undefined, fallback: number): number {
+  const parsed = Number(value?.trim());
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
 
 export function resolveAiProvider(): AiProviderConfig | null {
   const apiKey = process.env.AI_API_KEY?.trim();
@@ -41,6 +51,10 @@ export function resolveAiProvider(): AiProviderConfig | null {
     ),
     model: process.env.AI_MODEL?.trim() || DEFAULT_MODEL,
     apiKey,
+    maxOutputTokens: positiveInteger(
+      process.env.AI_MAX_TOKENS,
+      AI_MAX_OUTPUT_TOKENS,
+    ),
   };
 }
 

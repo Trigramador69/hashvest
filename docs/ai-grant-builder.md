@@ -48,28 +48,51 @@ Explicitly out of scope, per HAS-16 and HAS-18: automatic wallet signatures, fun
 
 ## Provider contract
 
-Any OpenAI-compatible `/chat/completions` endpoint. No SDK and no new dependency: xAI, OpenRouter, DeepSeek, Zhipu, and a local Ollama or LM Studio server all speak the same shape, so switching provider is two environment variables.
+Any OpenAI-compatible `/chat/completions` endpoint. No SDK and no new dependency: xAI, Groq, OpenRouter, DeepSeek, Zhipu, and a local Ollama or LM Studio server all speak the same shape, so switching provider is two environment variables.
 
-| Variable      | Default               | Notes                                                                      |
-| ------------- | --------------------- | -------------------------------------------------------------------------- |
-| `AI_API_KEY`  | _(unset)_             | Server-only. Unset disables the provider; it does not disable the feature. |
-| `AI_BASE_URL` | `https://api.x.ai/v1` | Trailing slashes are trimmed.                                              |
-| `AI_MODEL`    | `grok-4.6`            |                                                                            |
+| Variable        | Default               | Notes                                                                        |
+| --------------- | --------------------- | ---------------------------------------------------------------------------- |
+| `AI_API_KEY`    | _(unset)_             | Server-only. Unset disables the provider; it does not disable the feature.   |
+| `AI_BASE_URL`   | `https://api.x.ai/v1` | Trailing slashes are trimmed.                                                |
+| `AI_MODEL`      | `grok-4.6`            |                                                                              |
+| `AI_MAX_TOKENS` | `2500`                | Output ceiling for one draft. Lower it only when a tier rejects the request. |
 
 `apps/web/lib/cloud/ai/config.ts` is the only module allowed to read `AI_API_KEY`; `scripts/check-boundary.mjs` fails CI otherwise, and fails outright on a `NEXT_PUBLIC_` prefix. Everything downstream receives an already-configured object, so no other file can put the key into a bundle, a log, or an error message.
 
 The request carries `response_format: { type: "json_schema" }` with the draft schema. That is a hint, not a guarantee — providers honour it to different degrees — so the answer is re-parsed and re-validated from scratch regardless.
+
+### Verified configurations
+
+Provider-agnostic is a claim worth testing rather than asserting. Measured against live endpoints, drafting the HAS-16 example prompt in English, 简体中文 and Español:
+
+| `AI_BASE_URL` / `AI_MODEL`                                                | Result                                                                                                                                                                               |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `https://api.groq.com/openai/v1` · `openai/gpt-oss-20b`                   | **Works** at the default 2500-token ceiling. Fails at 700.                                                                                                                           |
+| `https://api.groq.com/openai/v1` · `openai/gpt-oss-120b`                  | **Works** at either ceiling.                                                                                                                                                         |
+| `https://api.groq.com/openai/v1` · `qwen/qwen3.8-27b`, `qwen/qwen3.6-27b` | Rejected: Groq's free tier caps these at 1000 output tokens per minute and refuses a larger `max_tokens` with a `429`. Lower `AI_MAX_TOKENS` to fit, and expect truncated reasoning. |
+| `https://api.groq.com/openai/v1` · `groq/compound-mini`                   | Rejected: `400 … does not support response format json_schema`.                                                                                                                      |
+
+Three things that cost an afternoon to learn, recorded so they do not have to be learned twice:
+
+- **The output ceiling is a capability, not just a cost knob.** A reasoning model spends its budget thinking before it emits any content, and one that runs out mid-thought returns _nothing_: Groq answers `400 json_validate_failed` with an empty `failed_generation`. `gpt-oss-20b` fails every request at 700 tokens and answers correctly at 2500. The ceiling moved to 2500 and became overridable through `AI_MAX_TOKENS` for tiers that cap it lower.
+- **Pick a model that honours `response_format: json_schema`.** One that does not never gets past the parser, so the feature degrades to offline drafting permanently and silently. Check `source` on a draft — `"model"` or `"fallback"` — before concluding a provider is configured correctly.
+- **A model that ignores the schema still cannot produce a bad grant.** Qwen returned a schema-shaped object with `", "` in `timing.cliff` and `timing.duration`; the parser refused it and the user got an offline draft rather than a grant with a nonsense schedule. This is why a provider `200` is never treated as validation.
+
+A flaky free tier is survivable and expected: Groq answers `5xx` intermittently under bursts, those requests fall back, and the wizard stays usable. A mix of `source: "model"` and `source: "fallback"` on a free tier is normal, not a misconfiguration.
+
+An invalid key is not reliably a `401`, either. xAI answers one with `400 {"code":"invalid-argument"}`, which this code classifies as `unavailable`. The user-visible behaviour is identical — a fallback draft — but an `unavailable` in a log does not by itself mean the provider is down.
 
 ### Limits and cost guardrails
 
 | Limit               | Value            | Where                                                    |
 | ------------------- | ---------------- | -------------------------------------------------------- |
 | Prompt length       | 8–400 characters | `AI_PROMPT_MIN_LENGTH` / `AI_PROMPT_MAX_LENGTH`          |
-| Output tokens       | 700              | `AI_MAX_OUTPUT_TOKENS`                                   |
+| Output tokens       | 2500             | `AI_MAX_OUTPUT_TOKENS`, overridable with `AI_MAX_TOKENS` |
 | Request timeout     | 15 s             | `AI_REQUEST_TIMEOUT_MS`                                  |
 | Temperature         | 0.2              | `AI_TEMPERATURE`                                         |
 | Allocation ceiling  | 1000             | `AI_MAX_ALLOCATION` — one faucet click mints 1,000 hvUSD |
 | Milestones          | 20               | the vault's own `MAX_MILESTONES`                         |
+| Schedule length     | 10 years         | `AI_MAX_SCHEDULE_SECONDS`                                |
 | Requests per wallet | 5/minute, 40/day | `apps/web/lib/cloud/ai/rate-limit.ts`                    |
 
 The endpoint requires a SIWE session. That is not authorization — the response grants nothing — it is the rate-limit identity and a barrier against an anonymous caller spending a provider budget.
@@ -91,19 +114,20 @@ Two consequences worth stating rather than hiding:
 
 The provider is optional by construction: HAS-16 requires that the baseline demo work without one. `heuristicDraft` reads the request with rules — amount, duration and unit, cliff, milestone count, and keywords in all three product locales — picks the closest catalog preset, and adjusts its numbers. Its copy comes from the already localized catalog, so an offline draft speaks English, 简体中文, and Español without holding a single string of product prose.
 
-| Condition                             | Behaviour                                                             |
-| ------------------------------------- | --------------------------------------------------------------------- |
-| No `AI_API_KEY`                       | Offline draft, marked `offlineDraft`                                  |
-| 401 / 403                             | Offline draft                                                         |
-| 429 upstream                          | Offline draft                                                         |
-| 5xx or network failure                | Offline draft                                                         |
-| Timeout (15 s)                        | Offline draft                                                         |
-| Unparseable or incoherent output      | Offline draft                                                         |
-| Output that fails `assertValidPreset` | Offline draft                                                         |
-| Prompt outside 8–400 characters       | `400`, actionable and localized                                       |
-| Per-wallet budget spent               | `429` with `Retry-After` and the real wait                            |
-| No session                            | `401`                                                                 |
-| Anything unclassified                 | Throws. A bug that returns a plausible draft is a bug nobody reports. |
+| Condition                                                           | Behaviour                                                             |
+| ------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| No `AI_API_KEY`                                                     | Offline draft, marked `offlineDraft`                                  |
+| 401 / 403                                                           | Offline draft                                                         |
+| 400 upstream — a bad key on xAI, an exhausted output budget on Groq | Offline draft, classified `unavailable`                               |
+| 429 upstream                                                        | Offline draft                                                         |
+| 5xx or network failure                                              | Offline draft                                                         |
+| Timeout (15 s)                                                      | Offline draft                                                         |
+| Unparseable or incoherent output                                    | Offline draft                                                         |
+| Output that fails `assertValidPreset`                               | Offline draft                                                         |
+| Prompt outside 8–400 characters                                     | `400`, actionable and localized                                       |
+| Per-wallet budget spent                                             | `429` with `Retry-After` and the real wait                            |
+| No session                                                          | `401`                                                                 |
+| Anything unclassified                                               | Throws. A bug that returns a plausible draft is a bug nobody reports. |
 
 ## What the user is told
 

@@ -920,6 +920,8 @@ export const en = {
     "Shortened the cliff from {cliff} to {duration}: a cliff cannot outlast its own schedule.",
   "ai.adjustment.durationDefaulted":
     "Set the duration to {duration}, because the draft asked for none.",
+  "ai.adjustment.durationClamped":
+    "Shortened the duration from {requested} to {maximum}: the draft asked for a schedule longer than ten years.",
   "ai.adjustment.timingDefaulted":
     "Added a default schedule, because this strategy needs one.",
   "ai.adjustment.timingDropped":

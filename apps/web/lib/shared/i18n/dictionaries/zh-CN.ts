@@ -839,6 +839,8 @@ export const zhCN: TranslationDictionary = {
     "已将悬崖期从 {cliff} 缩短到 {duration}：悬崖期不能超过它自己的时间表。",
   "ai.adjustment.durationDefaulted":
     "已将时长设为 {duration}，因为草稿没有给出时长。",
+  "ai.adjustment.durationClamped":
+    "已将时长从 {requested} 缩短为 {maximum}：草稿要求的时间表超过十年。",
   "ai.adjustment.timingDefaulted": "已补上默认时间表，因为该策略需要一个。",
   "ai.adjustment.timingDropped": "已移除时间表：里程碑赠款没有时间表。",
   "ai.adjustment.milestonesDefaulted": "已添加一个覆盖全部额度的里程碑。",
