@@ -1,0 +1,111 @@
+# Organization AI tools — HAS-19 and HAS-17
+
+Three independent, collapsible sections share one visual vocabulary: the Grant
+Builder in the wizard's Template step, template generation in the organization's
+new-template editor, and evidence analysis beside GrantDetail's private evidence.
+The review queue links directly to analysis. Navigation remains Overview, Grants
+and Settings. Every result is advisory; HSK owns all value and permission.
+
+## Template generation
+
+`POST /api/organizations/[organizationId]/ai/template-draft` accepts `prompt` and
+`locale`. Same-origin, session and owner checks precede provider access. It returns
+a nullable `draft` and `unavailable` flag. A draft contains ordinary template
+content, assumptions, unsupported requests and a redaction flag. Its parser
+reconstructs allowed fields and runs `assertValidOrganizationTemplate`; invalid
+percentages or schedules are rejected, never repaired silently. The model cannot
+name identities or transactions. The server sets `defaultReviewerMemberId` to null.
+
+The owner applies the suggestion, confirms replacement of edits, edits the result
+and explicitly saves through existing template CRUD. Saved templates use the
+ordinary wizard application path. Missing configuration, provider errors and
+malformed output leave the manual editor available. Changed locale requires a new
+template suggestion before application.
+
+## Evidence review
+
+`POST /api/organizations/[organizationId]/grants/[vaultAddress]/ai/review` uses only
+`locale` from the body. The server checks membership and canonical `(133, vault)`
+organization association before RPC or model access. Browser-provided evidence
+and financial values are ignored. A failed HSK read returns no private evidence.
+
+HSK reads are block-consistent: milestones, approvals, strategy, allocation,
+claimed/unlocked/claimable amounts and revocation. Supabase supplies authorized
+notes, types, URLs and dates. The model receives redacted notes and chain data with
+source IDs, never evidence URLs, signed query parameters or submitter wallets.
+External links are not downloaded or verified. Notes are submitter claims; age
+does not imply expiry because no freshness policy or deadline is defined.
+
+The result contains cited summary, findings, questions, uncertainty and a textual
+recommendation: approve, request information or insufficient information. Every
+statement references known IDs, resolved to safe links by the server. Unknown
+citations reject the response. Approval suggestions are rejected for revoked
+grants, no pending milestones, or pending milestones without usable notes. A valid
+citation identifies a supplied source; it does not prove the model interpreted it
+correctly. Humans still check the sources and use the existing approveMilestone
+action. The section has no wallet API or approval callback.
+
+The UI shows consultation date/block, source dates, unread-link limitation and a
+permanent advisory disclaimer. Recommendations disappear when evidence, relevant
+chain state or locale changes, or the analysis is older than five minutes.
+Session, organization and grant changes discard private results and abort requests.
+Provider failure retains source context and leaves manual review available.
+
+## Provider and privacy
+
+All tools share `apps/web/lib/cloud/ai/config.ts`: server-only `AI_API_KEY`, optional
+`AI_BASE_URL`, `AI_MODEL` and `AI_MAX_TOKENS`. Defaults remain Groq,
+`openai/gpt-oss-20b` and 2500 output tokens; 120b is an optional existing model
+override. No deployer or relayer key is needed.
+
+Limits: 15-second provider timeout, 128,000-byte provider response, 4096-byte
+streamed requests for new routes, 8–400-character template prompts, 24,000-character
+raw model output, eight entries per prose list, 600 characters per review statement,
+20 milestones and 1000 characters per evidence note. All three tools share the
+in-process wallet budget of 5/minute and 40/day. Horizontal deployments enforce
+the budget per instance. New responses, including errors, use no-store; rate
+limits return Retry-After.
+
+Prompts and raw model responses are never logged or persisted. Tool state stays in
+component memory, outside query caches and browser storage. The explicit HAS-19
+exception is ordinary template configuration reviewed and saved by the owner;
+prompts, raw responses and analysis are not saved with it. Provider retention is
+subject to that provider's policy. There is no migration or contract change.
+
+## Verification and rollback
+
+Unit/service and real Route Handler tests cover schema rejection, owner/member
+isolation, association, citations, redaction, limits, unchanged database writes and
+provider failure. Existing evidence tests cover the public context boundary.
+Playwright tests the real wizard and the production-gated `/visual/ai-tools`
+fixture: explicit save/reuse, replacement refusal, source links, stale analysis,
+session reset, manual fallback, no wallet writes and EN/ES/zh-CN mobile/desktop
+snapshots. HTTP is stubbed; this does not prove live wallet approval.
+
+```bash
+pnpm --filter @hashvest/web test
+pnpm --filter @hashvest/web visual
+pnpm agents:sync
+pnpm agents:check
+pnpm ci:check
+```
+
+Playwright never reuses another server. Select an available port if 3100 belongs
+to another worktree; PowerShell example:
+
+```powershell
+$env:HASHVEST_VISUAL_PORT = '3101'
+pnpm --filter @hashvest/web visual
+```
+
+Optional live smoke uses synthetic data only, makes six model requests across the
+two schemas and three locales, and is skipped in normal CI:
+
+```powershell
+cd apps/web
+$env:HASHVEST_LIVE_AI = '1'
+node --env-file=.env.local node_modules/vitest/vitest.mjs run lib/cloud/ai/provider-live.test.ts
+```
+
+Reverting the sections and routes needs no migration or redeployment. Templates
+already explicitly saved remain ordinary valid templates.

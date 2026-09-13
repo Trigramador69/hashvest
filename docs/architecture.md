@@ -123,6 +123,23 @@ AI assistance follows the same direction. The draft contract, its parser, its no
 
 Localization is presentation state, so it lives in `lib/shared/i18n/**` and imports neither layer. English is the source of truth: `dictionaries/en.ts` defines `TranslationKey`, and every other locale is typed as a subset of it, so a missing or blank string falls back to English instead of surfacing a raw key. The locale is a cookie, not a route segment — no URL carries a language, and `router.refresh()` applies a change without remounting the wallet providers. User-visible generic and HSK RPC errors use localized `errorMessage` options; already-translated validation and wallet-guard errors are preserved. Technical literals (addresses, hashes, token symbols, chain ids, explorer URLs) are never written into a message; they arrive through `{placeholder}` substitution so they stay identical in all three locales.
 
+### Organization AI tools (HAS-19 / HAS-17)
+
+The explicitly requested Cloud slice adds owner-only template generation and
+member-only evidence review; [`ai-tools.md`](ai-tools.md) defines the API and
+retention contract. Shared parsers live in `lib/shared/ai-tools`, orchestration
+and provider transport in `lib/cloud/ai`. A read-only protocol helper takes
+block-consistent HSK snapshots after Cloud proves membership and association.
+Cloud does not pass browser financial values to the model or download evidence
+links. Validated citations identify supplied sources, not authoritative decisions.
+
+Raw prompts, responses and review analysis remain ephemeral. Only template
+configuration explicitly reviewed and saved by an owner is persisted through
+the existing schema and CRUD. No model field chooses identities; the server
+assigns a null reviewer default. The three independent UI sections share their
+provider and rate limit, preserve manual flows, and introduce no protocol writes,
+migrations or additional navigation destinations.
+
 ## Authority: which layer owns which field
 
 | Owned by HSK (authoritative)                          | Owned by Supabase (product context)                                                                     |

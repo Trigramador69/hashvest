@@ -125,11 +125,28 @@ Organization sponsorship is an opt-in Cloud policy around two protocol operation
 
 ### AI Grant Builder
 
-A floating panel on the grant wizard turns a short description into a draft. The draft is a _preset_, not a grant: it is validated by the same `assertValidPreset` gate the hand-written Builder/Employee/Advisor/Ecosystem templates pass and applied through the same preset path, so `prepare()` remains the only source of truth for what is submitted onchain. There is no submission path that only AI output uses.
+A collapsible section in the grant wizard's Template step turns a short description into a draft. The draft is a _preset_, not a grant: it is validated by the same `assertValidPreset` gate the hand-written Builder/Employee/Advisor/Ecosystem templates pass and applied through the same preset path, so `prepare()` remains the only source of truth for what is submitted onchain. There is no submission path that only AI output uses.
 
 The draft type has no field for a beneficiary, reviewer, token, eligibility provider, start timestamp, or revocability, so a model cannot suggest an identity or a transaction at all. Prompts are redacted before they leave the server and are never retained. A provider that is unavailable, unauthorized, rate-limited, slow, or incoherent falls back to a deterministic offline drafter, so the feature never blocks the wizard.
 
 Full contract, limits, failure matrix, and privacy boundary: [`docs/ai-grant-builder.md`](docs/ai-grant-builder.md).
+
+### Organization AI tools (HAS-19 / HAS-17)
+
+Owners can generate reusable organization templates inside the new-template
+editor, inspect assumptions and unsupported requests, apply editable suggestions
+and explicitly save through the ordinary template CRUD. Members can analyze
+private milestone notes and current HSK reads on GrantDetail, reached from the
+review queue. Every finding cites supplied sources; linked content is not fetched.
+Recommendations are advisory text and cannot execute approval.
+
+Both use independent, collapsible sections and the same server-only AI provider
+configuration as the Grant Builder. A missing or failed provider leaves manual
+template creation and review available. Prompts and raw responses are never
+retained; only template configuration explicitly reviewed and saved by an owner
+becomes normal organization metadata. No migration or redeployment is required.
+See [`docs/ai-tools.md`](docs/ai-tools.md) for permissions, limits, tests and the
+optional synthetic live-provider smoke test.
 
 ### Unlock semantics
 
@@ -181,12 +198,13 @@ SPONSORED_CLAIM_RELAYER_PRIVATE_KEY=
 
 Generate `AUTH_SECRET` with `openssl rand -base64 32` or another cryptographically random secret. Never prefix `SUPABASE_SERVICE_ROLE_KEY`, `AUTH_SECRET`, or `AI_API_KEY` with `NEXT_PUBLIC_`, commit them, or expose them to browser code. `AUTH_APP_URL` should be the canonical application origin when deployed behind a proxy; leave it at the local origin for local development.
 
-The AI Grant Builder is optional and off unless a provider is configured:
+All three AI tools share the following optional server-only provider configuration:
 
 ```dotenv
 AI_API_KEY=
 AI_BASE_URL=
 AI_MODEL=
+AI_MAX_TOKENS=
 ```
 
 Any OpenAI-compatible `/chat/completions` endpoint works, so `AI_BASE_URL` and `AI_MODEL` are the only difference between Groq (the default, `https://api.groq.com/openai/v1` and `openai/gpt-oss-20b`, verified end to end on its free tier), xAI, OpenRouter, DeepSeek, Zhipu, or a local Ollama or LM Studio server. Setting only `AI_API_KEY` is enough to get a working provider.
@@ -259,7 +277,12 @@ landing, disconnected mobile navigation, and deterministic connected dashboard
 fixture; the fixture route returns 404 in production and never reads or writes
 HSK state.
 
-The application is available at `http://localhost:3000`. Routes are `/` (landing), `/plans` (public Protocol / Cloud and Free / Team / Enterprise presentation), `/app` (live overview), `/app/grants` (Issued / Received / Review), `/app/organizations` (organization list), `/app/organizations/new`, `/app/organizations/<uuid>`, `/app/organizations/<uuid>/members`, `/app/organizations/<uuid>/templates`, `/app/organizations/<uuid>/reports`, `/app/organizations/<uuid>/settings`, `/app/organizations/<uuid>/grants`, and `/app/organizations/<uuid>/grants/new`, `/app/settings` (workspace session, language, network, and sponsored-claim policy links), plus `/grants/new` (the shared five-step template-aware creation wizard: Template, Grant, Strategy, Conditions, Review) and `/grants/<GrantVault address>` (public role-aware detail page). The previous `/app/settings/organizations/...` paths remain compatibility redirects. `/visual/dashboard` and `/visual/templates` are local-only deterministic fixtures for the Playwright visual contract and are unavailable in production.
+AI sections also have desktop/mobile coverage in EN, ES and zh-CN. Playwright
+starts its own server and refuses to reuse an existing one. Set
+`HASHVEST_VISUAL_PORT` (for example `3101`) when another worktree owns `3100`.
+The `/visual/ai-tools` fixture is additionally gated by `VISUAL_TEST_MODE=1`.
+
+The application is available at `http://localhost:3000`. Routes are `/` (landing), `/plans` (public Protocol / Cloud and Free / Team / Enterprise presentation), `/app` (live overview), `/app/grants` (Issued / Received / Review), `/app/organizations` (organization list), `/app/organizations/new`, `/app/organizations/<uuid>`, `/app/organizations/<uuid>/members`, `/app/organizations/<uuid>/templates`, `/app/organizations/<uuid>/reports`, `/app/organizations/<uuid>/settings`, `/app/organizations/<uuid>/grants`, and `/app/organizations/<uuid>/grants/new`, `/app/settings` (workspace session, language, network, and sponsored-claim policy links), plus `/grants/new` (the shared five-step template-aware creation wizard: Template, Grant, Strategy, Conditions, Review) and `/grants/<GrantVault address>` (public role-aware detail page). The previous `/app/settings/organizations/...` paths remain compatibility redirects. `/visual/dashboard`, `/visual/templates` and `/visual/ai-tools` are local-only deterministic fixtures for the Playwright visual contract and are unavailable in production.
 
 Wallet connection and workspace authentication are separate. After connecting an HSK Testnet wallet, click **Sign in to workspace** and approve one SIWE/EIP-4361 message. The server stores a five-minute, one-time nonce and issues a 24-hour HttpOnly, SameSite session cookie signed with `AUTH_SECRET`. If the connected wallet changes, organization reads and writes are disabled until the new wallet explicitly signs in; the application never silently signs or writes as the previous wallet.
 

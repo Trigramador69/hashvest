@@ -6,6 +6,13 @@ The governing rule is one sentence: **a model drafts, a human decides, and HSK s
 
 ## The central decision
 
+This document covers the grant drafter. The organization template generator
+(HAS-19) and evidence copilot (HAS-17) share its provider transport and wallet
+budget, with separate validators and manual fallbacks described in
+[`ai-tools.md`](ai-tools.md). All three use independent collapsible sections;
+the Grant Builder now lives within the wizard's Template step. Transport responses
+are bounded to 128,000 bytes and UI results live outside shared query caches.
+
 A draft is a **preset**, not a grant.
 
 The wizard already accepts editable presets — Builder, Employee, Advisor, Ecosystem — through a validated path built for HAS-8 and HAS-11. Model output is shaped into the same `GrantPreset` type and travels the same way:
