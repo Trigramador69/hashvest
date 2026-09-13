@@ -160,7 +160,7 @@ landing, disconnected mobile navigation, and deterministic connected dashboard
 fixture; the fixture route returns 404 in production and never reads or writes
 HSK state.
 
-The application is available at `http://localhost:3000`. Routes are `/` (landing), `/app` (organization entry point plus Issued / Received / Review dashboard), `/grants/new` (the shared five-step template-aware creation wizard: Template, Grant, Strategy, Conditions, Review), `/grants/<GrantVault address>` (public role-aware detail page), `/app/organizations/new`, `/app/organizations/<uuid>`, `/app/organizations/<uuid>/members`, `/app/organizations/<uuid>/grants`, and `/app/organizations/<uuid>/grants/new`. `/visual/dashboard` is a local-only deterministic fixture for the Playwright visual contract and is unavailable in production.
+The application is available at `http://localhost:3000`. Routes are `/` (landing), `/app` (live overview), `/app/grants` (Issued / Received / Review), `/app/settings` (organizations), `/app/settings/organizations/new`, `/app/settings/organizations/<uuid>`, `/app/settings/organizations/<uuid>/members`, `/app/settings/organizations/<uuid>/grants`, and `/app/settings/organizations/<uuid>/grants/new`, plus `/grants/new` (the shared five-step template-aware creation wizard: Template, Grant, Strategy, Conditions, Review) and `/grants/<GrantVault address>` (public role-aware detail page). The previous `/app/organizations/...` paths remain compatibility redirects. `/visual/dashboard` is a local-only deterministic fixture for the Playwright visual contract and is unavailable in production.
 
 Wallet connection and workspace authentication are separate. After connecting an HSK Testnet wallet, click **Sign in to workspace** and approve one SIWE/EIP-4361 message. The server stores a five-minute, one-time nonce and issues a 24-hour HttpOnly, SameSite session cookie signed with `AUTH_SECRET`. If the connected wallet changes, organization reads and writes are disabled until the new wallet explicitly signs in; the application never silently signs or writes as the previous wallet.
 
@@ -228,11 +228,11 @@ The current Blockscout endpoint returned HTTP 413 (`Request Entity Too Large`) f
 4. Choose **Create grant** from the organization. Select the beneficiary and reviewer by name, or use the secondary **Use external wallet** escape hatch. Select **Hybrid**, add milestones totaling the allocation, choose a short schedule, and approve spending.
 5. Wait for the HSK transaction to confirm. The app then links `(133, GrantVault address)` to the organization with the optional description. If that metadata request fails, use **Retry workspace sync**; do not create another grant.
 6. Switch to the reviewer wallet, connect, sign in explicitly, and open the organization review queue. **Review grant** opens the existing GrantDetail page, where the reviewer approves the pending milestone.
-7. Switch to the beneficiary wallet, connect, sign in explicitly, and open the organization workspace. The grant appears with its live claimable amount; open GrantDetail and claim the real hvUSD.
+7. Switch to the beneficiary wallet, connect, sign in explicitly, and open the organization workspace from **Settings**. The grant appears with its live claimable amount; open GrantDetail and claim the real hvUSD.
 
 The direct protocol flow remains available at `/grants/new`: enter raw beneficiary/reviewer addresses and create TIME, MILESTONE, or HYBRID grants without organization metadata. Existing GrantVaults can be attached later by an organization owner from the overview using **Link an existing GrantVault**. The server verifies bytecode, GrantVault reads, and the actual onchain issuer before association.
 
-Every approval, creation, milestone, faucet, claim, and revocation transaction exposes an HSK Testnet explorer link. Use `/app` to move between role-specific grants.
+Every approval, creation, milestone, faucet, claim, and revocation transaction exposes an HSK Testnet explorer link. Use `/app/grants` to move between role-specific grants.
 
 For the controlled-wallet browser rehearsal, copy the public-address-only fixture and follow [`docs/browser-rehearsal.md`](docs/browser-rehearsal.md). `pnpm rehearsal:check` performs a read-only HSK/deployment/wallet readiness check; live browser execution and evidence are tracked separately in HAS-20.
 

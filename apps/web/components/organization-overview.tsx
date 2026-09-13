@@ -19,6 +19,7 @@ import { errorMessage, tokenAmount } from "@/lib/protocol/grants";
 import { findMemberByWallet } from "@/lib/cloud/members";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
 import { useTranslations } from "@/lib/shared/i18n/provider";
+import { appRoutes } from "@/lib/shared/routes";
 import type {
   OrganizationGrant,
   OrganizationMember,
@@ -344,7 +345,7 @@ export function OrganizationOverview({
               </div>
               <Link
                 className="text-sm font-medium text-primary hover:underline"
-                href={`/app/organizations/${organizationId}/grants`}
+                href={appRoutes.organizationGrants(organizationId)}
               >
                 {t("overview.recent.viewAll")}
               </Link>
@@ -356,7 +357,7 @@ export function OrganizationOverview({
                 </p>
                 <Link
                   className={`${buttonVariants()} mt-4`}
-                  href={`/app/organizations/${organizationId}/grants/new`}
+                  href={appRoutes.organizationNewGrant(organizationId)}
                 >
                   {t("overview.recent.createFirst")}
                 </Link>
@@ -446,7 +447,7 @@ export function OrganizationOverview({
               </CardTitle>
               <Link
                 className="text-sm font-medium text-primary hover:underline"
-                href={`/app/organizations/${organizationId}/members`}
+                href={appRoutes.organizationMembers(organizationId)}
               >
                 {t("overview.members.manage")}
               </Link>
@@ -507,7 +508,7 @@ export function OrganizationGrants({
         </div>
         <Link
           className={buttonVariants()}
-          href={`/app/organizations/${organizationId}/grants/new`}
+          href={appRoutes.organizationNewGrant(organizationId)}
         >
           {t("orggrants.create")} <span aria-hidden>+</span>
         </Link>

@@ -35,6 +35,7 @@ import {
 } from "@/lib/protocol/grants";
 import { strategyKey } from "@/lib/shared/i18n/keys";
 import { useTranslations } from "@/lib/shared/i18n/provider";
+import { appRoutes } from "@/lib/shared/routes";
 import { deriveGrantState } from "@/lib/protocol/grant-state";
 import { deriveRevocationPreview } from "@/lib/protocol/revocation";
 import { ParticipantIdentity } from "./grant-card";
@@ -70,7 +71,7 @@ export function GrantDetail({ address }: { address: Address }) {
   if (!grant.data)
     return (
       <div className="space-y-5">
-        <Link className="text-sm text-primary" href="/app">
+        <Link className="text-sm text-primary" href={appRoutes.grants}>
           <span aria-hidden>←</span> {t("detail.back")}
         </Link>
         <Notice title={t("detail.error.title")} error>
@@ -97,7 +98,7 @@ export function GrantDetail({ address }: { address: Address }) {
   if (grant.isRefetchError)
     return (
       <div className="space-y-5">
-        <Link className="text-sm text-primary" href="/app">
+        <Link className="text-sm text-primary" href={appRoutes.grants}>
           <span aria-hidden>←</span> {t("detail.back")}
         </Link>
         <Notice title={t("detail.stale.title")} error>
@@ -255,7 +256,7 @@ export function GrantDetail({ address }: { address: Address }) {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
-        <Link className="text-primary" href="/app">
+        <Link className="text-primary" href={appRoutes.grants}>
           <span aria-hidden>←</span> {t("detail.back")}
         </Link>
         {grantContext.data && (
@@ -263,7 +264,7 @@ export function GrantDetail({ address }: { address: Address }) {
             <span className="text-muted-foreground">/</span>
             <Link
               className="text-primary hover:underline"
-              href={`/app/organizations/${grantContext.data.organization.id}`}
+              href={appRoutes.organization(grantContext.data.organization.id)}
             >
               {grantContext.data.organization.name}
             </Link>
@@ -315,9 +316,10 @@ export function GrantDetail({ address }: { address: Address }) {
         <div className="mt-3 flex flex-wrap gap-2">
           {roles.roles.map((role) => (
             <span
-              className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-primary"
               key={String(role)}
             >
+              <span className="size-1.5 rounded-full bg-current" />
               {t(`detail.youAre.${role}`)}
             </span>
           ))}

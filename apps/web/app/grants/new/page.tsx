@@ -60,6 +60,7 @@ import {
 } from "@/lib/shared/grant-presets/wizard-state";
 import { useGrantPresets } from "@/lib/shared/grant-presets/use-grant-presets";
 import { useTranslations } from "@/lib/shared/i18n/provider";
+import { appRoutes } from "@/lib/shared/routes";
 
 /** Step ids; labels come from the dictionary. */
 const steps = [0, 1, 2, 3, 4] as const;
@@ -210,8 +211,9 @@ function PresetPicker({
             {active.bestFor.map((audience) => (
               <span
                 key={audience}
-                className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-primary"
               >
+                <span className="size-1.5 rounded-full bg-current" />
                 {audience}
               </span>
             ))}
@@ -899,7 +901,10 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             ) : (
               <p>
                 {t("wizard.confirmed.before")}
-                <Link href="/app" className="text-primary underline">
+                <Link
+                  href={appRoutes.grants}
+                  className="text-primary underline"
+                >
                   {t("wizard.confirmed.link")}
                 </Link>
                 {t("wizard.confirmed.after")}

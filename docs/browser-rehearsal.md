@@ -92,7 +92,8 @@ was actually automated and observed.
 - [ ] Connect the issuer wallet and verify the displayed address matches the
       fixture.
 - [ ] Click **Sign in to workspace** and approve one SIWE message on chain 133.
-- [ ] Create the organization `HAS-9 Controlled Wallet Rehearsal`; set the
+- [ ] Open **Settings**, create the organization `HAS-9 Controlled Wallet
+Rehearsal`; set the
       issuer display name to `Issuer / workspace owner` and role/title to
       `Workspace Owner`. The issuer is its sole owner/member.
 - [ ] Add the reviewer address with the display name `Treasury Reviewer`.
@@ -102,7 +103,7 @@ was actually automated and observed.
 
 ### Create the HYBRID grant
 
-- [ ] Open **Create grant** from the organization workspace.
+- [ ] Open **Create grant** from the organization workspace under **Settings**.
 - [ ] Enter the title `HAS-9 controlled-wallet HYBRID rehearsal YYYY-MM-DD-NN`,
       replacing the suffix with the UTC date and run number.
 - [ ] Select the named beneficiary member and the demo `hvUSD` token.
@@ -130,7 +131,8 @@ metadata request is still pending.
 - [ ] Switch to the reviewer account in the browser wallet.
 - [ ] Reconnect if necessary and click **Sign in to workspace** again; a SIWE
       session belongs to one wallet and is not silently transferred.
-- [ ] Open the organization review queue and the existing grant.
+- [ ] Open the organization review queue under **Settings** and open the
+      existing grant.
 - [ ] Verify the reviewer role comes from the GrantVault reviewer address, then
       approve `Prototype accepted`. Record its explorer link.
 - [ ] Switch to the beneficiary account, reconnect, and explicitly sign in.

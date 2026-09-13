@@ -59,6 +59,13 @@ the timeline partial while retaining the live snapshot. The guarded
 `/visual/dashboard` route supplies deterministic fixture data only to local
 Playwright snapshots and returns 404 in production.
 
+The application shell keeps this projection easy to find without inventing
+product surfaces: `/app` is the overview, `/app/grants` is the direct role-based
+grant list, and `/app/settings` owns organization context. Organization detail
+and management live under `/app/settings/organizations/<uuid>`. The legacy
+`/app/organizations/...` paths only redirect to those canonical routes; they do
+not define a second UI or data boundary.
+
 Cloud authority stops at workspace access. The SIWE statement in `apps/web/lib/cloud/auth/constants.ts` says so explicitly: the signature _"authenticates workspace access only; it does not authorize onchain actions."_
 
 ## Integration path

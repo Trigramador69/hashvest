@@ -1,13 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  ArrowUpRight,
-  CheckCircle2,
-  Coins,
-  Flag,
-  RotateCcw,
-} from "lucide-react";
+import { CheckCircle2, Coins, Flag, RotateCcw } from "lucide-react";
 
 import { DataArt } from "@/components/ui/data-art";
 import { MetricCard } from "@/components/ui/metric-card";
@@ -22,6 +16,7 @@ import {
 import { shortAddress } from "@/lib/protocol/grants";
 import { useTranslations } from "@/lib/shared/i18n/provider";
 import type { Translator } from "@/lib/shared/i18n/dictionary";
+import { appRoutes } from "@/lib/shared/routes";
 
 function eventIcon(kind: DashboardChainEvent["kind"]) {
   if (kind === "created")
@@ -469,7 +464,7 @@ export function DashboardOverview({
           art="rings"
         />
         <MetricCard
-          label={t("dashboard.metric.workspaces")}
+          label={t("dashboard.metric.organizations")}
           value={organizationCount}
           trend={organizationCount ? t("dashboard.metric.synced") : "—"}
           comparison={t("dashboard.metric.context")}
@@ -505,7 +500,7 @@ export function DashboardOverview({
         </p>
       )}
       <div className="grid gap-3 xl:grid-cols-12">
-        <Panel className="xl:col-span-5">
+        <Panel className="xl:col-span-8">
           <PanelHeader
             title={t("dashboard.chart.activity.title")}
             description={t("dashboard.chart.activity.lede")}
@@ -514,7 +509,7 @@ export function DashboardOverview({
             <DotBarChart data={data.activity} t={t} />
           </PanelBody>
         </Panel>
-        <Panel className="xl:col-span-3">
+        <Panel className="xl:col-span-4">
           <PanelHeader
             title={t("dashboard.chart.strategy.title")}
             description={t("dashboard.chart.strategy.lede")}
@@ -522,32 +517,6 @@ export function DashboardOverview({
           <PanelBody>
             <DonutChart data={data.strategyDistribution} t={t} />
           </PanelBody>
-        </Panel>
-        <Panel className="relative overflow-hidden bg-[#07110C] xl:col-span-4">
-          <PanelBody className="relative z-10 flex min-h-[250px] flex-col justify-between">
-            <div>
-              <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-primary">
-                {t("dashboard.chart.next.eyebrow")}
-              </p>
-              <h2 className="mt-6 max-w-[220px] font-mono text-2xl font-normal leading-tight text-foreground">
-                {t("dashboard.chart.next.title")}
-              </h2>
-              <p className="mt-3 max-w-[230px] text-xs leading-5 text-muted-foreground">
-                {t("dashboard.chart.next.body")}
-              </p>
-            </div>
-            <Link
-              href="/grants/new"
-              aria-label={t("dashboard.chart.next.cta")}
-              className="grid size-9 place-items-center rounded-full border border-border-strong text-foreground hover:bg-surface-2"
-            >
-              <ArrowUpRight className="size-4" strokeWidth={1.25} />
-            </Link>
-          </PanelBody>
-          <DataArt
-            variant="orb"
-            className="absolute -right-14 -top-4 h-52 w-64 opacity-55"
-          />
         </Panel>
       </div>
       <div className="grid gap-3 xl:grid-cols-12">
@@ -557,7 +526,7 @@ export function DashboardOverview({
             description={t("dashboard.chart.top.lede")}
             action={
               <Link
-                href="/app"
+                href={appRoutes.grants}
                 className="font-mono text-[10px] text-primary hover:underline"
               >
                 {t("dashboard.chart.top.viewAll")}

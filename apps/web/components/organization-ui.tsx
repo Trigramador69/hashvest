@@ -11,6 +11,7 @@ import {
 import { useSession } from "@/hooks/use-session";
 import { errorMessage, shortAddress } from "@/lib/protocol/grants";
 import { useTranslations } from "@/lib/shared/i18n/provider";
+import { appRoutes } from "@/lib/shared/routes";
 import type { OrganizationMember } from "@/lib/cloud/organizations/types";
 
 import { Notice, PageHeading } from "./grant-ui";
@@ -135,9 +136,9 @@ export function WorkspaceTabs({ organizationId }: { organizationId: string }) {
   const pathname = usePathname();
   const t = useTranslations();
   const tabs = [
-    ["overview", `/app/organizations/${organizationId}`],
-    ["grants", `/app/organizations/${organizationId}/grants`],
-    ["members", `/app/organizations/${organizationId}/members`],
+    ["overview", appRoutes.organization(organizationId)],
+    ["grants", appRoutes.organizationGrants(organizationId)],
+    ["members", appRoutes.organizationMembers(organizationId)],
   ] as const;
   return (
     <nav
@@ -148,7 +149,7 @@ export function WorkspaceTabs({ organizationId }: { organizationId: string }) {
         <Link
           key={id}
           href={href}
-          className={`rounded-control px-3 py-2 font-mono text-xs ${pathname === href ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
+          className={`flex min-h-11 items-center rounded-control px-3 font-mono text-xs ${pathname === href ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
         >
           {t(`workspace.tab.${id}`)}
         </Link>
@@ -159,8 +160,10 @@ export function WorkspaceTabs({ organizationId }: { organizationId: string }) {
 
 export function OrganizationHeader({
   organizationId,
+  showCreateAction = true,
 }: {
   organizationId: string;
+  showCreateAction?: boolean;
 }) {
   const t = useTranslations();
   const session = useSession();
@@ -195,7 +198,7 @@ export function OrganizationHeader({
     <div className="space-y-5">
       <Link
         className="font-mono text-xs text-primary hover:underline"
-        href="/app"
+        href={appRoutes.settings}
       >
         <span aria-hidden>←</span> {t("workspace.backToOrganizations")}
       </Link>
@@ -203,12 +206,14 @@ export function OrganizationHeader({
         eyebrow={t("workspace.eyebrow")}
         title={data.name}
         action={
-          <Link
-            className={buttonVariants({ size: "sm" })}
-            href={`/app/organizations/${organizationId}/grants/new`}
-          >
-            {t("workspace.createGrant")} <span aria-hidden>+</span>
-          </Link>
+          showCreateAction ? (
+            <Link
+              className={buttonVariants({ size: "sm" })}
+              href={appRoutes.organizationNewGrant(organizationId)}
+            >
+              {t("workspace.createGrant")} <span aria-hidden>+</span>
+            </Link>
+          ) : undefined
         }
       >
         <p>

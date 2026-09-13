@@ -12,35 +12,13 @@ export const en = {
   // Shell: header, navigation, footer.
   "shell.home": "HashVest home",
   "shell.nav.label": "Main navigation",
-  "shell.nav.organizations": "Organizations / grants",
-  "shell.nav.createGrant": "Create grant",
-  "shell.workspace.label": "Workspace",
-  "shell.workspace.choose": "Choose workspace",
-  "shell.workspace.yours": "Your organizations",
-  "shell.workspace.create": "+ Create organization",
   "shell.footer.tagline": "Programmable grants on HashKey Chain",
   "shell.footer.disclaimer": "Hackathon MVP · Unaudited · Testnet assets only",
   "shell.nav.overview": "Overview",
-  "shell.nav.projects": "Projects",
-  "shell.nav.data": "Data",
-  "shell.nav.models": "Models",
-  "shell.nav.insights": "Insights",
-  "shell.nav.team": "Team",
+  "shell.nav.grants": "Grants",
   "shell.nav.settings": "Settings",
-  "shell.search.label": "Search projects, workspaces and grants",
-  "shell.search.placeholder": "Search projects, workspaces, grants…",
-  "shell.search.empty": "Press Enter to search this grant address.",
-  "shell.search.overview": "Overview",
-  "shell.search.overviewDetail": "Dashboard",
-  "shell.search.createGrant": "Create grant",
-  "shell.search.createGrantDetail": "New allocation",
-  "shell.search.newOrganization": "New organization",
-  "shell.search.workspaceDetail": "{members} members · {grants} grants",
   "shell.navigation.open": "Open navigation",
   "shell.navigation.close": "Close navigation",
-  "shell.notifications": "Notifications",
-  "shell.brand": "HashVest Labs",
-  "shell.version": "v1.0.0 · HSK",
   "shell.appTagline": "HashVest · HSK Testnet",
   "shell.appDisclaimer": "Unaudited · Testnet assets only",
 
@@ -61,12 +39,6 @@ export const en = {
     "Switch your wallet to {network} (chain {chainId}) first.",
   "session.notConfigured":
     "Workspace auth is not configured on this server yet.",
-
-  // Wallet status panel.
-  "wallet.notConnected": "Not connected",
-  "wallet.label": "Wallet",
-  "wallet.selectedChain": "Selected chain",
-  "wallet.unknownChain": "Chain {chainId}",
 
   // Landing page.
   "home.eyebrow": "Programmable grants · HashKey Chain",
@@ -298,11 +270,14 @@ export const en = {
   "grantpage.back": "Back to my grants",
 
   // Workspace: dashboard, organization navigation, workspace access and the demo faucet.
+  "grants.eyebrow": "Grant operations",
+  "grants.title": "Your grants.",
+  "grants.lede": "Inspect live grants by the role this wallet holds.",
+  "grants.create": "Create grant",
   "dashboard.eyebrow": "Your workspace",
   "dashboard.title": "Grants, with purpose.",
   "dashboard.lede":
     "Manage allocations, track unlocks, and move good work forward.",
-  "dashboard.createGrant": "Create grant",
   "dashboard.noDeployment.title": "Testnet deployment is not configured",
   "dashboard.noDeployment.body":
     "The application needs the HashVest Testnet deployment before it can load or create real grants.",
@@ -323,29 +298,22 @@ export const en = {
   "dashboard.empty.2.title": "No milestones to review yet.",
   "dashboard.empty.2.body":
     "Grants that name this wallet as reviewer will appear here.",
-  "dashboard.empty.createGrant": "Create a grant",
-  "orgs.notConfigured.title": "Workspace context is not configured",
-  "orgs.notConfigured.body":
-    "Direct onchain grants remain available. Set the server-only auth and Supabase variables to enable organizations.",
-  "orgs.signIn.title": "Sign in to manage organizations",
-  "orgs.signIn.body":
-    "Organization context is separate from wallet connection and needs one explicit signature.",
-  "orgs.loading.title": "Loading your organizations",
-  "orgs.loading.body": "Reading workspace memberships…",
-  "orgs.error.title": "Organizations could not be loaded",
-  "orgs.eyebrow": "Your workspaces",
-  "orgs.heading": "Organizations provide context.",
-  "orgs.create": "+ Create organization",
-  "orgs.empty.title": "Create your first organization",
-  "orgs.empty.body":
+  "settings.eyebrow": "Workspace settings",
+  "settings.title": "Organizations.",
+  "settings.lede": "Manage the organizations that add context to your grants.",
+  "settings.create": "Create organization",
+  "settings.loading.title": "Loading organizations",
+  "settings.loading.body": "Reading your workspace memberships…",
+  "settings.error.title": "Organizations could not be loaded",
+  "settings.error.body": "Refresh after checking your workspace connection.",
+  "settings.retry": "Retry",
+  "settings.list.title": "Your organizations",
+  "settings.organization.open": "Open",
+  "settings.organization.counts": "{members} members · {grants} grants",
+  "settings.empty.title": "Create your first organization",
+  "settings.empty.body":
     "Set up a workspace for your team, ecosystem, or treasury. You become the owner automatically.",
-  "orgs.empty.action": "Set up workspace",
-  "orgs.counts": "{members} members · {grants} grants",
   // Analytics dashboard: read-only projections of live HSK grant state.
-  "dashboard.direct.title": "Direct grants",
-  "dashboard.direct.lede":
-    "Onchain grants where this wallet is issuer, beneficiary or reviewer.",
-  "dashboard.hero.rail": "IDEAS\nDATA\nPEOPLE\nIMPACT",
   "dashboard.connect.eyebrow": "Workspace overview",
   "dashboard.connect.title": "Connect to see your work.",
   "dashboard.connect.body":
@@ -356,7 +324,7 @@ export const en = {
   "dashboard.analytics.partial":
     "Some event history could not be read. Current grant states remain live; retry to complete the timeline.",
   "dashboard.metric.active": "Active grants",
-  "dashboard.metric.workspaces": "Workspaces",
+  "dashboard.metric.organizations": "Organizations",
   "dashboard.metric.pendingReviews": "Pending reviews",
   "dashboard.metric.claimable": "Claimable grants",
   "dashboard.metric.live": "Live",
@@ -386,11 +354,6 @@ export const en = {
   "dashboard.chart.strategy.lede": "Distribution by grant type.",
   "dashboard.chart.strategy.aria": "Grant strategy distribution",
   "dashboard.chart.strategy.grants": "grants",
-  "dashboard.chart.next.eyebrow": "What’s next",
-  "dashboard.chart.next.title": "Move clear work forward.",
-  "dashboard.chart.next.body":
-    "Create a fully funded allocation with conditions everyone can understand.",
-  "dashboard.chart.next.cta": "Create a grant",
   "dashboard.chart.top.title": "Top grants",
   "dashboard.chart.top.lede":
     "Your most active onchain allocations this period.",

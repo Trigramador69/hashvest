@@ -10,6 +10,7 @@ import { findMemberByWallet } from "@/lib/cloud/members";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
 import { strategyKey } from "@/lib/shared/i18n/keys";
 import { useTranslations } from "@/lib/shared/i18n/provider";
+import { appRoutes } from "@/lib/shared/routes";
 import { errorMessage, percent, tokenAmount } from "@/lib/protocol/grants";
 import type {
   OrganizationGrant,
@@ -156,7 +157,7 @@ export function GrantCard({
         </span>
         {organization && (
           <Link
-            href={`/app/organizations/${organization.id}`}
+            href={appRoutes.organization(organization.id)}
             className="pt-4 text-xs font-medium text-primary hover:underline"
           >
             {organization.name}

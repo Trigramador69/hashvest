@@ -10,7 +10,7 @@ export function Panel({
   return (
     <section
       className={cn(
-        "rounded-card border border-border bg-surface-1 shadow-none",
+        "min-w-0 rounded-card border border-border bg-surface-1 shadow-none",
         interactive &&
           "transition-[background,border-color,transform] duration-180 hover:-translate-y-px hover:border-border-strong hover:bg-surface-hover",
         className,

@@ -5,6 +5,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataArt } from "@/components/ui/data-art";
 import { getTranslations } from "@/lib/shared/i18n/server";
+import { appRoutes } from "@/lib/shared/routes";
 
 /** Step and strategy cards are key triples; the copy lives in the dictionary. */
 const STEPS = ["fund", "unlock", "claim"] as const;
@@ -28,11 +29,14 @@ export default async function Home() {
             {t("home.lede")}
           </p>
           <div className="mt-8 flex flex-wrap gap-2">
-            <Link href="/app" className={buttonVariants({ size: "lg" })}>
+            <Link
+              href={appRoutes.overview}
+              className={buttonVariants({ size: "lg" })}
+            >
               {t("home.cta.openApp")} <span aria-hidden>↗</span>
             </Link>
             <Link
-              href="/grants/new"
+              href={appRoutes.createGrant}
               className={buttonVariants({ size: "lg", variant: "outline" })}
             >
               {t("home.cta.createGrant")}

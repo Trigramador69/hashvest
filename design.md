@@ -298,8 +298,8 @@ Para dashboards, la estructura base debe ser:
 │          │  ├─ Hero / context                                       │
 │          │  ├─ KPI row                                               │
 │          │  ├─ Analytics grid                                        │
-│          │  ├─ Projects / Performance                                │
-│          │  └─ Activity / promo / secondary panels                   │
+│          │  ├─ Grants / Performance                                  │
+│          │  └─ Activity / secondary panels                            │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -393,6 +393,20 @@ max-width: 1440px;
 margin-inline: auto;
 ```
 
+## 4.4. Product navigation contract
+
+The shell exposes only product surfaces that have a working destination:
+
+- `/app` — overview and live HSK analytics;
+- `/app/grants` — direct grants grouped by Issued, Received, and Review;
+- `/app/settings` — organization context and creation;
+- `/app/settings/organizations/<uuid>` — organization overview, grants, and members.
+
+Organizations belong under Settings. Do not add generic SaaS modules, duplicate
+grant lists, dead search inputs, notification buttons without a backing feed, or
+decorative CTAs that do not perform an action. Legacy paths may redirect to the
+canonical route, but must not render a second shell or page.
+
 ---
 
 # 5. Grid principal
@@ -439,6 +453,10 @@ Project Activity   = 5 columnas
 Data Sources       = 3 columnas
 Promo / Insight    = 4 columnas
 ```
+
+The promo/insight panel is optional. When there is no actionable content to
+show, remove it rather than replacing it with decorative copy and let the live
+analytics fill the row: Grant Activity = 8 columns and Strategies = 4 columns.
 
 ### Lower row
 
@@ -756,7 +774,7 @@ Las partículas solo son válidas si construyen una forma, chart, malla o visual
 
 ---
 
-# 11. Tabla de proyectos
+# 11. Tabla de grants
 
 ## 11.1. Estructura
 
