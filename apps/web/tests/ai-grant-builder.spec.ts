@@ -79,7 +79,7 @@ function walletCalls(page: Page) {
 async function openPanel(page: Page) {
   await page.goto("/grants/new", { waitUntil: "domcontentloaded" });
   await page
-    .getByRole("button", { name: "Draft a grant from a description" })
+    .getByRole("button", { name: "Draft a grant from a description · AI" })
     .click();
   await expect(page.getByRole("region")).toBeVisible();
 }

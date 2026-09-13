@@ -28,7 +28,7 @@ export const zhCN: TranslationDictionary = {
   "ai.templates.example.hybrid":
     "为期六个月的资助，既按时间释放，也依据两个经审核的里程碑释放。",
   "ai.review.openMilestone": "前往里程碑 {index}",
-  "ai.report.title": "用 AI 解读此报告",
+  "ai.report.title": "为我解读此报告",
   "ai.report.lede": "对本页数字的参考性解读，每句话都指向其来源的板块。",
   "ai.report.generate": "总结此报告",
   "ai.report.unavailable": "摘要不可用。上方报告不受影响。",
@@ -53,7 +53,7 @@ export const zhCN: TranslationDictionary = {
   "ai.tools.working": "正在生成参考建议…",
   "ai.tools.redacted": "处理或显示建议前已移除敏感文本。",
   "ai.tools.replace": "用此建议替换当前模板字段？你的编辑将被替换。",
-  "ai.templates.title": "使用 AI 生成模板",
+  "ai.templates.title": "生成可复用模板",
   "ai.templates.lede": "描述可复用的配置，然后在保存前审阅和编辑。",
   "ai.templates.prompt": "此模板应定义什么？",
   "ai.templates.unavailable": "AI 生成功能暂不可用。请继续使用下方模板编辑器。",
@@ -61,7 +61,8 @@ export const zhCN: TranslationDictionary = {
   "ai.templates.disclaimer":
     "所有者审阅后须明确保存模板。应用建议不会保存模板或请求钱包交易。默认审核人须由你选择。",
   "ai.review.title": "证据分析",
-  "ai.review.lede": "汇总工作区私有备注与赠款当前链上数据，辅助审核。",
+  "ai.review.lede":
+    "对工作区私有备注与赠款当前链上数据的参考性解读，用于支持由你做出的审核。",
   "ai.review.generate": "分析证据",
   "ai.review.unavailable": "审核助手暂不可用。你仍可手动审核与批准。",
   "ai.review.linksUnread":
