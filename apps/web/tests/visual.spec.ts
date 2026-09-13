@@ -55,9 +55,13 @@ test.describe("design refactor visual contract", () => {
       page.getByRole("heading", { name: /grants, with purpose/i }),
     ).toBeVisible();
     await page.getByRole("button", { name: "Open navigation" }).click();
-    await expect(
-      page.getByRole("navigation", { name: "Main navigation" }),
-    ).toBeVisible();
+    const drawer = page.getByRole("navigation", { name: "Main navigation" });
+    await expect(drawer).toBeVisible();
+    // The drawer slides in over 180ms. Visible is true from the first frame of
+    // that transition, so wait for the slide to actually settle before
+    // comparing pixels.
+    const panel = page.getByRole("complementary");
+    await expect.poll(async () => (await panel.boundingBox())?.x).toBe(0);
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= window.innerWidth,

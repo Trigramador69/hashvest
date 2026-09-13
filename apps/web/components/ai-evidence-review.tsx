@@ -151,6 +151,7 @@ export function EvidenceReviewTool({
       id="ai-evidence-review"
       title={t("ai.review.title")}
       description={t("ai.review.lede")}
+      tone="review"
       open={open ?? linked}
       onOpenChange={setOpen}
     >

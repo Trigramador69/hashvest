@@ -119,6 +119,7 @@ export function AiReportSummary({
       id="ai-report-summary"
       title={t("ai.report.title")}
       description={t("ai.report.lede")}
+      tone="report"
       disabled={disabled}
     >
       <p className="text-xs leading-5 text-muted-foreground">

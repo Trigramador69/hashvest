@@ -58,6 +58,7 @@ export function AiTemplateBuilder({
     <AiToolSection
       title={t("ai.templates.title")}
       description={t("ai.templates.lede")}
+      tone="template"
       open={open}
       onOpenChange={setOpen}
       disabled={disabled}

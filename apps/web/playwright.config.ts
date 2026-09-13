@@ -17,7 +17,13 @@ export default defineConfig({
   timeout: 60_000,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  reporter: "list",
+  reporter: [["list"], ["html", { open: "never" }]],
+  // Font rasterisation differs slightly between machines and Chromium builds.
+  // A sub-half-percent budget absorbs that noise while still failing on any
+  // real layout, colour, or copy change.
+  expect: {
+    toHaveScreenshot: { maxDiffPixelRatio: 0.005 },
+  },
   use: {
     baseURL,
     colorScheme: "dark",

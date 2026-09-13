@@ -184,7 +184,7 @@ test("HAS-19 generates, applies, edits, explicitly saves and reuses a template w
     });
   });
   await page
-    .getByRole("button", { name: "Generate a template with AI" })
+    .getByRole("button", { name: "Generate a reusable template · AI" })
     .click();
   await page
     .getByLabel("What should this template describe?")
@@ -226,7 +226,7 @@ test("HAS-19 preserves edits when replacement is declined and supports manual cr
   await fixture(page);
   await page.getByLabel("Name", { exact: true }).fill("Keep my edits");
   await page
-    .getByRole("button", { name: "Generate a template with AI" })
+    .getByRole("button", { name: "Generate a reusable template · AI" })
     .click();
   await page
     .getByLabel("What should this template describe?")
@@ -257,7 +257,7 @@ test("HAS-17 cites sources, marks changed context and discards results on sessio
 }) => {
   await fixture(page);
   await page
-    .getByRole("button", { name: "Evidence analysis", exact: true })
+    .getByRole("button", { name: "Evidence analysis · AI", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Analyze evidence", exact: true })
@@ -298,7 +298,7 @@ test("HAS-17 keeps manual review usable on provider failure and handles keyboard
     }),
   );
   await page
-    .getByRole("button", { name: "Evidence analysis", exact: true })
+    .getByRole("button", { name: "Evidence analysis · AI", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Analyze evidence", exact: true })
@@ -311,7 +311,7 @@ test("HAS-17 keeps manual review usable on provider failure and handles keyboard
     .focus();
   await page.keyboard.press("Escape");
   await expect(
-    page.getByRole("button", { name: "Evidence analysis", exact: true }),
+    page.getByRole("button", { name: "Evidence analysis · AI", exact: true }),
   ).toBeFocused();
   await noWalletWrites(page);
 });
@@ -320,7 +320,7 @@ test("HAS-17 exports a cited analysis and jumps from a note to its milestone", a
   page,
 }) => {
   await fixture(page);
-  await page.getByRole("button", { name: "Evidence analysis" }).click();
+  await page.getByRole("button", { name: "Evidence analysis · AI" }).click();
   await page.getByRole("button", { name: "Analyze evidence" }).click();
   await expect(
     page.getByText("The release milestone is pending."),
@@ -349,7 +349,9 @@ test("HAS-17 summarizes the organization report and regenerates when it goes sta
       reportRequests.push(request.url());
   });
   await fixture(page);
-  await page.getByRole("button", { name: "Read this report with AI" }).click();
+  await page
+    .getByRole("button", { name: "Read this report back to me · AI" })
+    .click();
   await page.getByRole("button", { name: "Summarize this report" }).click();
   await expect(page.getByText("One grant is active.")).toBeVisible();
   // Citations point at the page's own sections, not at anything the model wrote.
@@ -385,20 +387,26 @@ for (const locale of ["en", "es", "zh-CN"] as const) {
       await fixture(page);
       const names = {
         en: [
-          "Generate a template with AI",
+          "Generate a reusable template",
           "Draft it",
           "Evidence analysis",
           "Analyze evidence",
         ],
         es: [
-          "Generar plantilla con IA",
+          "Generar una plantilla reutilizable",
           "Redactar",
           "Análisis de evidencia",
           "Analizar evidencia",
         ],
-        "zh-CN": ["使用 AI 生成模板", "生成草稿", "证据分析", "分析证据"],
+        "zh-CN": ["生成可复用模板", "生成草稿", "证据分析", "分析证据"],
       }[locale];
-      await page.getByRole("button", { name: names[0], exact: true }).click();
+      // The section heading names the region; the control that opens it also
+      // announces the AI marker, so the two accessible names differ on purpose.
+      const marker = { en: "AI", es: "IA", "zh-CN": "AI" }[locale];
+      const opener = (title: string) => `${title} · ${marker}`;
+      await page
+        .getByRole("button", { name: opener(names[0]), exact: true })
+        .click();
       await page
         .getByRole("region")
         .locator("textarea")
@@ -412,7 +420,9 @@ for (const locale of ["en", "es", "zh-CN"] as const) {
       ).toHaveScreenshot(`template-${locale}-${width}.png`, {
         animations: "disabled",
       });
-      await page.getByRole("button", { name: names[2], exact: true }).click();
+      await page
+        .getByRole("button", { name: opener(names[2]), exact: true })
+        .click();
       await page.getByRole("button", { name: names[3], exact: true }).click();
       await expect(
         page.getByText("The release milestone is pending."),

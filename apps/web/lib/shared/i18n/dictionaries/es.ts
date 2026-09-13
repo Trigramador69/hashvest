@@ -29,7 +29,7 @@ export const es: TranslationDictionary = {
   "ai.templates.example.hybrid":
     "Un grant de seis meses que libera por tiempo y además con dos milestones revisados.",
   "ai.review.openMilestone": "Ir al milestone {index}",
-  "ai.report.title": "Leer este informe con IA",
+  "ai.report.title": "Que me lean este informe",
   "ai.report.lede":
     "Una lectura orientativa de las cifras de esta página, con cada frase señalando la sección de la que salió.",
   "ai.report.generate": "Resumir este informe",
@@ -61,7 +61,7 @@ export const es: TranslationDictionary = {
     "Se eliminó texto sensible antes de procesar o mostrar la sugerencia.",
   "ai.tools.replace":
     "¿Reemplazar los campos actuales con esta sugerencia? Se reemplazarán tus ediciones.",
-  "ai.templates.title": "Generar plantilla con IA",
+  "ai.templates.title": "Generar una plantilla reutilizable",
   "ai.templates.lede":
     "Describe una configuración reutilizable; revísala y edítala antes de guardar.",
   "ai.templates.prompt": "¿Qué debe definir esta plantilla?",
@@ -72,7 +72,7 @@ export const es: TranslationDictionary = {
     "El propietario revisa y guarda la plantilla explícitamente. Aplicar una sugerencia no la guarda ni solicita transacciones. Elige tú el revisor predeterminado.",
   "ai.review.title": "Análisis de evidencia",
   "ai.review.lede":
-    "Resume notas privadas del workspace y lecturas actuales del grant para apoyar tu revisión.",
+    "Una lectura orientativa de las notas privadas del workspace y las lecturas actuales del grant, para apoyar la revisión que haces tú.",
   "ai.review.generate": "Analizar evidencia",
   "ai.review.unavailable":
     "El copilot no está disponible. Puedes revisar y aprobar manualmente.",

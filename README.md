@@ -304,6 +304,14 @@ starts its own server and refuses to reuse an existing one. Set
 `HASHVEST_VISUAL_PORT` (for example `3101`) when another worktree owns `3100`.
 The `/visual/ai-tools` fixture is additionally gated by `VISUAL_TEST_MODE=1`.
 
+Screenshot comparisons allow a `maxDiffPixelRatio` of 0.005 so that font
+rasterisation differences between machines do not read as design regressions;
+any real layout, colour or copy change is far above that budget.
+
+What a deterministic fixture cannot assert — wallet, SIWE, chain guard, and
+human judgement about language and visual intent — is covered by
+[`docs/e2e-manual-checklist.md`](docs/e2e-manual-checklist.md).
+
 The application is available at `http://localhost:3000`. Routes are `/` (landing), `/plans` (public Protocol / Cloud and Free / Team / Enterprise presentation), `/app` (live overview), `/app/grants` (Issued / Received / Review), `/app/organizations` (organization list), `/app/organizations/new`, `/app/organizations/<uuid>`, `/app/organizations/<uuid>/members`, `/app/organizations/<uuid>/templates`, `/app/organizations/<uuid>/reports`, `/app/organizations/<uuid>/settings`, `/app/organizations/<uuid>/grants`, and `/app/organizations/<uuid>/grants/new`, `/app/settings` (workspace session, language, network, and sponsored-claim policy links), plus `/grants/new` (the shared five-step template-aware creation wizard: Template, Grant, Strategy, Conditions, Review) and `/grants/<GrantVault address>` (public role-aware detail page). The previous `/app/settings/organizations/...` paths remain compatibility redirects. `/visual/dashboard`, `/visual/templates` and `/visual/ai-tools` are local-only deterministic fixtures for the Playwright visual contract and are unavailable in production.
 
 Wallet connection and workspace authentication are separate. After connecting an HSK Testnet wallet, click **Sign in to workspace** and approve one SIWE/EIP-4361 message. The server stores a five-minute, one-time nonce and issues a 24-hour HttpOnly, SameSite session cookie signed with `AUTH_SECRET`. If the connected wallet changes, organization reads and writes are disabled until the new wallet explicitly signs in; the application never silently signs or writes as the previous wallet.
