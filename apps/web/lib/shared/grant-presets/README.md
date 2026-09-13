@@ -6,7 +6,9 @@ edit or clear before any wallet request. It never becomes onchain truth: the
 GrantVault stores the title, allocation, schedule, participants and milestones
 the user actually submitted. The preset key travels only as optional Supabase
 metadata (`organization_grants.template_key`), and only for organization-aware
-creation.
+creation. Organization-owned templates share that column under a separate
+`org-template:<uuid>@v<version>` namespace, so global keys must stay lowercase
+kebab-case (see [`docs/organization-templates.md`](../../../../../docs/organization-templates.md)).
 
 This file is the contract for adding or changing a preset — by hand, or by
 asking an assistant to do it. Adding a preset is a catalog and localization
@@ -14,14 +16,16 @@ data edit plus a test run; it should never require touching the wizard.
 
 ## Where things live
 
-| File                   | Role                                                                |
-| ---------------------- | ------------------------------------------------------------------- |
-| `presets.ts`           | The catalog: types + the four global presets                        |
-| `localize.ts`          | Locale-aware display and editable suggestions with English fallback |
-| `use-grant-presets.ts` | React access to localized catalog entries and stored template keys  |
-| `apply-preset.ts`      | Pure mapping (`applyPresetToDraft`) and rules (`assertValidPreset`) |
-| `wizard-state.ts`      | Which fields the preset still owns and which now belong to the user |
-| `*.test.ts`            | Catalog integrity, mapping, field ownership, invalid combinations   |
+| File                       | Role                                                                 |
+| -------------------------- | -------------------------------------------------------------------- |
+| `presets.ts`               | The catalog: types + the four global presets                         |
+| `localize.ts`              | Locale-aware display and editable suggestions with English fallback  |
+| `use-grant-presets.ts`     | React access to localized catalog entries and stored template keys   |
+| `apply-preset.ts`          | Pure mapping (`applyPresetToDraft`) and rules (`assertValidPreset`)  |
+| `wizard-state.ts`          | Which fields the preset still owns and which now belong to the user  |
+| `template-key.ts`          | Formats and classifies `template_key` values: global or organization |
+| `organization-template.ts` | Organization template content, rules, and idempotent draft mapping   |
+| `*.test.ts`                | Catalog integrity, mapping, field ownership, invalid combinations    |
 
 `lib/shared` is layer-neutral: this module must import **neither** `@/lib/cloud`
 nor `@/lib/protocol` (`scripts/check-boundary.mjs` fails CI otherwise). That is
