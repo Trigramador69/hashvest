@@ -84,7 +84,7 @@ The repository holds two layers. **HashVest Protocol** is `packages/contracts` p
 
 ### Organizations product layer
 
-Organizations are workspaces around existing GrantVaults. Supabase stores organization names, members, presentation role labels, GrantVault associations, descriptions, and future-facing template metadata. HSK remains authoritative for issuer, beneficiary, reviewer, token, allocation, strategy, schedules, milestone approval, unlocked/claimable/claimed amounts, eligibility, balances, and funds.
+Organizations are workspaces around existing GrantVaults. Supabase stores organization names, members, presentation role labels, GrantVault associations, descriptions, and organization-owned grant templates — draft wizard configuration, never vault state or permission (see [`docs/organization-templates.md`](docs/organization-templates.md)). HSK remains authoritative for issuer, beneficiary, reviewer, token, allocation, strategy, schedules, milestone approval, unlocked/claimable/claimed amounts, eligibility, balances, and funds.
 
 The canonical identities are lowercase EVM addresses for wallets, `(chain_id, vault_address)` for grants, and UUIDs for organizations. The current organization schema accepts HSK Testnet only (`chain_id = 133`). Product role labels such as `Treasury Reviewer` are presentation metadata; they do not grant permission to approve or claim.
 
@@ -136,7 +136,7 @@ supabase link --project-ref <your-project-ref>
 supabase db push
 ```
 
-The migration is [`supabase/migrations/20260912000000_hashvest_organizations.sql`](supabase/migrations/20260912000000_hashvest_organizations.sql). It creates `organizations`, `organization_members`, `organization_grants`, and server-only `auth_nonces`, adds constraints/indexes, enables RLS, and intentionally grants no public/anon/authenticated table policies. The application uses the service role only from server Route Handlers, while business authorization still checks the verified session and organization membership/ownership.
+`supabase db push` applies both tracked migrations in order. [`supabase/migrations/20260912000000_hashvest_organizations.sql`](supabase/migrations/20260912000000_hashvest_organizations.sql) creates `organizations`, `organization_members`, `organization_grants`, and server-only `auth_nonces`, adds constraints/indexes, enables RLS, and intentionally grants no public/anon/authenticated table policies. [`supabase/migrations/20260913000000_hashvest_organization_templates.sql`](supabase/migrations/20260913000000_hashvest_organization_templates.sql) adds `organization_templates` with the same closed posture and database constraints for every grant strategy rule; it requires PostgreSQL 15 or later. [`supabase/verification/organization_templates.sql`](supabase/verification/organization_templates.sql) asserts those constraints against a disposable database and must never run against a real project. The application uses the service role only from server Route Handlers, while business authorization still checks the verified session and organization membership/ownership.
 
 If a wallet reports HSK Testnet chain 133 but an approval shows `eth_getBlockByNumber` or a thirdweb support error, its saved RPC endpoint is unavailable. Use the **Use canonical HSK RPC** action in the app, or set the wallet network RPC to `https://testnet.hsk.xyz` with chain ID `133`.
 
@@ -292,7 +292,8 @@ packages/web3            Protocol  HSK chain config, generated ABIs, deployment 
 packages/ui              shared    Shared UI package placeholder
 packages/config          shared    Shared TypeScript and ESLint configuration
 scripts                  shared    Repository-wide boundary checks
-supabase/migrations      Cloud     Tracked product-context schema and RLS migration
+supabase/migrations      Cloud     Tracked product-context schema and RLS migrations
+supabase/verification    Cloud     Constraint checks for migrations, disposable databases only
 ```
 
 Imports run one way: Cloud may depend on Protocol, never the reverse. `pnpm boundary:check` enforces this, along with service-role secret containment, protocol export drift, and documentation links. See [`docs/architecture.md`](docs/architecture.md).

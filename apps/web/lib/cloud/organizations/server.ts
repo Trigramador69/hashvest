@@ -7,6 +7,15 @@ import { readSession } from "@/lib/cloud/auth/session";
 import { createSupabaseAdmin } from "@/lib/cloud/supabase-server";
 
 import { verifyGrantVault } from "@/lib/protocol/verify";
+import type { OrganizationTemplateContent } from "@/lib/shared/grant-presets/organization-template";
+import {
+  archiveOrganizationTemplate,
+  createOrganizationTemplate,
+  getOrganizationTemplate,
+  listOrganizationTemplates,
+  updateOrganizationTemplate,
+  type TemplateAccess,
+} from "./templates";
 import { validateUuid } from "./validation";
 import type {
   Organization,
@@ -421,4 +430,57 @@ export async function getGrantContext(
     membership: mapMembership(member),
     grant: mapGrant(grant),
   };
+}
+
+/** Builds template data access from a membership that was already verified. */
+function templateAccess(access: WorkspaceAccess): TemplateAccess {
+  return {
+    supabase: access.supabase,
+    organizationId: access.organization.id,
+    membership: access.membership,
+    walletAddress: access.session.walletAddress,
+  };
+}
+
+/** Any member may list active templates. See docs/organization-templates.md. */
+export async function listTemplates(organizationId: string) {
+  const access = await requireOrganizationMember(organizationId);
+  return listOrganizationTemplates(templateAccess(access));
+}
+
+/** Any member may read an active template, to apply it to the wizard. */
+export async function getTemplate(organizationId: string, templateId: string) {
+  const access = await requireOrganizationMember(organizationId);
+  return getOrganizationTemplate(templateAccess(access), templateId);
+}
+
+export async function createTemplate(
+  organizationId: string,
+  content: OrganizationTemplateContent,
+) {
+  const access = await requireOrganizationOwner(organizationId);
+  return createOrganizationTemplate(templateAccess(access), content);
+}
+
+export async function updateTemplate(
+  organizationId: string,
+  templateId: string,
+  content: OrganizationTemplateContent,
+  expectedVersion: number,
+) {
+  const access = await requireOrganizationOwner(organizationId);
+  return updateOrganizationTemplate(
+    templateAccess(access),
+    templateId,
+    content,
+    expectedVersion,
+  );
+}
+
+export async function archiveTemplate(
+  organizationId: string,
+  templateId: string,
+) {
+  const access = await requireOrganizationOwner(organizationId);
+  return archiveOrganizationTemplate(templateAccess(access), templateId);
 }
