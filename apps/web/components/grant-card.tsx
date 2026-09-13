@@ -77,7 +77,7 @@ export function GrantCard({
   members,
 }: GrantCardProps) {
   const t = useTranslations();
-  const { findPreset: localizedTemplate } = useGrantPresets();
+  const { templateLabel } = useGrantPresets();
   const { address: walletAddress } = useAccount();
   const grant = useGrant(address);
   if (grant.isPending)
@@ -137,7 +137,7 @@ export function GrantCard({
   const roles = resolveProtocolRoles(walletAddress, g);
   // Workspace metadata: which preset this grant started from. An unknown or
   // retired key simply shows nothing; the vault's own terms are above.
-  const template = localizedTemplate(metadata?.templateKey);
+  const template = templateLabel(metadata?.templateKey);
   const pendingMilestones = g.milestones.filter(
     (item) => !item.approved,
   ).length;
@@ -176,7 +176,7 @@ export function GrantCard({
         {template && (
           <p className="pt-2 text-xs text-muted-foreground">
             {t("card.fromTemplate", {
-              template: template.name,
+              template,
             })}
           </p>
         )}

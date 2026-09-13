@@ -90,6 +90,8 @@ Inside `apps/web/lib`, the same direction holds between three trees:
 - `lib/cloud/**` — Supabase, sessions, organizations. May import `lib/protocol/**`.
 - `lib/shared/**` — layer-neutral utilities, including the i18n boundary. Imported by both, imports neither.
 
+AI assistance follows the same direction. The draft contract, its parser, its normalizer and the offline drafter are pure and live in `lib/shared/ai-grant-draft/**`; the provider call, the rate limiter and the pipeline live in `lib/cloud/ai/**` behind `app/api/ai/grant-draft/route.ts`. Nothing AI-shaped enters `packages/web3` or `packages/contracts`. See [`ai-grant-builder.md`](ai-grant-builder.md).
+
 Localization is presentation state, so it lives in `lib/shared/i18n/**` and imports neither layer. English is the source of truth: `dictionaries/en.ts` defines `TranslationKey`, and every other locale is typed as a subset of it, so a missing or blank string falls back to English instead of surfacing a raw key. The locale is a cookie, not a route segment — no URL carries a language, and `router.refresh()` applies a change without remounting the wallet providers. User-visible generic and HSK RPC errors use localized `errorMessage` options; already-translated validation and wallet-guard errors are preserved. Technical literals (addresses, hashes, token symbols, chain ids, explorer URLs) are never written into a message; they arrive through `{placeholder}` substitution so they stay identical in all three locales.
 
 ## Authority: which layer owns which field
@@ -122,6 +124,8 @@ direct wizard calls `createGrant` and retains the legacy manual-claim surface.
 The complete threat model and deployment gate are in
 [`sponsored-claims.md`](sponsored-claims.md).
 
+- **An AI draft owns nothing.** It is a suggestion shaped as an editable preset, so it reaches the wizard through the same `assertValidPreset` gate a hand-written preset passes and `prepare()` remains the only source of truth for what is submitted. Its draft type has no field for a beneficiary, reviewer, token, eligibility provider, start timestamp, or revocability, so it cannot suggest an identity or a transaction at all. The only trace a grant keeps of one is `organization_grants.template_key = "ai-draft"`, which is presentation metadata like every other template key. Prompts are never retained.
+
 ## Public integration surface and extension points
 
 The Protocol is usable without this application. Anyone integrating should depend on the contract ABIs and the factory's role discovery arrays, not on the Cloud API.
@@ -151,12 +155,12 @@ Nothing outside that list is extractable today. Anything added to `packages/web3
 
 The boundary was previously enforced by convention alone. It is now checked. `pnpm boundary:check` runs in CI and fails with a readable message and exit code 1:
 
-| Check                  | Fails when                                                                                                                                                                                                                                 |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Secret containment     | `SUPABASE_SERVICE_ROLE_KEY`, `AUTH_SECRET`, or `SPONSORED_CLAIM_RELAYER_PRIVATE_KEY` is referenced outside the server-only allowlist, is prefixed `NEXT_PUBLIC_`, or a module importing `createSupabaseAdmin` lacks `import "server-only"` |
-| Layer import direction | `packages/web3` or `packages/contracts` references `apps/web`, Supabase, or Next; or `lib/protocol/**` imports `lib/cloud/**`                                                                                                              |
-| Protocol export drift  | The real protocol export surface no longer matches `packages/web3/protocol-surface.json`                                                                                                                                                   |
-| Documentation links    | A relative link or in-repo file reference in `README.md` or `docs/*.md` is dead                                                                                                                                                            |
+| Check                  | Fails when                                                                                                                                                                                                                                               |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Secret containment     | `SUPABASE_SERVICE_ROLE_KEY`, `AUTH_SECRET`, `SPONSORED_CLAIM_RELAYER_PRIVATE_KEY`, or `AI_API_KEY` is referenced outside the server-only allowlist, is prefixed `NEXT_PUBLIC_`, or a module importing `createSupabaseAdmin` lacks `import "server-only"` |
+| Layer import direction | `packages/web3` or `packages/contracts` references `apps/web`, Supabase, or Next; or `lib/protocol/**` imports `lib/cloud/**`                                                                                                                            |
+| Protocol export drift  | The real protocol export surface no longer matches `packages/web3/protocol-surface.json`                                                                                                                                                                 |
+| Documentation links    | A relative link or in-repo file reference in `README.md` or `docs/*.md` is dead                                                                                                                                                                          |
 
 These complement guards that already existed: `import "server-only"` on every service-role path, Postgres RLS revoking all access from `public`/`anon`/`authenticated` with no policies granted, `chain_id = 133` check constraints and TypeScript literal types, and the onchain issuer verification before grant association.
 

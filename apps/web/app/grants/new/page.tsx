@@ -27,7 +27,9 @@ import {
   PageHeading,
   TransactionStatus,
 } from "@/components/grant-ui";
+import { AiGrantBuilder } from "@/components/ai-grant-builder";
 import { DemoFaucet } from "@/components/demo-faucet";
+import { CohortCreator } from "@/components/cohort-creator";
 import { MemberPicker } from "@/components/organization-ui";
 import { ParticipantIdentity } from "@/components/grant-card";
 import { useToken } from "@/hooks/use-grant";
@@ -50,7 +52,12 @@ import {
   parseAllocation,
   validParty,
 } from "@/lib/protocol/grants";
-import { type GrantPresetKey } from "@/lib/shared/grant-presets/presets";
+import {
+  GENERATED_PRESET_KEY,
+  type AppliedPresetKey,
+  type GrantPreset,
+  type GrantPresetKey,
+} from "@/lib/shared/grant-presets/presets";
 import {
   BLANK_PRESET_FIELDS,
   clearPreset,
@@ -162,14 +169,22 @@ function PresetOption({
  */
 function PresetPicker({
   selected,
+  draft,
   onSelect,
 }: {
-  selected: GrantPresetKey | null;
+  selected: AppliedPresetKey | null;
+  /** The applied AI draft (HAS-18), which has no catalog entry to look up. */
+  draft?: GrantPreset;
   onSelect: (key: GrantPresetKey | null) => void;
 }) {
   const t = useTranslations();
   const { presets, preset: localizedPreset } = useGrantPresets();
-  const active = selected ? localizedPreset(selected) : undefined;
+  const active =
+    selected === GENERATED_PRESET_KEY
+      ? draft
+      : selected
+        ? localizedPreset(selected as GrantPresetKey)
+        : undefined;
   return (
     <div className="space-y-3">
       <div>
@@ -178,6 +193,16 @@ function PresetPicker({
           {t("wizard.preset.lede")}
         </p>
       </div>
+      {selected === GENERATED_PRESET_KEY && draft && (
+        <p className="flex flex-wrap items-baseline gap-x-2 rounded-control border border-[rgba(77,106,217,.3)] bg-[rgba(77,106,217,.08)] px-3 py-2 text-xs text-secondary">
+          <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#4d6ad9]">
+            {t("ai.preset.applied")}
+          </span>
+          <span className="min-w-0 text-foreground">
+            {draft.titleSuggestion}
+          </span>
+        </p>
+      )}
       <div className="grid gap-3 sm:grid-cols-2">
         {presets.map((preset) => (
           <PresetOption
@@ -271,6 +296,9 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   const organization = useOrganization(organizationId);
   const organizationMembers = useOrganizationMembers(organizationId);
   const linkGrant = useLinkOrganizationGrant(organizationId ?? "direct");
+  const [creationMode, setCreationMode] = useState<"single" | "cohort">(
+    "single",
+  );
   const [step, setStep] = useState(0);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -312,6 +340,19 @@ export function NewGrant({ organizationId }: NewGrantProps) {
       (session.walletMatches && organization.data?.membership.isOwner)),
   );
 
+  /**
+   * The applied preset's name for the review step.
+   *
+   * A generated draft (HAS-18) carries an English placeholder name, because
+   * its user-facing chrome is rendered from the `ai.*` dictionary rather than
+   * from the preset itself.
+   */
+  const appliedPresetName = !applied
+    ? ""
+    : applied.key === GENERATED_PRESET_KEY
+      ? t("ai.draft.name")
+      : applied.preset.name;
+
   /** The subset of form state a preset may write, in the shape the rules use. */
   function presetFields() {
     return {
@@ -348,6 +389,27 @@ export function NewGrant({ organizationId }: NewGrantProps) {
     });
     writePresetFields(next.fields);
     setApplied(next);
+  }
+
+  /**
+   * Applies an AI draft (HAS-18) through the preset path above.
+   *
+   * The draft is a validated preset, so nothing here is new: the same
+   * ownership rules decide which of the user's values survive, and the same
+   * `validateGrant`/`prepare` still gate submission. Moving to the Grant step
+   * is only what pressing Next would have done — it skips no validation,
+   * because leaving the Template step never had any.
+   */
+  function applyAiDraft(preset: GrantPreset) {
+    setValidationError("");
+    const next = selectPreset(GENERATED_PRESET_KEY, presetFields(), applied, {
+      decimals: tokenMetadata.data?.decimals,
+      applyDescription: Boolean(organizationId),
+      preset,
+    });
+    writePresetFields(next.fields);
+    setApplied(next);
+    if (step === STEP.template) setStep(STEP.grant);
   }
 
   function writePresetFields(fields: typeof BLANK_PRESET_FIELDS) {
@@ -852,7 +914,38 @@ export function NewGrant({ organizationId }: NewGrantProps) {
           <p>{t("wizard.notice.noDeployment.body")}</p>
         </Notice>
       )}
-      {creationConfirmed ? (
+      {!creationConfirmed && (
+        <div className="flex rounded-lg border bg-secondary/30 p-1 w-fit">
+          <button
+            type="button"
+            onClick={() => setCreationMode("single")}
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+              creationMode === "single"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Single Grant
+          </button>
+          <button
+            type="button"
+            onClick={() => setCreationMode("cohort")}
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+              creationMode === "cohort"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Cohort Distribution (Batch)
+          </button>
+        </div>
+      )}
+      {creationMode === "cohort" ? (
+        <CohortCreator
+          organizationId={organizationId}
+          onSwitchToSingle={() => setCreationMode("single")}
+        />
+      ) : creationConfirmed ? (
         <Card>
           <CardContent className="space-y-6 p-7">
             <div className="grid size-12 place-items-center rounded-full bg-primary/10 text-2xl text-primary">
@@ -948,6 +1041,11 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                   {step === STEP.template && (
                     <PresetPicker
                       selected={applied?.key ?? null}
+                      draft={
+                        applied?.key === GENERATED_PRESET_KEY
+                          ? applied.preset
+                          : undefined
+                      }
                       onSelect={choosePreset}
                     />
                   )}
@@ -1168,9 +1266,8 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             </Field>
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {applied && localizedPreset(applied.key).timing
-                              ? localizedPreset(applied.key).timing
-                                  ?.realWorldNote
+                            {applied?.preset.timing
+                              ? applied.preset.timing.realWorldNote
                               : t("wizard.schedule.demoTip")}
                           </p>
                         </div>
@@ -1382,7 +1479,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                         {applied && (
                           <p className="mt-3 text-xs text-muted-foreground">
                             {t("wizard.review.fromPreset", {
-                              preset: localizedPreset(applied.key).name,
+                              preset: appliedPresetName,
                             })}
                           </p>
                         )}
@@ -1550,6 +1647,9 @@ export function NewGrant({ organizationId }: NewGrantProps) {
           </Card>
           {step === STEP.grant && <DemoFaucet />}
         </>
+      )}
+      {!creationConfirmed && (
+        <AiGrantBuilder onApply={applyAiDraft} disabled={tx.pending} />
       )}
     </div>
   );

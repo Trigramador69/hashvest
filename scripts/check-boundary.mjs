@@ -30,6 +30,7 @@ const SECRET_NAMES = [
   "SUPABASE_SERVICE_ROLE_KEY",
   "AUTH_SECRET",
   "SPONSORED_CLAIM_RELAYER_PRIVATE_KEY",
+  "AI_API_KEY",
 ];
 
 /**
@@ -40,6 +41,7 @@ const SECRET_ALLOWLIST = [
   "apps/web/lib/cloud/supabase-server.ts",
   "apps/web/lib/cloud/auth/session.ts",
   "apps/web/lib/cloud/sponsored-claims/relayer.ts",
+  "apps/web/lib/cloud/ai/config.ts",
   // This checker and its tests must name the secrets they search for.
   "scripts/check-boundary.mjs",
   "scripts/check-boundary.test.mjs",

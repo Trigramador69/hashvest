@@ -18,6 +18,7 @@ This file is the shared project contract for Codex, Claude Code, and Agy. Keep i
 - Do not reset databases, Docker volumes, Foundry state, or testnet state without explicit authorization.
 - Do not broadcast, redeploy, resend funds, force-push, merge, or deploy to production without explicit authorization.
 - Preserve generated files that are owned by tooling. In particular, do not remove the Next.js block in `apps/web/AGENTS.md`.
+- AI drafts; humans decide. A model may never sign, fund, approve, claim, revoke, arbitrate, or select a wallet, and its output reaches the wizard only as an editable preset that passes the same validation a hand-written one does. Prompts and model output are never retained. Provider secrets are server-only and read in one allowlisted module. See [`docs/ai-grant-builder.md`](docs/ai-grant-builder.md).
 - The shared grant wizard is a localized five-step flow (Template, Grant, Strategy, Conditions, Review); preset labels and editable suggestions must use the active locale while template keys and onchain values remain technical metadata. User-visible unknown errors use localized `errorMessage` fallbacks, while already-translated validation and wallet-guard errors are preserved.
 - Organization-created grants use `HashVestFactory.createSponsoredGrant` and `SponsoredGrantVault` for one beneficiary-signed first claim; direct and pre-existing grants retain the beneficiary-paid manual `claim()` fallback. The Cloud may track policy/request/receipt state, but HSK remains authoritative.
 - Prefer small, reversible changes and existing dependencies/tooling. Do not hide failed checks or weaken types.
@@ -43,6 +44,7 @@ The sync command updates generated Claude adapters and the generated agent catal
 Canonical skills live in `.agents/skills/`; Claude adapters are generated in `.claude/skills/`.
 
 - [`agent-maintenance`](.agents/skills/agent-maintenance/SKILL.md) — Keep HashVest agent instructions, skills, generated adapters, README, architecture docs, and CI contracts synchronized whenever repository behavior or references change.
+- [`ai-assistance`](.agents/skills/ai-assistance/SKILL.md) — Build or change HashVest AI assistance while keeping model output advisory, validated against the protocol's own rules, provider-agnostic, and free of retained prompts or exposed secrets.
 - [`architecture`](.agents/skills/architecture/SKILL.md) — Design or review HashVest changes while preserving the Cloud, web3, Protocol, Supabase, and HSK authority boundaries documented by the repository.
 - [`ci-preflight`](.agents/skills/ci-preflight/SKILL.md) — Reproduce the HashVest GitHub CI validation locally, diagnose failures without hiding them, and produce exact evidence before a pull request is created or updated.
 - [`deployment`](.agents/skills/deployment/SKILL.md) — Plan, rehearse, execute, or verify HashVest HSK Testnet operations with chain guards, explicit transaction authority, safe secrets, and evidence-backed state changes.

@@ -186,3 +186,38 @@ textarea:focus-visible {
     animation-iteration-count: 1 !important;
   }
 }
+
+/*
+ * AI draft pixel field (HAS-18).
+ *
+ * Opacity only, travelling across the grid as a staggered reveal. design.md
+ * §18 permits opacity and data-point fade-in and forbids pulsing glow, bounce
+ * and looping background particles; §10.4 allows particles only when they
+ * build a shape inside a controlled zone, which is why this lives inside the
+ * launcher and the panel header rather than behind the page. The global
+ * prefers-reduced-motion rule above already flattens it to a static field.
+ */
+@keyframes pixel-reveal {
+  0%,
+  70%,
+  100% {
+    opacity: var(--pixel-rest);
+  }
+  25% {
+    opacity: 1;
+  }
+}
+
+.pixel-dot {
+  opacity: var(--pixel-rest);
+  transition: opacity var(--motion-slow) var(--ease-standard);
+}
+
+.pixel-field[data-state="thinking"] .pixel-dot {
+  animation: pixel-reveal 1.6s var(--ease-standard) infinite;
+  animation-delay: var(--pixel-delay);
+}
+
+.pixel-field[data-state="ready"] .pixel-dot {
+  opacity: 1;
+}

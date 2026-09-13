@@ -956,6 +956,91 @@ export const es: TranslationDictionary = {
   "preset.ecosystem-grant.assumption.3":
     "Hace falta una wallet revisora para aprobar hitos; elígela antes de financiar.",
 
+  "ai.launcher.label": "Redactar una subvención a partir de una descripción",
+  "ai.launcher.short": "IA",
+  "ai.panel.title": "Describe la subvención",
+  "ai.panel.lede":
+    "Opcional. Escribe qué debe hacer la subvención y esto rellenará el asistente con un borrador editable.",
+  "ai.panel.close": "Cerrar el panel de borrador",
+  "ai.field.prompt.label": "¿Qué debe hacer esta subvención?",
+  "ai.field.prompt.placeholder":
+    "Una subvención de seis meses para una persona desarrolladora, 500 tokens, liberados contra tres hitos.",
+  "ai.field.prompt.counter": "{count} de {max} caracteres",
+  "ai.action.draft": "Redactar",
+  "ai.action.drafting": "Redactando",
+  "ai.action.apply": "Aplicar al asistente",
+  "ai.action.discard": "Descartar",
+  "ai.action.retry": "Reintentar",
+
+  "ai.progress.0": "Leyendo la petición",
+  "ai.progress.1": "Quitando todo lo privado",
+  "ai.progress.2": "Eligiendo una estrategia de desbloqueo",
+  "ai.progress.3": "Repartiendo la asignación",
+  "ai.progress.4": "Comprobándolo contra las reglas del protocolo",
+
+  "ai.draft.name": "Borrador de IA",
+  "ai.draft.tagline": "Un punto de partida. Todo valor sigue siendo editable.",
+  "ai.draft.sourceModel": "Redactado por el proveedor configurado",
+  "ai.draft.sourceFallback": "Redactado sin conexión, sin proveedor",
+  "ai.draft.strategy": "Estrategia",
+  "ai.draft.allocation": "Asignación",
+  "ai.draft.schedule": "Calendario",
+  "ai.draft.milestones": "Hitos",
+  "ai.preset.applied": "De un borrador de IA",
+
+  "ai.section.assumptions": "Supuestos",
+  "ai.section.adjustments": "Ajustado por ti",
+  "ai.section.unsupported": "No admitido",
+  "ai.section.confirm": "Tú sigues eligiendo",
+  "ai.confirm.beneficiary": "La wallet beneficiaria",
+  "ai.confirm.reviewer": "La wallet revisora",
+  "ai.confirm.token": "El token a conceder",
+
+  "ai.adjustment.allocationClamped":
+    "Se redujo la asignación de {requested} a {maximum}: el faucet de demo no puede financiar más.",
+  "ai.adjustment.cliffClamped":
+    "Se acortó el cliff de {cliff} a {duration}: un cliff no puede durar más que su propio calendario.",
+  "ai.adjustment.durationDefaulted":
+    "Se fijó la duración en {duration}, porque el borrador no pedía ninguna.",
+  "ai.adjustment.timingDefaulted":
+    "Se añadió un calendario por defecto, porque esta estrategia necesita uno.",
+  "ai.adjustment.timingDropped":
+    "Se quitó el calendario: una subvención por hitos no tiene ninguno.",
+  "ai.adjustment.milestonesDefaulted":
+    "Se añadió un único hito que cubre toda la asignación.",
+  "ai.adjustment.milestonesDropped":
+    "Se quitaron los hitos: la liberación por tiempo no tiene ninguno.",
+  "ai.adjustment.milestonesTruncated":
+    "Se conservaron los primeros {maximum} hitos, que es todo lo que acepta un vault.",
+  "ai.adjustment.milestoneTitlesFilled":
+    "Se nombraron los hitos que el borrador dejó en blanco.",
+  "ai.adjustment.percentagesRescaled":
+    "Se reescaló el reparto de hitos para que sume 100%.",
+  "ai.adjustment.fieldsDropped":
+    "Se ignoraron {count} campo(s) que una plantilla de subvención no contempla: {fields}.",
+  "ai.adjustment.proseRedacted":
+    "Se quitó algo privado que el borrador había escrito en su propio texto.",
+  "ai.adjustment.offlineDraft":
+    "Redactado sin conexión solo con tus palabras. No se usó ningún proveedor.",
+  "ai.adjustment.scheduleCompressed":
+    "Se comprimió {requested} en {duration} unidades de demo para que el ciclo entero se pueda ver.",
+  "ai.adjustment.requestAddressIgnored":
+    "Se ignoró la dirección de wallet de tu petición. Cada wallet la eliges tú.",
+  "ai.adjustment.requestSecretIgnored":
+    "Se quitó algo que parecía una clave o una frase semilla. Nunca pegues una aquí.",
+  "ai.adjustment.requestActionIgnored":
+    "Esto solo redacta una plantilla. No puede firmar, enviar, aprobar, reclamar ni revocar.",
+
+  "ai.error.unauthenticated": "Inicia sesión para redactar una subvención.",
+  "ai.error.rateLimited":
+    "Demasiados borradores. Reinténtalo en {seconds} segundos.",
+  "ai.error.invalidPrompt":
+    "Describe la subvención en entre {min} y {max} caracteres.",
+  "ai.error.failed":
+    "No se pudo producir el borrador. El asistente de abajo sigue funcionando.",
+  "ai.disclaimer":
+    "Un borrador solo sugiere. Tú confirmas cada valor, y las comprobaciones del propio protocolo se siguen ejecutando antes de firmar nada.",
+
   "meta.title": "HashVest — Subvenciones programables",
   "meta.description":
     "Subvenciones de tokens totalmente financiadas con desbloqueos por tiempo, por hitos e híbridos en HashKey Chain.",

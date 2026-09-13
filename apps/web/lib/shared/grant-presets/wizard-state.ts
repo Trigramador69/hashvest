@@ -22,7 +22,9 @@ import {
   type AppliedPresetDraft,
 } from "./apply-preset";
 import {
+  GENERATED_PRESET_KEY,
   getGrantPreset,
+  type AppliedPresetKey,
   type GrantPreset,
   type GrantPresetKey,
 } from "./presets";
@@ -67,7 +69,16 @@ export const BLANK_PRESET_FIELDS: AppliedPresetDraft = {
  * a preset suggested, and clearing the preset would delete their work.
  */
 export type AppliedPreset = {
-  key: GrantPresetKey;
+  key: AppliedPresetKey;
+  /**
+   * The preset that was actually applied, locale-resolved.
+   *
+   * Kept rather than looked up from `key`, because an AI draft (HAS-18) has no
+   * catalog entry to look up: it is built per request. Holding the source here
+   * means `resyncMilestoneAmounts` works the same for a generated draft as for
+   * a built-in preset instead of throwing on an unknown key.
+   */
+  preset: GrantPreset;
   fields: AppliedPresetDraft;
   userOwned: readonly UserOwnedField[];
 };
@@ -136,6 +147,15 @@ function userOwnedFields(
   ).filter((field) => isUserOwned(field, current, applied));
 }
 
+/** Resolves a catalog key. A generated draft has no entry and must be passed in. */
+function resolveCatalogPreset(key: AppliedPresetKey): GrantPreset {
+  if (key === GENERATED_PRESET_KEY)
+    throw new Error(
+      "A generated draft must be supplied as options.preset; it has no catalog entry.",
+    );
+  return getGrantPreset(key as GrantPresetKey);
+}
+
 /**
  * Applies `key` over the current fields.
  *
@@ -145,18 +165,22 @@ function userOwnedFields(
  * title "Builder grant" and Builder's larger allocation.
  */
 export function selectPreset(
-  key: GrantPresetKey,
+  key: AppliedPresetKey,
   current: Pick<AppliedPresetDraft, UserOwnedField>,
   applied: AppliedPreset | undefined,
   options: {
     decimals?: number;
     applyDescription?: boolean;
-    /** A locale-resolved copy for user-facing title and milestone suggestions. */
+    /**
+     * A locale-resolved copy for user-facing title and milestone suggestions.
+     * Required for `GENERATED_PRESET_KEY`, which the catalog cannot resolve.
+     */
     preset?: GrantPreset;
   } = {},
 ): AppliedPreset {
+  const source = options.preset ?? resolveCatalogPreset(key);
   const userOwned = userOwnedFields(current, applied);
-  const draft = applyPresetToDraft(options.preset ?? getGrantPreset(key), {
+  const draft = applyPresetToDraft(source, {
     title: userOwned.includes("title") ? current.title : "",
     allocationDecimal: userOwned.includes("allocation")
       ? current.allocation
@@ -165,6 +189,7 @@ export function selectPreset(
   });
   return {
     key,
+    preset: source,
     fields: {
       ...draft,
       description: userOwned.includes("description")
@@ -262,7 +287,7 @@ export function resyncMilestoneAmounts(
   decimals?: number,
 ): AppliedPreset | undefined {
   if (!applied) return undefined;
-  const percentages = getGrantPreset(applied.key).milestones?.map(
+  const percentages = applied.preset.milestones?.map(
     (milestone) => milestone.percentOfAllocation,
   );
   if (!percentages?.length) return undefined;

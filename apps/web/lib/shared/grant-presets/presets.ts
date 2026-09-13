@@ -192,3 +192,17 @@ export function findGrantPreset(
   if (!key) return undefined;
   return GRANT_PRESETS.find((candidate) => candidate.key === key);
 }
+
+/**
+ * The key reserved for a draft generated from natural language (HAS-16/HAS-18).
+ *
+ * It is deliberately not a catalog entry: an AI draft is built per request and
+ * has no stable definition to look up. Reserving the string here keeps
+ * `assertValidCatalog` able to reject a catalog that tries to claim it, and
+ * gives `organization_grants.template_key` an honest value for grants that
+ * started from a generated draft.
+ */
+export const GENERATED_PRESET_KEY = "ai-draft";
+
+/** Any key the wizard may report as applied: a catalog preset or a generated draft. */
+export type AppliedPresetKey = GrantPresetKey | typeof GENERATED_PRESET_KEY;
