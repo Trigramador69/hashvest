@@ -5,6 +5,8 @@ import type {
   OrganizationGrantContext,
   OrganizationMember,
   OrganizationSummary,
+  SponsoredClaimPolicy,
+  SponsoredClaimRequest,
   SessionResponse,
 } from "./types";
 
@@ -129,5 +131,56 @@ export const organizationApi = {
   getGrantContext: (vaultAddress: string) =>
     request<{ context: OrganizationGrantContext | null }>(
       `/api/grants/${vaultAddress}/context`,
+    ),
+  getSponsorshipPolicy: (organizationId: string) =>
+    request<
+      SponsoredClaimPolicy & {
+        relayerAddress: string | null;
+        relayerConfigured: boolean;
+      }
+    >(`/api/organizations/${organizationId}/sponsorship`),
+  updateSponsorshipPolicy: (
+    organizationId: string,
+    input: { enabled: boolean; maxClaims: number },
+  ) =>
+    request<
+      SponsoredClaimPolicy & {
+        relayerAddress: string | null;
+        relayerConfigured: boolean;
+      }
+    >(`/api/organizations/${organizationId}/sponsorship`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  submitSponsoredClaim: (
+    organizationId: string,
+    vaultAddress: string,
+    input: {
+      amount: string;
+      nonce: string;
+      deadline: string;
+      relayerAddress: string;
+      signature: string;
+    },
+  ) =>
+    request<{ request: SponsoredClaimRequest }>(
+      `/api/organizations/${organizationId}/grants/${vaultAddress}/sponsored-claim`,
+      { method: "POST", body: JSON.stringify(input) },
+    ),
+  getSponsoredClaimStatus: (
+    organizationId: string,
+    vaultAddress: string,
+    requestId: string,
+  ) =>
+    request<{ request: SponsoredClaimRequest }>(
+      `/api/organizations/${organizationId}/grants/${vaultAddress}/sponsored-claim?requestId=${encodeURIComponent(requestId)}`,
+    ),
+  getSponsoredClaimByNonce: (
+    organizationId: string,
+    vaultAddress: string,
+    nonce: string,
+  ) =>
+    request<{ request: SponsoredClaimRequest | null }>(
+      `/api/organizations/${organizationId}/grants/${vaultAddress}/sponsored-claim?nonce=${encodeURIComponent(nonce)}`,
     ),
 };

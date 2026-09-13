@@ -7,6 +7,7 @@ import {
   grantVaultAbi,
   eligibilityProviderAbi,
   hskTestnet,
+  sponsoredGrantVaultAbi,
 } from "@hashvest/web3";
 
 import { readRevocationState } from "@/lib/protocol/revocation";
@@ -136,6 +137,36 @@ export function useGrant(address: Address) {
                   () => ({ enabled: true, eligible: false, error: true }),
                 ),
         ]);
+      const sponsoredClaim = await (async () => {
+        try {
+          const supported = await client.readContract({
+            address,
+            abi: sponsoredGrantVaultAbi,
+            functionName: "supportsSponsoredClaims",
+            blockNumber,
+          });
+          if (!supported)
+            return { supported: false as const, nonce: 0n, used: false };
+          const [nonce, used] = await Promise.all([
+            client.readContract({
+              address,
+              abi: sponsoredGrantVaultAbi,
+              functionName: "sponsoredClaimNonce",
+              blockNumber,
+            }),
+            client.readContract({
+              address,
+              abi: sponsoredGrantVaultAbi,
+              functionName: "sponsoredClaimUsed",
+              blockNumber,
+            }),
+          ]);
+          return { supported: true as const, nonce, used };
+        } catch {
+          // Legacy GrantVaults do not expose the sponsored-claim extension.
+          return { supported: false as const, nonce: 0n, used: false };
+        }
+      })();
       return {
         title,
         issuer,
@@ -163,6 +194,7 @@ export function useGrant(address: Address) {
         balance,
         beneficiaryBalance,
         eligibility,
+        sponsoredClaim,
         blockNumber,
       };
     },

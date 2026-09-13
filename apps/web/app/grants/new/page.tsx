@@ -630,10 +630,13 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         );
       }
       assertTestnetWallet(account, walletMessages);
+      const createFunction = organizationId
+        ? "createSponsoredGrant"
+        : "createGrant";
       const simulation = await client.simulateContract({
         address: factory,
         abi: hashVestFactoryAbi,
-        functionName: "createGrant",
+        functionName: createFunction,
         args: [config, items],
         account,
       });
@@ -641,7 +644,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         writeContractAsync({
           address: factory,
           abi: hashVestFactoryAbi,
-          functionName: "createGrant",
+          functionName: createFunction,
           args: [config, items],
           chainId: 133,
           account: assertTestnetWallet(account, walletMessages),

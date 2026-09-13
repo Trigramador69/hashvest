@@ -204,6 +204,29 @@ export const zhCN: TranslationDictionary = {
   "overview.claim.item.fallbackDescription": "组织资助",
   "overview.claim.item.amount": "可领取 {amount}",
   "overview.claim.item.action": "打开资助",
+  "overview.sponsorship.title": "组织赞助首次领取",
+  "overview.sponsorship.lede":
+    "组织资助可以为一次由受益人授权的首次领取支付 HSK 交易费用。",
+  "overview.sponsorship.loading": "正在读取赞助策略…",
+  "overview.sponsorship.error": "赞助策略暂时不可用。",
+  "overview.sponsorship.enabled": "启用赞助首次领取",
+  "overview.sponsorship.enabledHint":
+    "受益人仍需签署精确的金库领取授权；组织只支付 relayer 费用。",
+  "overview.sponsorship.maxClaims": "组织领取上限",
+  "overview.sponsorship.maxClaimsHint":
+    "已预留的领取会计入此上限。最大值：{max}。",
+  "overview.sponsorship.usage": "已预留",
+  "overview.sponsorship.remaining": "剩余",
+  "overview.sponsorship.relayer": "Relayer",
+  "overview.sponsorship.relayerReady": "已配置",
+  "overview.sponsorship.relayerMissing": "未配置",
+  "overview.sponsorship.manualFallback":
+    "如果赞助不可用，受益人始终可以使用由自己钱包支付费用的普通领取。",
+  "overview.sponsorship.save": "保存策略",
+  "overview.sponsorship.saving": "正在保存策略…",
+  "overview.sponsorship.saved": "赞助策略已保存。",
+  "overview.sponsorship.updateError":
+    "无法保存策略。请重试，但不要低于已有预留请求的上限。",
   "overview.members.title": "成员",
   "overview.members.manage": "管理",
   "overview.link.summary": "关联一个已有的 GrantVault",
@@ -531,6 +554,44 @@ export const zhCN: TranslationDictionary = {
   "detail.claim.pending": "交易进行中…",
   "detail.claim.action": "领取 {amount}",
   "detail.claim.beneficiaryBalance": "受益人代币余额",
+  "detail.sponsor.title": "组织支付首次领取费用",
+  "detail.sponsor.lede":
+    "你用钱包签名授权精确的金库、金额和 relayer。组织支付 HSK 费用；它无法更换受益人或金额。",
+  "detail.sponsor.action": "赞助我的首次领取",
+  "detail.sponsor.confirmTitle": "确认赞助首次领取",
+  "detail.sponsor.confirmBody":
+    "你的签名授权从此金库领取一次 {amount}。组织 relayer 将支付 HSK 交易费用。",
+  "detail.sponsor.confirm": "签名并提交",
+  "detail.sponsor.cancel": "取消",
+  "detail.sponsor.signing": "等待钱包签名…",
+  "detail.sponsor.submitting": "正在提交赞助领取…",
+  "detail.sponsor.retry": "重试赞助领取",
+  "detail.sponsor.gasPayer": "Gas 支付方",
+  "detail.sponsor.transaction": "赞助交易",
+  "detail.sponsor.status.requested": "赞助请求已记录",
+  "detail.sponsor.status.processing": "Relayer 正在准备交易…",
+  "detail.sponsor.status.submitted": "赞助交易已提交",
+  "detail.sponsor.status.confirmed": "赞助首次领取已确认",
+  "detail.sponsor.status.failed": "赞助领取失败",
+  "detail.sponsor.statusUnavailable":
+    "无法刷新赞助领取状态。请求仍会被跟踪；普通领取仍然可用。",
+  "detail.sponsor.expired":
+    "此签名请求已过期。请开始新的赞助领取或使用普通领取。",
+  "detail.sponsor.failedFallback":
+    "Relayer 无法完成此请求。请使用由钱包支付费用的普通领取，或在请求有效时重试。",
+  "detail.sponsor.manualFallback": "由钱包支付费用的普通领取始终可用。",
+  "detail.sponsor.error":
+    "无法完成赞助领取。HashVest 未向你的钱包收费；请使用普通领取或重试。",
+  "detail.sponsor.unavailable": "赞助领取暂时不可用。普通领取仍然可用。",
+  "detail.sponsor.legacy":
+    "此 GrantVault 使用旧版手动领取合约。请使用下面的普通领取。",
+  "detail.sponsor.firstClaimOnly": "赞助仅限首次领取。请为此资助使用普通领取。",
+  "detail.sponsor.noClaimable": "当前没有可赞助的可领取金额。",
+  "detail.sponsor.checking": "正在检查组织赞助策略…",
+  "detail.sponsor.policyDisabled": "组织尚未启用赞助领取。普通领取仍然可用。",
+  "detail.sponsor.limitReached": "组织赞助上限已达到。普通领取仍然可用。",
+  "detail.sponsor.relayerMissing":
+    "组织 relayer 尚未配置或没有资金。请使用普通领取。",
   "detail.eligibility.title": "资格校验",
   "detail.eligibility.none": "未配置校验合约。领取不需要资格校验。",
   "detail.eligibility.unavailable": "校验合约不可用",
