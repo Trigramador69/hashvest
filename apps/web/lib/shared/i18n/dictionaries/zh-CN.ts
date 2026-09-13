@@ -768,6 +768,20 @@ export const zhCN: TranslationDictionary = {
   "wizard.preset.needsReviewer": "需要审核人",
   "wizard.preset.allocationShare": "占分配总额的 {percent}%",
 
+  // 资助向导「模板」步骤中的组织模板（HAS-13）。
+  "wizard.orgTemplates.title": "你所在组织的模板",
+  "wizard.orgTemplates.lede":
+    "可选。组织所有者保存的模板会填入与内置预设相同的可编辑字段。受益人仍由你选择，签名前也请逐项确认。",
+  "wizard.orgTemplates.organization": "组织",
+  "wizard.orgTemplates.chooseOrganization": "选择一个组织",
+  "wizard.orgTemplates.loading": "正在加载模板…",
+  "wizard.orgTemplates.error": "模板暂时不可用。下方的内置预设仍可使用。",
+  "wizard.orgTemplates.empty": "该组织还没有模板。",
+  "wizard.orgTemplates.noDescription": "暂无说明。",
+  "wizard.orgTemplates.suggestsReviewer": "建议了审核人",
+  "wizard.orgTemplates.manage": "管理模板",
+  "wizard.orgTemplates.invalid": "该模板已无法应用。请让组织所有者更新它。",
+
   // 资助预设（HAS-8）。百分比、额度、时间单位和策略索引属于数据而非文案，不做翻译。
   "preset.builder-grant.name": "建设者资助",
   "preset.builder-grant.tagline": "每一笔付款都是审核人的一次签名。",

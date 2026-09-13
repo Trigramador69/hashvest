@@ -28,6 +28,8 @@ import {
   TransactionStatus,
 } from "@/components/grant-ui";
 import { AiGrantBuilder } from "@/components/ai-grant-builder";
+import { OrganizationTemplatePicker } from "@/components/organization-template-picker";
+import { PresetOption } from "@/components/preset-option";
 import { DemoFaucet } from "@/components/demo-faucet";
 import { CohortCreator } from "@/components/cohort-creator";
 import { MemberPicker } from "@/components/organization-ui";
@@ -38,6 +40,7 @@ import {
   useOrganization,
   useOrganizationMembers,
 } from "@/hooks/use-organizations";
+import type { OrganizationTemplate } from "@/lib/cloud/organizations/types";
 import { useSession } from "@/hooks/use-session";
 import {
   assertTestnetWallet,
@@ -60,7 +63,10 @@ import {
   type GrantPreset,
   type GrantPresetKey,
 } from "@/lib/shared/grant-presets/presets";
+import { organizationTemplatePreset } from "@/lib/shared/grant-presets/organization-template";
+import { parseTemplateKey } from "@/lib/shared/grant-presets/template-key";
 import {
+  applyReviewerDefault,
   BLANK_PRESET_FIELDS,
   clearPreset,
   resyncMilestoneAmounts,
@@ -131,41 +137,6 @@ function Field({
   );
 }
 
-function PresetOption({
-  name,
-  tagline,
-  meta,
-  selected,
-  onSelect,
-}: {
-  name: string;
-  tagline: string;
-  meta: string;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <label
-      className={`flex cursor-pointer items-start gap-3 rounded-card border p-4 ${selected ? "border-primary bg-[rgba(87,217,139,.06)]" : "bg-card"}`}
-    >
-      <input
-        className="mt-1 accent-primary"
-        type="radio"
-        name="preset"
-        checked={selected}
-        onChange={onSelect}
-      />
-      <span className="min-w-0">
-        <span className="block font-semibold">{name}</span>
-        <span className="mt-1 block text-sm leading-6 text-muted-foreground">
-          {tagline}
-        </span>
-        <span className="mt-2 block text-xs text-muted-foreground">{meta}</span>
-      </span>
-    </label>
-  );
-}
-
 /**
  * Optional starting points for the same wizard. A preset only fills fields the
  * user can still edit or clear; the vault stores what is submitted, and the
@@ -173,22 +144,20 @@ function PresetOption({
  */
 function PresetPicker({
   selected,
-  draft,
+  appliedPreset,
   onSelect,
 }: {
   selected: AppliedPresetKey | null;
-  /** The applied AI draft (HAS-18), which has no catalog entry to look up. */
-  draft?: GrantPreset;
+  /**
+   * The applied preset when it has no catalog entry to look up: an AI draft
+   * (HAS-18) or an organization template (HAS-13).
+   */
+  appliedPreset?: GrantPreset;
   onSelect: (key: GrantPresetKey | null) => void;
 }) {
   const t = useTranslations();
-  const { presets, preset: localizedPreset } = useGrantPresets();
-  const active =
-    selected === GENERATED_PRESET_KEY
-      ? draft
-      : selected
-        ? localizedPreset(selected as GrantPresetKey)
-        : undefined;
+  const { presets, findPreset } = useGrantPresets();
+  const active = selected ? (findPreset(selected) ?? appliedPreset) : undefined;
   return (
     <div className="space-y-3">
       <div>
@@ -197,13 +166,13 @@ function PresetPicker({
           {t("wizard.preset.lede")}
         </p>
       </div>
-      {selected === GENERATED_PRESET_KEY && draft && (
+      {selected === GENERATED_PRESET_KEY && appliedPreset && (
         <p className="flex flex-wrap items-baseline gap-x-2 rounded-control border border-[rgba(77,106,217,.3)] bg-[rgba(77,106,217,.08)] px-3 py-2 text-xs text-secondary">
           <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#4d6ad9]">
             {t("ai.preset.applied")}
           </span>
           <span className="min-w-0 text-foreground">
-            {draft.titleSuggestion}
+            {appliedPreset.titleSuggestion}
           </span>
         </p>
       )}
@@ -234,7 +203,9 @@ function PresetPicker({
       </div>
       {active && (
         <div className="rounded-card border border-primary/20 bg-[rgba(87,217,139,.05)] p-5">
-          <p className="text-sm leading-6">{active.description}</p>
+          {active.description && (
+            <p className="text-sm leading-6">{active.description}</p>
+          )}
           <div className="mt-3 flex flex-wrap gap-2">
             {active.bestFor.map((audience) => (
               <span
@@ -263,16 +234,18 @@ function PresetPicker({
               ))}
             </dl>
           )}
-          {active.timing && (
+          {active.timing?.realWorldNote && (
             <p className="mt-4 border-t border-primary/20 pt-4 text-xs leading-5 text-muted-foreground">
               {active.timing.realWorldNote}
             </p>
           )}
-          <ul className="mt-4 space-y-1 border-t border-primary/20 pt-4 text-xs leading-5 text-muted-foreground">
-            {active.assumptions.map((assumption) => (
-              <li key={assumption}>· {assumption}</li>
-            ))}
-          </ul>
+          {active.assumptions.length > 0 && (
+            <ul className="mt-4 space-y-1 border-t border-primary/20 pt-4 text-xs leading-5 text-muted-foreground">
+              {active.assumptions.map((assumption) => (
+                <li key={assumption}>· {assumption}</li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
     </div>
@@ -300,6 +273,13 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   const session = useSession();
   const organization = useOrganization(organizationId);
   const organizationMembers = useOrganizationMembers(organizationId);
+  /**
+   * The organization whose templates the Template step lists. Fixed in the
+   * organization-aware wizard; chosen by the reader in the direct one.
+   */
+  const [templateOrganizationId, setTemplateOrganizationId] = useState("");
+  const templateSource = organizationId ?? templateOrganizationId;
+  const templateMembers = useOrganizationMembers(templateSource || undefined);
   const linkGrant = useLinkOrganizationGrant(organizationId ?? "direct");
   const [creationMode, setCreationMode] = useState<"single" | "cohort">(
     "single",
@@ -353,6 +333,11 @@ export function NewGrant({ organizationId }: NewGrantProps) {
    * its user-facing chrome is rendered from the `ai.*` dictionary rather than
    * from the preset itself.
    */
+  const appliedKey = parseTemplateKey(applied?.key);
+  /** The applied organization template, so the picker can mark it. */
+  const appliedTemplateId =
+    appliedKey?.kind === "organization" ? appliedKey.templateId : null;
+
   const appliedPresetName = !applied
     ? ""
     : applied.key === GENERATED_PRESET_KEY
@@ -416,6 +401,47 @@ export function NewGrant({ organizationId }: NewGrantProps) {
     writePresetFields(next.fields);
     setApplied(next);
     if (step === STEP.template) setStep(STEP.grant);
+  }
+
+  /**
+   * Applies an organization template (HAS-13) through the same preset path.
+   *
+   * Mapping the template to a preset re-validates it, so a stored template the
+   * protocol could not accept is reported rather than filling the form. Its
+   * reviewer default is a member reference and becomes a suggestion only here:
+   * never a permission, never the beneficiary, and never over a choice the
+   * user already made.
+   */
+  function chooseOrganizationTemplate(template: OrganizationTemplate) {
+    setValidationError("");
+    let preset;
+    try {
+      preset = organizationTemplatePreset(template);
+    } catch {
+      setValidationError(t("wizard.orgTemplates.invalid"));
+      return;
+    }
+    const next = selectPreset(preset.key, presetFields(), applied, {
+      decimals: tokenMetadata.data?.decimals,
+      applyDescription: Boolean(organizationId),
+      preset,
+    });
+    writePresetFields(next.fields);
+    setApplied(next);
+    const reviewerChoice = applyReviewerDefault({
+      path: organizationId ? "organization" : "direct",
+      strategy: next.fields.strategy,
+      defaultReviewerMemberId: template.defaultReviewerMemberId,
+      members: templateMembers.data,
+      current: {
+        memberId: reviewerMemberId,
+        address: reviewer,
+        external: reviewerExternal,
+      },
+    });
+    setReviewerMemberId(reviewerChoice.memberId);
+    setReviewer(reviewerChoice.address);
+    setReviewerExternal(reviewerChoice.external);
   }
 
   function writePresetFields(fields: typeof BLANK_PRESET_FIELDS) {
@@ -1093,15 +1119,20 @@ export function NewGrant({ organizationId }: NewGrantProps) {
               >
                 <fieldset className="min-w-0 space-y-6" disabled={tx.pending}>
                   {step === STEP.template && (
-                    <PresetPicker
-                      selected={applied?.key ?? null}
-                      draft={
-                        applied?.key === GENERATED_PRESET_KEY
-                          ? applied.preset
-                          : undefined
-                      }
-                      onSelect={choosePreset}
-                    />
+                    <div className="space-y-7">
+                      <OrganizationTemplatePicker
+                        organizationId={templateSource || undefined}
+                        fixedOrganization={Boolean(organizationId)}
+                        onOrganizationChange={setTemplateOrganizationId}
+                        selectedTemplateId={appliedTemplateId}
+                        onSelect={chooseOrganizationTemplate}
+                      />
+                      <PresetPicker
+                        selected={applied?.key ?? null}
+                        appliedPreset={applied?.preset}
+                        onSelect={choosePreset}
+                      />
+                    </div>
                   )}
                   {step === STEP.grant && (
                     <>
@@ -1343,9 +1374,8 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             </Field>
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {applied?.preset.timing
-                              ? applied.preset.timing.realWorldNote
-                              : t("wizard.schedule.demoTip")}
+                            {applied?.preset.timing?.realWorldNote ||
+                              t("wizard.schedule.demoTip")}
                           </p>
                         </div>
                       )}

@@ -868,6 +868,22 @@ export const es: TranslationDictionary = {
   "wizard.preset.needsReviewer": "necesita revisor",
   "wizard.preset.allocationShare": "{percent}% de la asignación",
 
+  // Plantillas de organización en el paso Plantilla del asistente (HAS-13).
+  "wizard.orgTemplates.title": "Plantillas de tu organización",
+  "wizard.orgTemplates.lede":
+    "Opcional. Una plantilla guardada por el propietario de una organización rellena los mismos campos editables que un preajuste incorporado. Tú sigues eligiendo la persona beneficiaria y revisas cada valor antes de firmar.",
+  "wizard.orgTemplates.organization": "Organización",
+  "wizard.orgTemplates.chooseOrganization": "Elige una organización",
+  "wizard.orgTemplates.loading": "Cargando plantillas…",
+  "wizard.orgTemplates.error":
+    "Las plantillas no están disponibles ahora mismo. Los preajustes de abajo siguen funcionando.",
+  "wizard.orgTemplates.empty": "Esta organización aún no tiene plantillas.",
+  "wizard.orgTemplates.noDescription": "Sin descripción.",
+  "wizard.orgTemplates.suggestsReviewer": "sugiere una persona revisora",
+  "wizard.orgTemplates.manage": "Gestionar plantillas",
+  "wizard.orgTemplates.invalid":
+    "Esta plantilla ya no se puede aplicar. Pide al propietario de la organización que la actualice.",
+
   // Presets de subvención (HAS-8). Porcentajes, asignaciones, unidades de
   // calendario e índices de estrategia son datos, no copy: nunca se traducen.
   "preset.builder-grant.name": "Subvención para builders",

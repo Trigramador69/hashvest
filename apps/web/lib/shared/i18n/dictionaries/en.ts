@@ -844,6 +844,23 @@ export const en = {
   "wizard.preset.needsReviewer": "needs a reviewer",
   "wizard.preset.allocationShare": "{percent}% of the allocation",
 
+  // Organization templates in the wizard's Template step (HAS-13). A template
+  // only fills editable fields; it never signs, funds, or sets a beneficiary.
+  "wizard.orgTemplates.title": "Your organization's templates",
+  "wizard.orgTemplates.lede":
+    "Optional. A template saved by an organization owner fills the same editable fields as a built-in preset. You still choose the beneficiary and review every value before signing.",
+  "wizard.orgTemplates.organization": "Organization",
+  "wizard.orgTemplates.chooseOrganization": "Choose an organization",
+  "wizard.orgTemplates.loading": "Loading templates…",
+  "wizard.orgTemplates.error":
+    "Templates are unavailable right now. The built-in presets below still work.",
+  "wizard.orgTemplates.empty": "This organization has no templates yet.",
+  "wizard.orgTemplates.noDescription": "No description.",
+  "wizard.orgTemplates.suggestsReviewer": "suggests a reviewer",
+  "wizard.orgTemplates.manage": "Manage templates",
+  "wizard.orgTemplates.invalid":
+    "This template can no longer be applied. Ask the organization owner to update it.",
+
   // Grant presets (HAS-8). Keys mirror the catalog in
   // lib/shared/grant-presets/presets.ts and are resolved through
   // localizeGrantPreset(); the catalog's own English values are the fallback.
