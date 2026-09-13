@@ -37,11 +37,11 @@ The Cloud is the product layer. It makes the Protocol usable — workspaces, nam
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `apps/web/app/**`                       | Next.js routes, pages, and Route Handlers                                                                                                                           |
 | `apps/web/lib/cloud/auth/**`            | SIWE challenge, one-time nonce, signed session cookie                                                                                                               |
-| `apps/web/lib/cloud/organizations/**`   | Validation, server authorization, template, sponsorship, and private milestone-evidence data access, browser API client, types                                      |
+| `apps/web/lib/cloud/organizations/**`   | Validation, server authorization, template, sponsorship, private milestone-evidence and notification read state data access, browser API client, types              |
 | `apps/web/lib/cloud/supabase-server.ts` | The only service-role Supabase client; server-only                                                                                                                  |
 | `apps/web/lib/shared/i18n/**`           | Locale selection and the typed translation boundary                                                                                                                 |
 | `apps/web/lib/shared/grant-presets/**`  | Grant preset catalog, organization template rules, `template_key` linkage, wizard mapping, field ownership, the template editor's form model, and provenance lookup |
-| `supabase/migrations/**`                | Organizations, members, grant associations, organization templates, milestone evidence, auth nonces, sponsorship policy and state                                   |
+| `supabase/migrations/**`                | Organizations, members, grant associations, organization templates, milestone evidence, notification read marks, auth nonces, sponsorship policy and state          |
 
 ### Dashboard presentation projection
 
@@ -234,6 +234,40 @@ In force from the moment this document merges until submission:
 | M5 — P1 Cloud additions after P0                      | Cloud (HAS-23, HAS-24, HAS-27, HAS-30 are Cloud + Protocol)               | Post-hackathon |
 | M6 — P2 intelligence, operations & protocol readiness | Mixed; includes HAS-38 extraction and a blocked HAS-40 fee implementation | Post-hackathon |
 | M7 — P3 long-term protocol, Cloud & ecosystem         | Mixed                                                                     | Post-hackathon |
+
+## Organization reporting and notifications
+
+Two organization surfaces are derived, never stored. The Reports tab aggregates
+live GrantVault reads, and the overview notification panel derives lifecycle
+items from the same reads. Supabase contributes only the discovery set — which
+vaults the organization is associated with — plus, for notifications, whether a
+member has already seen a given item.
+
+Both read through one shared per-vault query
+(`apps/web/hooks/use-organization-grant-snapshots.ts`), at a single block per
+vault, so their figures agree with each other and with the overview metrics
+without extra RPC load. A vault whose read fails is carried as unreadable
+rather than dropped: the report shows a partial state naming it, and the panel
+raises an explicitly unverified item. Neither presents a failed read as a
+smaller confident number.
+
+The reducers are pure and live beside the wallet dashboard reducer:
+`apps/web/lib/dashboard/organization-report.ts` and
+`apps/web/lib/dashboard/organization-notifications.ts`.
+
+Two invariants are worth stating here because they are easy to erode:
+
+- **No cross-token aggregation.** HashVest has no price feed, so amounts are
+  summed only within one ERC20 contract. There is no combined total, no USD
+  conversion, no TVL and no yield anywhere in the report.
+- **A notification is identified by the state fact it reports**, never by the
+  clock or the read. That makes deduplication a property of the identity rather
+  than a stored observation log, and bounds the stream by construction without
+  an indexer.
+
+Role scoping in both surfaces uses `resolveProtocolRoles` against the connected
+wallet only, so organization membership never widens what a member is shown
+about a grant. Full contract: [`organization-reporting.md`](organization-reporting.md).
 
 ## Security boundary
 
