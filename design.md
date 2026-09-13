@@ -401,7 +401,7 @@ The authenticated app shell exposes only product surfaces that have a working de
 - `/app/grants` — direct grants grouped by Issued, Received, and Review;
 - `/app/organizations` — organization list and creation;
 - `/app/organizations/<uuid>` — organization overview, grants, reports, members, templates, and sponsorship settings;
-- `/app/settings` — workspace session, language, and network.
+- `/app/settings` — workspace session, language, network, and links to each organization's sponsored-claim policy.
 
 Organizations are a first-class shell destination. Do not add generic SaaS modules, duplicate
 grant lists, dead search inputs, notification buttons without a backing feed, or

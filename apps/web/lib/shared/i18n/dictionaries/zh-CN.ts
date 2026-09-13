@@ -286,6 +286,7 @@ export const zhCN: TranslationDictionary = {
   "overview.sponsorship.remaining": "剩余",
   "overview.sponsorship.gasSpent": "已用 gas",
   "overview.sponsorship.gasReserved": "已预留 gas",
+  "overview.sponsorship.gasRemaining": "剩余 gas",
   "overview.sponsorship.relayer": "Relayer",
   "overview.sponsorship.relayerReady": "已配置",
   "overview.sponsorship.relayerMissing": "未配置",
@@ -405,6 +406,7 @@ export const zhCN: TranslationDictionary = {
   "organizations.retry": "重试",
   "organizations.list.title": "你的组织",
   "organizations.organization.open": "打开",
+  "organizations.organization.policy": "赞助领取",
   "organizations.organization.counts": "{members} 位成员 · {grants} 份资助",
   "organizations.empty.title": "创建你的第一个组织",
   "organizations.empty.body":
@@ -420,6 +422,13 @@ export const zhCN: TranslationDictionary = {
   "settings.plans.title": "产品模型",
   "settings.plans.body": "Free、Team 和 Enterprise 是包装，不是已执行的限额。",
   "settings.plans.action": "查看方案",
+  "settings.sponsorship.title": "赞助领取",
+  "settings.sponsorship.body":
+    "每个组织自行设定将为多少次受益人领取和审核人批准支付 HSK gas。这是组织策略，不是 Free 方案额度。",
+  "settings.sponsorship.configure": "配置",
+  "settings.sponsorship.signIn": "登录工作区后即可打开组织的赞助领取策略。",
+  "settings.sponsorship.empty":
+    "请先创建组织。所有者在该组织的“设置”标签页中设定赞助操作上限。",
   "dashboard.connect.eyebrow": "工作区概览",
   "dashboard.connect.title": "连接钱包以查看工作。",
   "dashboard.connect.body":
@@ -855,7 +864,8 @@ export const zhCN: TranslationDictionary = {
   "detail.sponsor.vaultNotAllowed": "此 GrantVault 不在组织赞助允许列表中。",
   "detail.sponsor.limitReached":
     "操作上限或 HSK gas 预算已用尽。钱包付费操作仍然可用。",
-  "detail.sponsor.usage": "组织赞助操作剩余 {remaining} / {max}。",
+  "detail.sponsor.usage":
+    "组织赞助操作剩余 {remaining} / {max}。每个钱包每日上限：{daily}。",
   "detail.sponsor.relayerMissing":
     "组织 relayer 尚未配置或没有资金。请使用钱包付费操作。",
   "detail.eligibility.title": "资格校验",

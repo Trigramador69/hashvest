@@ -319,6 +319,7 @@ export const en = {
   "overview.sponsorship.remaining": "Remaining",
   "overview.sponsorship.gasSpent": "Gas spent",
   "overview.sponsorship.gasReserved": "Gas reserved",
+  "overview.sponsorship.gasRemaining": "Gas remaining",
   "overview.sponsorship.relayer": "Relayer",
   "overview.sponsorship.relayerReady": "Configured",
   "overview.sponsorship.relayerMissing": "Not configured",
@@ -445,6 +446,7 @@ export const en = {
   "organizations.retry": "Retry",
   "organizations.list.title": "Your organizations",
   "organizations.organization.open": "Open",
+  "organizations.organization.policy": "Sponsored claims",
   "organizations.organization.counts": "{members} members · {grants} grants",
   "organizations.empty.title": "Create your first organization",
   "organizations.empty.body":
@@ -463,6 +465,14 @@ export const en = {
   "settings.plans.body":
     "Free, Team, and Enterprise are packaging, not enforced limits.",
   "settings.plans.action": "View plans",
+  "settings.sponsorship.title": "Sponsored claims",
+  "settings.sponsorship.body":
+    "Each organization sets how many beneficiary claims and reviewer approvals it will pay HSK gas for. That policy is not a Free-plan allowance.",
+  "settings.sponsorship.configure": "Configure",
+  "settings.sponsorship.signIn":
+    "Sign in to the workspace to open an organization's sponsored-claim policy.",
+  "settings.sponsorship.empty":
+    "Create an organization first. The owner sets the sponsored-action limit on that organization's Settings tab.",
   // Analytics dashboard: read-only projections of live HSK grant state.
   "dashboard.connect.eyebrow": "Workspace overview",
   "dashboard.connect.title": "Connect to see your work.",
@@ -935,7 +945,7 @@ export const en = {
   "detail.sponsor.limitReached":
     "The action limit or HSK gas budget has been reached. The wallet-paid action remains available.",
   "detail.sponsor.usage":
-    "{remaining} of {max} organization-sponsored actions remaining.",
+    "{remaining} of {max} organization-sponsored actions remaining. Daily wallet limit: {daily}.",
   "detail.sponsor.relayerMissing":
     "The organization relayer is not configured or funded yet. Use the wallet-paid action.",
   "detail.eligibility.title": "Eligibility",

@@ -70,12 +70,14 @@ export function OrganizationsSettings() {
             <PanelBody className="p-0">
               <div className="divide-y divide-border-soft">
                 {organizations.data.map((organization) => (
-                  <Link
+                  <div
                     key={organization.id}
-                    href={appRoutes.organization(organization.id)}
-                    className="group flex min-h-20 items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-surface-hover"
+                    className="flex min-h-20 items-center justify-between gap-4 px-5 py-4"
                   >
-                    <span className="min-w-0">
+                    <Link
+                      href={appRoutes.organization(organization.id)}
+                      className="min-w-0 hover:text-primary"
+                    >
                       <span className="block truncate font-mono text-sm text-foreground">
                         {organization.name}
                       </span>
@@ -85,11 +87,22 @@ export function OrganizationsSettings() {
                           grants: organization.grantCount,
                         })}
                       </span>
+                    </Link>
+                    <span className="flex shrink-0 items-center gap-3">
+                      <Link
+                        href={appRoutes.organizationSettings(organization.id)}
+                        className="font-mono text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        {t("organizations.organization.policy")}
+                      </Link>
+                      <Link
+                        href={appRoutes.organization(organization.id)}
+                        className="font-mono text-xs text-primary hover:underline"
+                      >
+                        {t("organizations.organization.open")} →
+                      </Link>
                     </span>
-                    <span className="shrink-0 font-mono text-xs text-primary opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-                      {t("organizations.organization.open")} →
-                    </span>
-                  </Link>
+                  </div>
                 ))}
               </div>
             </PanelBody>

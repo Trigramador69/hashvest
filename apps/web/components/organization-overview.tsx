@@ -328,6 +328,18 @@ function SponsorshipUsage({ policy }: { policy: SponsorshipPolicyData }) {
       </p>
       <p>
         <span className="text-muted-foreground">
+          {t("overview.sponsorship.dailyLimit")}:
+        </span>{" "}
+        {policy.maxActionsPerWalletPerDay}
+      </p>
+      <p>
+        <span className="text-muted-foreground">
+          {t("overview.sponsorship.gasRemaining")}:
+        </span>{" "}
+        {formatEther(BigInt(policy.remainingGasWei))} HSK
+      </p>
+      <p>
+        <span className="text-muted-foreground">
           {t("overview.sponsorship.gasSpent")}:
         </span>{" "}
         {formatEther(BigInt(policy.spentGasWei))} HSK

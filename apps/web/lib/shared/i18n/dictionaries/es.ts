@@ -329,6 +329,7 @@ export const es: TranslationDictionary = {
   "overview.sponsorship.remaining": "Restantes",
   "overview.sponsorship.gasSpent": "Gas gastado",
   "overview.sponsorship.gasReserved": "Gas reservado",
+  "overview.sponsorship.gasRemaining": "Gas restante",
   "overview.sponsorship.relayer": "Relayer",
   "overview.sponsorship.relayerReady": "Configurado",
   "overview.sponsorship.relayerMissing": "No configurado",
@@ -462,6 +463,7 @@ export const es: TranslationDictionary = {
   "organizations.retry": "Reintentar",
   "organizations.list.title": "Tus organizaciones",
   "organizations.organization.open": "Abrir",
+  "organizations.organization.policy": "Claims patrocinados",
   "organizations.organization.counts":
     "{members} miembros · {grants} subvenciones",
   "organizations.empty.title": "Crea tu primera organización",
@@ -481,6 +483,14 @@ export const es: TranslationDictionary = {
   "settings.plans.body":
     "Free, Team y Enterprise son empaquetado, no límites aplicados.",
   "settings.plans.action": "Ver planes",
+  "settings.sponsorship.title": "Claims patrocinados",
+  "settings.sponsorship.body":
+    "Cada organización define cuántos reclamos de beneficiarios y aprobaciones de reviewers pagará en gas HSK. Esa política no es una asignación del plan Free.",
+  "settings.sponsorship.configure": "Configurar",
+  "settings.sponsorship.signIn":
+    "Inicia sesión en el espacio para abrir la política de claims patrocinados de una organización.",
+  "settings.sponsorship.empty":
+    "Crea primero una organización. El propietario fija el límite de acciones patrocinadas en la pestaña Configuración de esa organización.",
   "dashboard.connect.eyebrow": "Resumen del espacio",
   "dashboard.connect.title": "Conecta para ver tu trabajo.",
   "dashboard.connect.body":
@@ -959,7 +969,7 @@ export const es: TranslationDictionary = {
   "detail.sponsor.limitReached":
     "Se alcanzó el límite de acciones o el presupuesto de gas HSK. La acción normal continúa disponible.",
   "detail.sponsor.usage":
-    "Quedan {remaining} de {max} acciones patrocinadas por la organización.",
+    "Quedan {remaining} de {max} acciones patrocinadas por la organización. Límite diario por wallet: {daily}.",
   "detail.sponsor.relayerMissing":
     "El relayer de la organización aún no está configurado o financiado. Usa la acción pagada por tu wallet.",
   "detail.eligibility.title": "Elegibilidad",

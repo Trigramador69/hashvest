@@ -438,6 +438,7 @@ function SponsoredActionPanel({
               {t("detail.sponsor.usage", {
                 remaining: policy.data.remainingActions,
                 max: policy.data.maxActions,
+                daily: policy.data.maxActionsPerWalletPerDay,
               })}
             </p>
           )}
