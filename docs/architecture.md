@@ -69,6 +69,23 @@ not define a second UI or data boundary.
 
 Cloud authority stops at workspace access. The SIWE statement in `apps/web/lib/cloud/auth/constants.ts` says so explicitly: the signature _"authenticates workspace access only; it does not authorize onchain actions."_
 
+### Commercial presentation boundary (HAS-36)
+
+The public landing summary and `/plans` route explain how the open Protocol
+relates to HashVest Cloud and present the intended Free / Team / Enterprise
+value ladder. Their catalog lives in `apps/web/lib/shared/product-model.ts`
+and is presentation metadata only. It has no billing, checkout, metering,
+entitlement, plan-assignment, or authorization path, and it never changes
+onchain behavior.
+
+Each capability is explicitly classified as `demo` or `roadmap`. Roadmap labels
+are required for work that is not available in the current demo. Sponsored
+first-claim code exists behind the deployment gate documented in
+[`sponsored-claims.md`](sponsored-claims.md); until an authorized factory
+redeploy and artifact sync, its product-model label remains roadmap rather than
+claiming live availability. The landing and `/plans` copy is localized through
+the typed English, Spanish, and Simplified Chinese dictionaries.
+
 ## Integration path
 
 ```text

@@ -39,7 +39,7 @@ HashVest separates **what is enforced** from **what makes it usable**.
 
 A grant can optionally be created as **revocable**. Revocation is issuer-only and one-way: it returns the **unearned** allocation to the issuer and freezes what the beneficiary already earned, which stays claimable. Earned value can never be clawed back.
 
-**HashVest Cloud** makes the protocol operable by an organization: wallet sign-in (SIWE), organizations, a member directory with display names and role labels, grant presets, review and claim queues, and live funding health. Cloud is optional to every protocol operation — a grant created with raw addresses never touches it.
+**HashVest Cloud** makes the protocol operable by an organization: wallet sign-in (SIWE), organizations, a member directory with display names and role labels, grant presets, review and claim queues, live funding health, bounded batch coordination, and human-reviewed AI assistance. Organization-sponsored first claims are implemented behind a deployment gate. Cloud is optional to every protocol operation — a grant created with raw addresses never touches it.
 
 ## Key features
 
@@ -53,11 +53,29 @@ Verified against the current `main` branch:
 - **Organizations and members.** Pick beneficiaries and reviewers by name instead of pasting addresses; role labels are presentation only and grant no permission.
 - **Private milestone evidence.** Organization members can attach a URL, type, and optional note to a canonical grant milestone. Reviewers see that context before using the existing onchain `approveMilestone` action; HSK remains authoritative for approval and value.
 - **Grant presets** — Builder Grant, Employee Vesting, Advisor Vesting, and Ecosystem Grant — chosen in the first step of a five-step creation wizard (Template, Grant, Strategy, Conditions, Review). Every prefilled value stays editable before signing.
+- **Cohort distribution.** Bounded batch creation and funding keeps each grant an independent factory call with safe partial retry.
+- **Human-reviewed AI Grant Builder.** A description becomes an editable, validated preset; it never signs, funds, approves, claims, revokes, or chooses a wallet.
+- **Sponsored first claims.** Organization grants can use a beneficiary-signed, relayer-paid first claim when the new factory is deployed; the beneficiary-paid claim remains the fallback.
 - **Lifecycle and funding health** (Active, Completed, Revoked) computed from live HSK reads, with no invented USD values.
 - **Wallet dashboard analytics.** Grants by role, strategy, and lifecycle, plus a six-month activity timeline built from factory and vault events. It is a read-only projection of HSK state: a failed event read shows a partial timeline, never fabricated data.
 - **AI Grant Builder.** A sentence — _"a six-month developer grant for 20,000 tokens, released against three milestones"_ — becomes an editable draft in the wizard. The draft is a _preset_, so it passes the same validation a hand-written template does and there is no submission path that only AI output uses. It is optional and works with no provider configured.
 - **Full localization** in English, 简体中文, and Español across the landing page, workspace, creation wizard, presets, dashboard, and grant flows. English is the typed fallback, and addresses, hashes, and token symbols are never translated.
 - **Explorer proof** for every token approval, grant creation, milestone approval, claim, faucet, and revocation transaction.
+
+## Protocol, Cloud, and the product model
+
+The public landing summary and `/plans` page make the boundary
+judge-visible in under a minute. HashVest Protocol is open infrastructure for
+programmable grants on HashKey Chain. HashVest Cloud adds organization
+management, members, templates, reviews, reporting, batch coordination, and
+AI assistance around that protocol.
+
+The Free / Team / Enterprise cards describe a value ladder, not a billing
+system. Optional sponsored gas, AI credits, and compliance checks are labeled
+roadmap concepts. There are no prices, checkout, invoicing, metering,
+entitlements, or enforced plan limits, and no financial or contract behavior
+changes. The copy is available in English, Español, and 简体中文 through the
+typed i18n surface.
 
 ## Core architecture
 
@@ -159,18 +177,25 @@ The complete record — all 19 transactions, the three wallets, and the revocati
 | 🟡 Manual           | One live provider run (Groq, `openai/gpt-oss-20b`): the example prompt drafts correctly in all three locales, and an injection prompt returns no address. Provider calls are not made in CI. |
 | 🟡 Manual           | The three-wallet **browser** flow — organization, named members, hybrid grant, review, claim. Wallet extension steps are performed by hand and are tracked in HAS-20.                        |
 | 🟡 Manual           | Blockscout source verification. The explorer returned HTTP 413 for the automated submission; deployment is unaffected.                                                                       |
+| ✅ Presentation     | `/plans`, the landing summary, and their English / Spanish / Simplified Chinese product-model copy; presentation-only and independent of billing.                                            |
 | ⚪ Roadmap          | Remaining items in the next section. Organization templates, sponsored first claims, the AI Grant Builder, TGE unlock semantics, and private milestone evidence have already landed.         |
 
 ## Future roadmap
 
 Planned in the team's issue tracker, in delivery order. Each step must preserve the working grant flow and keep humans in control of financial actions.
 
-**Next — Cloud additions (P1)**
+**Implemented slices (P1 code, with deployment gates where noted)**
 
+- Bounded batch grant creation and funding, for grant rounds.
+- A human-reviewed AI Grant Builder that drafts grant terms for approval, never signing on its own.
 - Organization-owned custom templates.
 - Precise TGE and initial-unlock semantics.
-- Bounded batch grant creation and funding, for grant rounds.
-- Organization-sponsored first claim, so a new beneficiary does not need gas to receive their first tokens.
+- Private milestone evidence for organization members (HAS-15/HAS-14).
+- Organization-sponsored first claim implementation; the checked-in testnet factory predates `createSponsoredGrant`, so live use requires an authorized redeploy and artifact synchronization.
+
+**Next — Cloud additions (P1/P2)**
+
+- Advanced organization reporting and notifications.
 
 **Then — intelligence and operations (P2)**
 
@@ -198,6 +223,7 @@ Planned in the team's issue tracker, in delivery order. Each step must preserve 
 - **`DemoEligibilityProvider` is a demonstration**, not KYC or compliance.
 - **The AI Grant Builder needs a model that honours `response_format: json_schema`.** One that does not never gets past the draft parser, so the feature degrades to offline drafting silently; `source` on a draft reports which path answered. A free provider tier also returns intermittent `5xx`, which falls back the same way.
 - **The AI rate limiter is per process**, because zero retention rules out persisting per-wallet request history. A horizontally scaled deployment enforces the cap per instance.
+- **Cloud packaging is presentation-only.** There is no billing, checkout, metering, plan assignment, or enforced Free / Team / Enterprise limit in this MVP.
 
 ## How this maps to the judging criteria
 

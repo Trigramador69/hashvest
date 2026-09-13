@@ -36,6 +36,8 @@ This is a hackathon MVP deployed on **HSK Chain Testnet**. It is unaudited, uses
 - Organizations and a member directory, so beneficiaries and reviewers are chosen by name instead of by pasted address.
 - Editable grant presets — Builder Grant, Employee Vesting, Advisor Vesting, and Ecosystem Grant — in a five-step creation wizard (Template, Grant, Strategy, Conditions, Review).
 - Review and claim queues, plus lifecycle and funding health computed from live HSK reads.
+- Bounded batch grant creation for cohorts and a human-reviewed AI Grant Builder that produces editable drafts.
+- Organization-sponsored first claims are implemented behind a deployment gate; a beneficiary signature and server-only relayer pay HSK gas, with the beneficiary-paid claim always available as fallback.
 - Private milestone evidence for organization members: a URL, type, and optional note attached to the canonical grant identity and milestone index. Reviewers still approve only through the existing onchain `approveMilestone` action.
 - A wallet dashboard with grants by role, strategy, and lifecycle and a six-month activity timeline from HSK events, as a read-only projection of chain state.
 - Full English, 简体中文, and Español localization with typed English fallback.
@@ -85,6 +87,23 @@ The web UI keeps user-visible failures inside the localization boundary: generic
 The repository holds two layers. **HashVest Protocol** is `packages/contracts` plus the protocol-facing `packages/web3` exports; it holds funds and enforces unlock math. **HashVest Cloud** is `apps/web` plus Supabase, SIWE sessions, organizations, and metadata; it makes the protocol usable and is optional to every protocol operation. Cloud depends on Protocol through `@hashvest/web3`; Protocol never depends on Cloud.
 
 [`docs/architecture.md`](docs/architecture.md) is the authoritative definition: per-field authority, the public integration surface and extension points, the future `hashvest-protocol` / `@hashvest/protocol` extraction boundary, the automated checks that enforce all of it, and the hackathon critical path and stop-adding-features rule.
+
+### Product model presentation (HAS-36)
+
+The landing page includes a short Protocol / Cloud summary and `/plans`
+contains the judge-visible Free / Team / Enterprise value ladder. Protocol is
+open infrastructure for programmable grants on HashKey Chain; Cloud adds
+organization management, members, templates, reviews, reporting, batch
+coordination, and human-reviewed AI assistance around it.
+
+The page also explains optional sponsored gas, AI credits, and compliance
+checks. This is product communication only: it has no prices, checkout,
+invoicing, billing webhooks, metering, entitlements, or enforced plan limits.
+Each capability is marked **Available in demo** or **Roadmap**. The sponsored
+first-claim implementation is present on the current branch, but the checked-in
+testnet deployment predates `createSponsoredGrant`, so the product page keeps
+that capability roadmap-labeled until an authorized redeploy. The demo path
+continues to work independently through `/grants/new` and `/app`.
 
 ### Organizations product layer
 
@@ -225,7 +244,7 @@ landing, disconnected mobile navigation, and deterministic connected dashboard
 fixture; the fixture route returns 404 in production and never reads or writes
 HSK state.
 
-The application is available at `http://localhost:3000`. Routes are `/` (landing), `/app` (live overview), `/app/grants` (Issued / Received / Review), `/app/settings` (organizations), `/app/settings/organizations/new`, `/app/settings/organizations/<uuid>`, `/app/settings/organizations/<uuid>/members`, `/app/settings/organizations/<uuid>/templates`, `/app/settings/organizations/<uuid>/grants`, and `/app/settings/organizations/<uuid>/grants/new`, plus `/grants/new` (the shared five-step template-aware creation wizard: Template, Grant, Strategy, Conditions, Review) and `/grants/<GrantVault address>` (public role-aware detail page). The previous `/app/organizations/...` paths remain compatibility redirects. `/visual/dashboard` and `/visual/templates` are local-only deterministic fixtures for the Playwright visual contract and are unavailable in production.
+The application is available at `http://localhost:3000`. Routes are `/` (landing), `/plans` (public Protocol / Cloud and Free / Team / Enterprise presentation), `/app` (live overview), `/app/grants` (Issued / Received / Review), `/app/settings` (organizations), `/app/settings/organizations/new`, `/app/settings/organizations/<uuid>`, `/app/settings/organizations/<uuid>/members`, `/app/settings/organizations/<uuid>/templates`, `/app/settings/organizations/<uuid>/grants`, and `/app/settings/organizations/<uuid>/grants/new`, plus `/grants/new` (the shared five-step template-aware creation wizard: Template, Grant, Strategy, Conditions, Review) and `/grants/<GrantVault address>` (public role-aware detail page). The previous `/app/organizations/...` paths remain compatibility redirects. `/visual/dashboard` and `/visual/templates` are local-only deterministic fixtures for the Playwright visual contract and are unavailable in production.
 
 Wallet connection and workspace authentication are separate. After connecting an HSK Testnet wallet, click **Sign in to workspace** and approve one SIWE/EIP-4361 message. The server stores a five-minute, one-time nonce and issues a 24-hour HttpOnly, SameSite session cookie signed with `AUTH_SECRET`. If the connected wallet changes, organization reads and writes are disabled until the new wallet explicitly signs in; the application never silently signs or writes as the previous wallet.
 

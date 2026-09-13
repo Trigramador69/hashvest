@@ -16,6 +16,7 @@ export const zhCN: TranslationDictionary = {
   "shell.nav.overview": "概览",
   "shell.nav.grants": "资助",
   "shell.nav.settings": "设置",
+  "shell.nav.plans": "方案",
   "shell.navigation.open": "打开导航",
   "shell.navigation.close": "关闭导航",
   "shell.appTagline": "HashVest · HSK 测试网",
@@ -67,6 +68,88 @@ export const zhCN: TranslationDictionary = {
   "home.strategies.hybrid.subtitle": "让时间与交付保持一致。",
   "home.strategies.hybrid.body":
     "已解锁 = min(按时间归属的数量, 已批准的里程碑金额)。两个条件共同约束每一次领取。",
+
+  // Protocol / Cloud 产品模型（HAS-36）。仅用于展示：不含计费。
+  "productModel.eyebrow": "产品模型",
+  "productModel.title": "开放协议，专注 Cloud。",
+  "productModel.lede": "HashVest 将链上保障与组织工作区清晰分开。",
+  "productModel.summaryLink": "查看 Free / Team / Enterprise",
+  "productModel.status.demo": "演示中可用",
+  "productModel.status.roadmap": "路线图",
+  "productModel.disclaimer":
+    "仅用于展示。本演示不包含计费、结账、用量统计、方案分配或强制执行的限制。",
+  "productModel.protocol.title": "HashVest Protocol",
+  "productModel.protocol.tagline":
+    "面向 HashKey Chain 可编程资助的开放基础设施。",
+  "productModel.protocol.body":
+    "Protocol 在链上持有资金并执行解锁计算、角色权限、领取和已获得价值保护。",
+  "productModel.protocol.feature.0": "TIME、MILESTONE 和 HYBRID 资助策略",
+  "productModel.protocol.feature.1": "条款不可变且全额注资的 GrantVault",
+  "productModel.protocol.feature.2": "由 HSK 授权的权限与受益人领取",
+  "productModel.protocol.cta": "创建 Protocol 资助",
+  "productModel.cloud.title": "HashVest Cloud",
+  "productModel.cloud.tagline": "让 Protocol 更易被组织使用的工作区。",
+  "productModel.cloud.body":
+    "Cloud 提供上下文与协作，同时对每项 Protocol 操作保持可选。",
+  "productModel.cloud.feature.0": "组织与工作区管理",
+  "productModel.cloud.feature.1": "成员、角色和命名参与者",
+  "productModel.cloud.feature.2": "标准资助模板与可编辑预设",
+  "productModel.cloud.feature.3": "审核队列与领取可见性",
+  "productModel.cloud.feature.4": "实时资金健康度与只读报告",
+  "productModel.cloud.feature.5": "面向群组的有界批量资助创建",
+  "productModel.cloud.feature.6": "人工审核的 AI Grant Builder",
+  "productModel.cloud.feature.7":
+    "自定义模板体验（已有数据结构；所有者 UI 在路线图中）",
+  "productModel.cloud.feature.8": "代付领取与 Gas 协调",
+  "productModel.cloud.feature.9": "企业权限、合规、支持与集成",
+  "productModel.cloud.cta": "打开工作区",
+  "productModel.detail.eyebrow": "Cloud 方案",
+  "productModel.detail.title": "适合每个资助团队的三条路径。",
+  "productModel.detail.lede":
+    "Free、Team 和 Enterprise 描述 HashVest Cloud 计划中的价值阶梯。它们是产品方向，不是访问控制。",
+  "productModel.surfaces.title": "两层产品，一个清晰边界。",
+  "productModel.surfaces.lede":
+    "可直接使用开放 Protocol，也可以加入 Cloud 获取组织上下文与协作。HSK 始终是价值和权限的权威来源。",
+  "productModel.plans.eyebrow": "Cloud 方案",
+  "productModel.plans.title": "Free / Team / Enterprise",
+  "productModel.plans.lede":
+    "这些卡片展示工作区如何从简单组织扩展到企业运营。路线图标签是有意保留的；当前不会执行任何方案限制。",
+  "productModel.plan.label": "方案包装",
+  "productModel.plan.team.recommended": "核心路径",
+  "productModel.plan.free.title": "Free",
+  "productModel.plan.free.tagline": "从一个组织和核心功能开始。",
+  "productModel.plan.free.feature.0": "一个组织（计划中的包装）",
+  "productModel.plan.free.feature.1": "有限成员和资助（计划中的包装）",
+  "productModel.plan.free.feature.2": "标准模板",
+  "productModel.plan.free.feature.3": "核心工作区、审核和报告界面",
+  "productModel.plan.team.title": "Team",
+  "productModel.plan.team.tagline": "使用更丰富的流程协调资助项目。",
+  "productModel.plan.team.feature.0": "更多成员和资助（计划中的包装）",
+  "productModel.plan.team.feature.1": "自定义模板",
+  "productModel.plan.team.feature.2": "面向群组的批量资助",
+  "productModel.plan.team.feature.3": "代付领取",
+  "productModel.plan.team.feature.4": "高级报告与 AI 功能",
+  "productModel.plan.team.feature.5": "人工审核的 AI Grant Builder",
+  "productModel.plan.enterprise.title": "Enterprise",
+  "productModel.plan.enterprise.tagline": "让治理和运营适配您的组织。",
+  "productModel.plan.enterprise.feature.0": "自定义限制",
+  "productModel.plan.enterprise.feature.1": "高级权限",
+  "productModel.plan.enterprise.feature.2": "合规集成",
+  "productModel.plan.enterprise.feature.3": "专属支持",
+  "productModel.plan.enterprise.feature.4": "企业集成与报告",
+  "productModel.addons.eyebrow": "可选用量附加项",
+  "productModel.addons.title": "按需扩展工作流。",
+  "productModel.addons.lede":
+    "代付 Gas、AI 积分和合规检查都是路线图概念。本演示不会统计用量或收费。",
+  "productModel.addon.sponsoredGas.title": "代付 Gas",
+  "productModel.addon.sponsoredGas.body":
+    "让组织为受邀受益人的领取协调 Gas。仅限路线图。",
+  "productModel.addon.aiCredits.title": "AI 积分",
+  "productModel.addon.aiCredits.body":
+    "为起草和未来的审核工具分配可选 AI 助手用量。仅限路线图。",
+  "productModel.addon.complianceChecks.title": "合规检查",
+  "productModel.addon.complianceChecks.body":
+    "连接合规或证明服务商，同时不将权威性移出链上。仅限路线图。",
 
   // 撤销功能（HAS-26）、交易阶段，以及来自 lib/protocol 的校验提示。
   "ui.lifecycle.revoked": "已撤销",
@@ -1017,4 +1100,7 @@ export const zhCN: TranslationDictionary = {
   "meta.title": "HashVest — 可编程资助",
   "meta.description":
     "在 HashKey Chain 上以时间、里程碑和混合方式解锁的全额注资代币资助。",
+  "plans.meta.title": "HashVest — Cloud 方案",
+  "plans.meta.description":
+    "了解 HashVest Protocol 与 HashVest Cloud 如何通过 Free、Team 和 Enterprise 方案协作。",
 };

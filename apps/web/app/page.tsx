@@ -4,6 +4,7 @@ import { hskTestnet } from "@hashvest/web3";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataArt } from "@/components/ui/data-art";
+import { ProductModelPresentation } from "@/components/product-model";
 import { getTranslations } from "@/lib/shared/i18n/server";
 import { appRoutes } from "@/lib/shared/routes";
 
@@ -77,6 +78,7 @@ export default async function Home() {
           </div>
         </div>
       </section>
+      <ProductModelPresentation t={t} variant="summary" />
       <section>
         <div className="mb-7 flex flex-wrap items-end justify-between gap-3">
           <h2 className="font-mono text-[22px] font-normal tracking-tight">

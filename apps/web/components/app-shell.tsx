@@ -167,6 +167,12 @@ function MarketingShell({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-3">
             <LocaleSwitcher />
             <Link
+              href="/plans"
+              className="rounded-control border border-border px-3 py-2 font-mono text-xs text-foreground hover:bg-surface-2"
+            >
+              {t("shell.nav.plans")}
+            </Link>
+            <Link
               href={appRoutes.overview}
               className="rounded-control border border-border px-3 py-2 font-mono text-xs text-foreground hover:bg-surface-2"
             >
@@ -190,7 +196,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const t = useTranslations();
   const [menuOpen, setMenuOpen] = useState(false);
-  if (pathname === "/") return <MarketingShell>{children}</MarketingShell>;
+  if (pathname === "/" || pathname === "/plans")
+    return <MarketingShell>{children}</MarketingShell>;
   return (
     <div className="min-h-screen bg-canvas">
       <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
