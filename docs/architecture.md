@@ -33,15 +33,15 @@ The Protocol is the trust boundary. It holds funds, enforces unlock math, and de
 
 The Cloud is the product layer. It makes the Protocol usable — workspaces, named participants, review queues, and role-aware navigation — and it is **optional to every protocol operation**. A grant created through `/grants/new` with raw addresses never touches it. If Supabase is unavailable, `/grants/<address>` still renders from live chain reads; `app/api/grants/[address]/context/route.ts` deliberately returns a null context rather than an error.
 
-| Path                                    | Role                                                                                                           |
-| --------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `apps/web/app/**`                       | Next.js routes, pages, and Route Handlers                                                                      |
-| `apps/web/lib/cloud/auth/**`            | SIWE challenge, one-time nonce, signed session cookie                                                          |
-| `apps/web/lib/cloud/organizations/**`   | Validation, server authorization, template and sponsorship data access, browser API client, types              |
-| `apps/web/lib/cloud/supabase-server.ts` | The only service-role Supabase client; server-only                                                             |
-| `apps/web/lib/shared/i18n/**`           | Locale selection and the typed translation boundary                                                            |
-| `apps/web/lib/shared/grant-presets/**`  | Grant preset catalog, organization template rules, `template_key` linkage, wizard mapping, and field ownership |
-| `supabase/migrations/**`                | Organizations, members, grant associations, organization templates, auth nonces, sponsorship policy and state  |
+| Path                                    | Role                                                                                                                                                                |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/web/app/**`                       | Next.js routes, pages, and Route Handlers                                                                                                                           |
+| `apps/web/lib/cloud/auth/**`            | SIWE challenge, one-time nonce, signed session cookie                                                                                                               |
+| `apps/web/lib/cloud/organizations/**`   | Validation, server authorization, template and sponsorship data access, browser API client, types                                                                   |
+| `apps/web/lib/cloud/supabase-server.ts` | The only service-role Supabase client; server-only                                                                                                                  |
+| `apps/web/lib/shared/i18n/**`           | Locale selection and the typed translation boundary                                                                                                                 |
+| `apps/web/lib/shared/grant-presets/**`  | Grant preset catalog, organization template rules, `template_key` linkage, wizard mapping, field ownership, the template editor's form model, and provenance lookup |
+| `supabase/migrations/**`                | Organizations, members, grant associations, organization templates, auth nonces, sponsorship policy and state                                                       |
 
 ### Dashboard presentation projection
 
@@ -116,7 +116,7 @@ Localization is presentation state, so it lives in `lib/shared/i18n/**` and impo
 Two consequences that have already shaped the code:
 
 - **Presentation labels are not permissions.** A member labeled `Treasury Reviewer` cannot approve anything. `resolveProtocolRoles` in `apps/web/lib/protocol/roles.ts` derives issuer/beneficiary/reviewer by comparing the connected wallet to onchain addresses only. The migration says the same at the column level: `role_label` is _"Presentation metadata only; it has no onchain authority."_
-- **Templates are suggestions, not state.** An organization template stores milestone percentages rather than amounts and a reviewer default as a member reference rather than an address; applying one only fills editable wizard fields. See [`organization-templates.md`](organization-templates.md).
+- **Templates are suggestions, not state.** An organization template stores milestone percentages rather than amounts and a reviewer default as a member reference rather than an address; applying one only fills editable wizard fields and never submits a transaction. Only an owner may write one, enforced server-side against the verified session wallet; deleting archives, so grants keep their provenance. See [`organization-templates.md`](organization-templates.md).
 - **Workspace owner is not issuer.** The `Owner` badge in the members view means "owns this Supabase organization." Linking a vault requires both: `requireOrganizationOwner` gates who may attempt it, and an onchain `issuer()` read gates whether it is accepted.
 
 Amounts are never cached in Supabase. Dashboard counts in `apps/web/hooks/use-organizations.ts` come from live vault reads.

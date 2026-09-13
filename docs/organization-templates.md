@@ -1,6 +1,6 @@
 # Organization-owned grant templates
 
-Design for [HAS-12](https://linear.app/hashvest/issue/HAS-12): the smallest Supabase-backed model that lets an organization save its own repeatable grant configurations. It is the data and rules layer that [HAS-13](https://linear.app/hashvest/issue/HAS-13) builds its owner CRUD flows and wizard application on.
+Design for [HAS-12](https://linear.app/hashvest/issue/HAS-12): the smallest Supabase-backed model that lets an organization save its own repeatable grant configurations. [HAS-13](https://linear.app/hashvest/issue/HAS-13) built the owner CRUD flows and the wizard application on top of it; both have shipped, and the sections marked HAS-13 below describe what runs.
 
 ## What a template is
 
@@ -10,7 +10,7 @@ The rule from [`architecture.md`](architecture.md) holds unchanged: **HSK is aut
 
 ## Scope
 
-| In HAS-12 (this design)                                      | In HAS-13                                                       |
+| In HAS-12 (the data and rules layer)                         | In HAS-13 (routes, UI, wizard)                                  |
 | ------------------------------------------------------------ | --------------------------------------------------------------- |
 | `organization_templates` table, constraints, and RLS posture | Route Handlers for create, edit, list, and delete               |
 | Domain and database types                                    | Browser API client and TanStack Query hooks                     |
@@ -174,6 +174,18 @@ Rules that hold on both paths:
 - **The external-wallet fallback is unchanged.** Choosing an external reviewer or beneficiary works exactly as before a template was applied.
 - Only a workspace session whose wallet matches the connected wallet can see organization templates, the same guard every workspace read uses.
 
+### Where it lives
+
+| Concern                        | Module                                                                                                                                                    |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Route Handlers                 | `apps/web/app/api/organizations/[organizationId]/templates/{route.ts,[templateId]/route.ts}`                                                              |
+| Browser client and query hooks | `lib/cloud/organizations/client.ts`, `hooks/use-organizations.ts` (`useOrganizationTemplates`, `useTemplateLabel`, create/update/archive mutations)       |
+| Template as a preset           | `lib/shared/grant-presets/organization-template.ts` (`organizationTemplatePreset`)                                                                        |
+| Reviewer default               | `lib/shared/grant-presets/wizard-state.ts` (`applyReviewerDefault`)                                                                                       |
+| Provenance name                | `lib/shared/grant-presets/provenance.ts` (`resolveTemplateLabel`)                                                                                         |
+| Editor form rules              | `lib/shared/grant-presets/template-form.ts`                                                                                                               |
+| UI                             | `components/organization-template-picker.tsx` (wizard), `components/templates-manager.tsx` and `components/template-editor.tsx` (workspace Templates tab) |
+
 ### Provenance on grants
 
 Grant cards and the grant detail page resolve an `org-template:` key against the grant's organization, **including archived templates**, and show the template's name as metadata. A key that resolves to nothing — a template the viewer cannot read — shows no template rather than an error. The terms on screen always come from the vault, never from the template.
@@ -192,7 +204,9 @@ Grant cards and the grant detail page resolve an `org-template:` key against the
 
 ## Migration and rollback
 
-The migration is additive: a new table, a new unique constraint that existing data already satisfies, closed RLS. No existing column, row, or constraint changes, and no application code depends on the table until HAS-13 ships its routes.
+The migration is additive: a new table, a new unique constraint that existing data already satisfies, closed RLS. No existing column, row, or constraint changes.
+
+**The migration must be applied before HAS-13 is deployed.** Until it is, every template route answers `503` like any other unavailable workspace read, the wizard's template section reports that templates are unavailable, and the built-in presets and direct onchain creation are unaffected.
 
 To roll back before HAS-13 is deployed:
 
@@ -217,9 +231,9 @@ After HAS-13, dropping the table would leave grants with `org-template:` keys th
 
 ### HAS-13
 
-| Area                 | Covered by                                                                                                                                                                                                                                   |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Route authorization  | Vitest runs the real Route Handlers with a mocked session and database: unauthenticated, non-member, member, and owner against every method, in CI.                                                                                          |
-| Validation over HTTP | The same route tests: malformed bodies, invalid combinations, stale versions, cross-organization ids.                                                                                                                                        |
-| Wizard application   | Pure tests of template-to-preset mapping through `selectPreset`, reviewer-default resolution on both paths, and provenance lookup, in CI.                                                                                                    |
-| Form states          | Pure tests of the template form model; a Playwright spec renders the owner form's empty, invalid, conflict, and pending states at mobile width against a guarded fixture route. Like the AI builder spec, it is not part of `pnpm ci:check`. |
+| Area                 | Covered by                                                                                                                                                                                                                                                                                                                                                                                     |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Route authorization  | Vitest runs the real Route Handlers with a mocked session and database: unauthenticated, non-member, member, and owner against every method, in CI.                                                                                                                                                                                                                                            |
+| Validation over HTTP | The same route tests: malformed bodies, invalid combinations, stale versions, cross-organization ids.                                                                                                                                                                                                                                                                                          |
+| Wizard application   | Pure tests of template-to-preset mapping through `selectPreset`, reviewer-default resolution on both paths, and provenance lookup, in CI.                                                                                                                                                                                                                                                      |
+| Form states          | Pure tests of the template form model (`template-form.test.ts`) in CI. `tests/organization-templates.spec.ts` renders the form's empty, invalid, milestone-total and saving states at 390px against the guarded `/visual/templates` fixture, asserting that an invalid form sends no request and that no wallet is asked to sign. Like the AI builder spec, it is not part of `pnpm ci:check`. |
