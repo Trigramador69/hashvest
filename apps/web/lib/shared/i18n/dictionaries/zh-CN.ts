@@ -189,6 +189,23 @@ export const zhCN: TranslationDictionary = {
     "可撤销的资助：已于 {date} 撤销。受益人已赚取的权益受到严格保留。",
   "detail.badge.revocable": "可撤销",
   "detail.badge.nonRevocable": "不可撤销",
+  "detail.badge.sponsored": "赞助金库",
+  "detail.badge.walletPaid": "钱包付费金库",
+  "detail.terms.sponsored":
+    "此 GrantVault 接受受益人签名的领取和审核人签名的批准，由 relayer 提交。钱包付费操作仍然可用。",
+  "detail.terms.walletPaid":
+    "此 GrantVault 只接受钱包付费的领取和批准。它早于赞助操作。",
+  "card.sponsored": "赞助金库",
+  "card.walletPaid": "钱包付费金库",
+  "wizard.review.vaultKind": "金库类型",
+  "wizard.review.vaultKind.sponsored": "SponsoredGrantVault",
+  "wizard.review.vaultKind.direct": "GrantVault",
+  "wizard.review.vaultKind.sponsoredTitle": "组织赞助金库",
+  "wizard.review.vaultKind.sponsoredBody":
+    "工厂将部署 SponsoredGrantVault。操作方仍需签署确切的领取或批准；组织可以支付 HSK gas。钱包付费路径仍然可用。",
+  "wizard.review.vaultKind.directTitle": "直接 GrantVault",
+  "wizard.review.vaultKind.directBody":
+    "工厂将部署 GrantVault。领取和批准由操作方钱包支付。",
   "detail.claimReason.revokedAllClaimed":
     "该资助已被撤销。已赚取的代币都已领取完毕。",
   "detail.claimReason.revokedClaimable":
@@ -693,9 +710,12 @@ export const zhCN: TranslationDictionary = {
     "一次签名即可启用链下的组织上下文。它不会授权任何链上操作。",
   "faucet.title": "演示代币 · {symbol}",
   "faucet.lede": "用于你第一份资助的测试代币，没有任何货币价值。",
+  "faucet.lede.amount":
+    "每次点击铸造 {amount} {symbol}。仅限测试代币，没有任何货币价值。",
   "faucet.balance": "你的余额：",
   "faucet.balanceError": "无法获取代币余额。请检查测试网 RPC。",
   "faucet.action": "领取演示用 {symbol}",
+  "faucet.action.amount": "领取 {amount} {symbol}",
   "faucet.minting": "正在铸造…",
 
   // 资助相关界面：共享 UI、卡片和资助详情页。地址、哈希、区块号、代币符号和 RPC URL 均通过参数传入。

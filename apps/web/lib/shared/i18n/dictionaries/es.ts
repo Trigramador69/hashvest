@@ -220,6 +220,24 @@ export const es: TranslationDictionary = {
     "Subvención revocable: revocada el {date}. El derecho ganado por el beneficiario se preserva estrictamente.",
   "detail.badge.revocable": "Revocable",
   "detail.badge.nonRevocable": "No revocable",
+  "detail.badge.sponsored": "Vault patrocinado",
+  "detail.badge.walletPaid": "Vault de wallet",
+  "detail.terms.sponsored":
+    "Este GrantVault acepta reclamos firmados por el beneficiario y aprobaciones firmadas por el reviewer enviadas por un relayer. Las acciones pagadas por la wallet siguen disponibles.",
+  "detail.terms.walletPaid":
+    "Este GrantVault solo acepta reclamos y aprobaciones pagados por la wallet. Es anterior a las acciones patrocinadas.",
+  "card.sponsored": "Vault patrocinado",
+  "card.walletPaid": "Vault de wallet",
+  "wizard.review.vaultKind": "Tipo de vault",
+  "wizard.review.vaultKind.sponsored": "SponsoredGrantVault",
+  "wizard.review.vaultKind.direct": "GrantVault",
+  "wizard.review.vaultKind.sponsoredTitle":
+    "Vault patrocinado por la organización",
+  "wizard.review.vaultKind.sponsoredBody":
+    "La factory desplegará un SponsoredGrantVault. El actor sigue firmando el reclamo o la aprobación exactos; la organización puede pagar el gas HSK. El camino pagado por la wallet sigue disponible.",
+  "wizard.review.vaultKind.directTitle": "GrantVault directo",
+  "wizard.review.vaultKind.directBody":
+    "La factory desplegará un GrantVault. Los reclamos y las aprobaciones los paga la wallet del actor.",
   "detail.claimReason.revokedAllClaimed":
     "La subvención fue revocada. Todos los tokens ganados ya se han reclamado.",
   "detail.claimReason.revokedClaimable":
@@ -780,10 +798,13 @@ export const es: TranslationDictionary = {
   "faucet.title": "Token de demo · {symbol}",
   "faucet.lede":
     "Tokens de prueba para tu primera subvención. Sin valor monetario.",
+  "faucet.lede.amount":
+    "Cada clic acuña {amount} {symbol}. Solo tokens de prueba. Sin valor monetario.",
   "faucet.balance": "Tu saldo:",
   "faucet.balanceError":
     "El saldo del token no está disponible. Revisa el RPC de testnet.",
   "faucet.action": "Conseguir {symbol} de demo",
+  "faucet.action.amount": "Conseguir {amount} {symbol}",
   "faucet.minting": "Acuñando…",
 
   // Superficies de subvención: UI compartida, tarjetas y la página de detalle. Direcciones, hashes, números de bloque, símbolos y URLs de RPC llegan como valores.

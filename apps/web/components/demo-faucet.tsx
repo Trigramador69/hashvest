@@ -32,6 +32,17 @@ export function DemoFaucet() {
     chainId: 133,
     query: { enabled: Boolean(token && address), refetchInterval: 7000 },
   });
+  const faucetAmount = useReadContract({
+    address: token,
+    abi: demoTokenAbi,
+    functionName: "FAUCET_AMOUNT",
+    chainId: 133,
+    query: { enabled: Boolean(token) },
+  });
+  const mintedAmount =
+    faucetAmount.data !== undefined
+      ? tokenAmount(faucetAmount.data, DEMO_DECIMALS)
+      : null;
   if (!token) return null;
   return (
     <div className="space-y-4 rounded-card border border-primary/20 bg-[rgba(87,217,139,.05)] p-5">
@@ -41,7 +52,12 @@ export function DemoFaucet() {
             {t("faucet.title", { symbol: DEMO_SYMBOL })}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {t("faucet.lede")}
+            {mintedAmount
+              ? t("faucet.lede.amount", {
+                  amount: mintedAmount,
+                  symbol: DEMO_SYMBOL,
+                })
+              : t("faucet.lede")}
           </p>
           <div className="mt-2">
             <AddressDisplay address={token} />
@@ -82,7 +98,12 @@ export function DemoFaucet() {
         >
           {tx.pending
             ? t("faucet.minting")
-            : t("faucet.action", { symbol: DEMO_SYMBOL })}
+            : mintedAmount
+              ? t("faucet.action.amount", {
+                  amount: mintedAmount,
+                  symbol: DEMO_SYMBOL,
+                })
+              : t("faucet.action", { symbol: DEMO_SYMBOL })}
         </Button>
       </div>
       <TransactionStatus {...tx} />

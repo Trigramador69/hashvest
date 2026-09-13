@@ -155,6 +155,11 @@ export function GrantCard({
         <span className="mt-3 inline-flex w-fit border border-primary/20 bg-[rgba(87,217,139,.05)] px-2 py-1 font-mono text-[10px] text-muted-foreground">
           {g.revocable ? t("card.revocable") : t("card.nonRevocable")}
         </span>
+        <span className="mt-2 inline-flex w-fit border border-primary/20 bg-secondary px-2 py-1 font-mono text-[10px] text-muted-foreground">
+          {g.sponsoredActions.supported
+            ? t("card.sponsored")
+            : t("card.walletPaid")}
+        </span>
         {organization && (
           <Link
             href={appRoutes.organization(organization.id)}
@@ -226,6 +231,11 @@ export function GrantCard({
           />
         </div>
         <div className="grid gap-4 border-t border-border-soft pt-4 sm:grid-cols-2">
+          <ParticipantIdentity
+            label={t("party.issuer")}
+            address={g.issuer}
+            members={members}
+          />
           <ParticipantIdentity
             label={t("party.beneficiary")}
             address={g.beneficiary}

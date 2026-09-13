@@ -215,6 +215,23 @@ export const en = {
     "Revocable grant: revoked on {date}. Beneficiary earned entitlement is strictly preserved.",
   "detail.badge.revocable": "Revocable",
   "detail.badge.nonRevocable": "Non-revocable",
+  "detail.badge.sponsored": "Sponsored vault",
+  "detail.badge.walletPaid": "Wallet-paid vault",
+  "detail.terms.sponsored":
+    "This GrantVault accepts beneficiary-signed claims and reviewer-signed approvals submitted by a relayer. Wallet-paid actions remain available.",
+  "detail.terms.walletPaid":
+    "This GrantVault only accepts wallet-paid claims and approvals. It predates sponsored actions.",
+  "card.sponsored": "Sponsored vault",
+  "card.walletPaid": "Wallet-paid vault",
+  "wizard.review.vaultKind": "Vault type",
+  "wizard.review.vaultKind.sponsored": "SponsoredGrantVault",
+  "wizard.review.vaultKind.direct": "GrantVault",
+  "wizard.review.vaultKind.sponsoredTitle": "Organization-sponsored vault",
+  "wizard.review.vaultKind.sponsoredBody":
+    "The factory will deploy a SponsoredGrantVault. The actor still signs the exact claim or approval; the organization may pay HSK gas. The wallet-paid path stays available.",
+  "wizard.review.vaultKind.directTitle": "Direct GrantVault",
+  "wizard.review.vaultKind.directBody":
+    "The factory will deploy a GrantVault. Claims and approvals are paid by the actor wallet.",
   "detail.claimReason.revokedAllClaimed":
     "The grant was revoked. All earned tokens have already been claimed.",
   "detail.claimReason.revokedClaimable":
@@ -763,9 +780,12 @@ export const en = {
     "One signature enables off-chain organization context. It does not authorize blockchain actions.",
   "faucet.title": "Demo token · {symbol}",
   "faucet.lede": "Test tokens for your first grant. No monetary value.",
+  "faucet.lede.amount":
+    "Each click mints {amount} {symbol}. Test tokens only. No monetary value.",
   "faucet.balance": "Your balance:",
   "faucet.balanceError": "Token balance is unavailable. Check the Testnet RPC.",
   "faucet.action": "Get demo {symbol}",
+  "faucet.action.amount": "Get {amount} {symbol}",
   "faucet.minting": "Minting…",
 
   // Grant surfaces: shared UI (grant-ui), cards, and the grant detail page. Addresses, hashes, block numbers, token symbols and RPC URLs arrive as values.
