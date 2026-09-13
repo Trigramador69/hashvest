@@ -42,6 +42,8 @@ This is a hackathon MVP deployed on **HSK Chain Testnet**. It is unaudited, uses
 - Organization-sponsored first claims are implemented behind a deployment gate; a beneficiary signature and server-only relayer pay HSK gas, with the beneficiary-paid claim always available as fallback.
 - Private milestone evidence for organization members: a URL, type, and optional note attached to the canonical grant identity and milestone index. Reviewers still approve only through the existing onchain `approveMilestone` action.
 - A wallet dashboard with grants by role, strategy, and lifecycle and a six-month activity timeline from HSK events, as a read-only projection of chain state.
+- Bounded organization reporting from live vault reads: lifecycle counts, allocations grouped by token identity, and upcoming cliffs. Every figure names its vault field, and there is no cross-token total, price, or conversion.
+- In-app lifecycle notifications derived from current vault state, deduplicated by the state fact they report rather than by an event log, so no indexer is required and the stream stays bounded.
 - Full English, 简体中文, and Español localization with typed English fallback.
 
 ## Architecture
@@ -114,6 +116,8 @@ Organizations are workspaces around existing GrantVaults. Supabase stores organi
 The canonical identities are lowercase EVM addresses for wallets, `(chain_id, vault_address)` for grants, and UUIDs for organizations. The current organization schema accepts HSK Testnet only (`chain_id = 133`). Product role labels such as `Treasury Reviewer` are presentation metadata; they do not grant permission to approve or claim.
 
 An organization owner manages its templates on the workspace Templates tab; every other member can read them and apply one in either wizard, but cannot change them, and deleting a template archives it so grants already created from it keep their name. Applying a template only fills editable wizard fields — it never submits a transaction, sets a beneficiary, or grants permission.
+
+The workspace Reports tab derives an operational report from the same live vault reads: lifecycle counts, allocations grouped by token identity, upcoming cliffs and vesting ends, and the connected wallet's own review and claim queues. The organization overview additionally derives in-app lifecycle notifications whose identity comes from the state fact each one reports, so repeated reads cannot grow the stream and no indexer is needed. Only read/unread is stored. See [`docs/organization-reporting.md`](docs/organization-reporting.md).
 
 Organization writes go through authenticated Next.js Route Handlers. The browser never uses the Supabase service-role key or writes organization tables directly. Workspace grant cards and queues join organization metadata with fresh GrantVault reads; they do not aggregate token balances or invent USD values.
 
@@ -211,7 +215,13 @@ migration
 [`supabase/migrations/20260913020000_hashvest_milestone_evidence.sql`](supabase/migrations/20260913020000_hashvest_milestone_evidence.sql)
 adds `organization_grant_milestone_evidence`, keyed by
 `(chain_id, vault_address, milestone_index)`, with HSK Testnet, lowercase
-vault, non-negative index, and safe-URL constraints. All product tables use the
+vault, non-negative index, and safe-URL constraints. The notification-read
+migration
+[`supabase/migrations/20260913030000_hashvest_notification_reads.sql`](supabase/migrations/20260913030000_hashvest_notification_reads.sql)
+adds `organization_notification_reads`, keyed by
+`(organization_id, member_wallet, notification_key)`, holding only whether a
+member has seen a derived notification; the notifications themselves are never
+stored. All product tables use the
 same closed RLS posture and intentionally grant no public/anon/authenticated
 table policies. The application uses the service role only from server Route
 Handlers, while business authorization still checks the verified session and
@@ -322,6 +332,8 @@ The direct protocol flow remains available at `/grants/new`: enter raw beneficia
 
 Every approval, creation, milestone, faucet, claim, and revocation transaction exposes an HSK Testnet explorer link. Use `/app/grants` to move between role-specific grants.
 
+Open the workspace **Reports** tab (HAS-41) at any point to see the same grants aggregated by lifecycle and by token, with each figure labeled with the vault field it was read from. The organization overview shows lifecycle notifications (HAS-37) for the connected wallet: a pending review reaches the reviewer, a claimable balance reaches the beneficiary, and a vault that could not be read is shown as unverified rather than as an event.
+
 For the controlled-wallet browser rehearsal, copy the public-address-only fixture and follow [`docs/browser-rehearsal.md`](docs/browser-rehearsal.md). `pnpm rehearsal:check` performs a read-only HSK/deployment/wallet readiness check; live browser execution and evidence are tracked separately in HAS-20.
 
 ## Security boundary
@@ -330,7 +342,7 @@ HashVest MVP has not been professionally audited. It targets HSK Testnet only, u
 
 ## Roadmap
 
-The product roadmap after the buildathon — remaining Cloud additions, AI-assisted review, reviewer quorum, protocol extraction, and a separately reviewed protocol-fee implementation — is described in [`docs/submission.md`](docs/submission.md#future-roadmap). Organization templates, sponsored first claims, the human-reviewed AI Grant Builder, TGE unlock semantics, and private milestone evidence have already landed as Cloud context. The HAS-40 fee model is specified, not deployed. A professional audit is the precondition for any mainnet deployment.
+The product roadmap after the buildathon — remaining Cloud additions, AI-assisted review, reviewer quorum, protocol extraction, and a separately reviewed protocol-fee implementation — is described in [`docs/submission.md`](docs/submission.md#future-roadmap). Organization templates, sponsored first claims, the human-reviewed AI Grant Builder, TGE unlock semantics, private milestone evidence, and organization reporting and lifecycle notifications (HAS-41/HAS-37) have already landed as Cloud context. The HAS-40 fee model is specified, not deployed. A professional audit is the precondition for any mainnet deployment.
 
 Hackathon P0 work, by milestone and owning layer:
 

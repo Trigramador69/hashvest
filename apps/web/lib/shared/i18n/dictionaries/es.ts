@@ -533,6 +533,113 @@ export const es: TranslationDictionary = {
   "workspace.tab.grants": "Subvenciones",
   "workspace.tab.members": "Miembros",
   "workspace.tab.templates": "Plantillas",
+  "workspace.tab.reports": "Informes",
+
+  "report.title": "Informe operativo",
+  "report.lede":
+    "Leído en vivo de cada GrantVault asociado a esta organización. Los importes se agrupan por token y nunca se combinan entre tokens, porque el protocolo no conoce precios.",
+  "report.loading.title": "Cargando el informe de la organización",
+  "report.loading.body": "Leyendo datos del espacio de trabajo…",
+  "report.error.title": "El informe no está disponible",
+  "report.error.body":
+    "No se pudieron leer los datos del espacio de trabajo, así que no hay nada sobre lo que informar. Inténtalo de nuevo en un momento.",
+  "report.empty.title": "Aún no hay subvenciones asociadas",
+  "report.empty.body":
+    "Crea o vincula un GrantVault para esta organización y el informe lo leerá en vivo.",
+  "report.reading.title": "Leyendo el estado en vivo de las subvenciones",
+  "report.reading.body":
+    "Cada bóveda asociada se lee en un solo bloque para que sus cifras concuerden entre sí.",
+  "report.freshness.readAt": "Leído de la cadena a las {time}",
+  "report.freshness.none": "Todavía no se ha leído nada",
+  "report.partial.title": "Este informe es parcial",
+  "report.partial.body":
+    "No se pudieron leer {unreadable} de {associated} bóvedas asociadas. Sus valores faltan en todas las cifras siguientes; no se cuentan como cero.",
+  "report.partial.retry": "Leer de nuevo",
+  "report.metric.active": "Subvenciones activas",
+  "report.metric.completed": "Subvenciones completadas",
+  "report.metric.revoked": "Subvenciones revocadas",
+  "report.metric.lifecycle.source":
+    "Fuente: totalAllocation, claimedAmount y revoked de cada GrantVault. Los recuentos cubren cada bóveda asociada que se pudo leer.",
+  "report.viewer.title": "Tus colas",
+  "report.viewer.lede":
+    "Limitado a la cartera que has conectado. Otro miembro ve aquí sus propias colas, nunca las tuyas.",
+  "report.metric.pendingReviews": "Subvenciones que esperan tu revisión",
+  "report.metric.claimable": "Subvenciones que puedes reclamar",
+  "report.viewer.source":
+    "Fuente: reviewer, beneficiary, getMilestones y claimableAmount de cada GrantVault, comparados con la cartera conectada.",
+  "report.tokens.title": "Asignaciones por token",
+  "report.tokens.lede":
+    "Un informe por contrato ERC20. HashVest no tiene oráculo de precios, así que no hay total combinado, ni conversión, ni valor de cartera.",
+  "report.token.title": "Asignaciones en {symbol}",
+  "report.token.count.one": "{count} subvención en este token",
+  "report.token.count.other": "{count} subvenciones en este token",
+  "report.token.unlockedShare": "Parte desbloqueada de la asignación",
+  "report.token.allocation": "Asignado",
+  "report.token.allocation.source":
+    "Fuente: GrantVault.totalAllocation, sumado solo dentro de este token.",
+  "report.token.unlocked": "Desbloqueado",
+  "report.token.unlocked.source":
+    "Fuente: GrantVault.unlockedAmount — consolidado por tiempo y por hitos aprobados.",
+  "report.token.unvested": "Aún sin desbloquear",
+  "report.token.unvested.source":
+    "Fuente: asignación menos desbloqueado, por bóveda, sumado dentro de este token.",
+  "report.token.claimed": "Reclamado",
+  "report.token.claimed.source":
+    "Fuente: GrantVault.claimedAmount — ya retirado por los beneficiarios.",
+  "report.token.claimable": "Reclamable ahora",
+  "report.token.claimable.source":
+    "Fuente: GrantVault.claimableAmount — desbloqueado y todavía sin reclamar.",
+  "report.token.reconcile": "Bóvedas detrás de estas cifras",
+  "report.token.reconcileHint":
+    "Abre cualquier bóveda para comprobar sus propios valores. Los totales de arriba son la suma exacta de estas subvenciones.",
+  "report.upcoming.title": "Próximos desbloqueos",
+  "report.upcoming.lede":
+    "Solo fechas futuras, según el calendario con el que se creó cada bóveda. Las subvenciones revocadas se omiten porque su calendario se detuvo al revocarse.",
+  "report.upcoming.empty":
+    "No hay ninguna fecha futura de cliff ni de consolidación registrada.",
+  "report.upcoming.cliff": "El cliff libera la asignación consolidable",
+  "report.upcoming.vestingEnd": "Termina la consolidación por tiempo",
+  "report.upcoming.source":
+    "Fuente: GrantVault.start más cliff o duration. Las subvenciones solo por hitos no tienen condición temporal y nunca aparecen aquí.",
+
+  "notify.title": "Notificaciones de ciclo de vida",
+  "notify.lede":
+    "Derivadas del estado actual de cada GrantVault asociado y limitadas a tu propio rol en cadena. Aquí no se almacena nada salvo si ya lo has visto.",
+  "notify.loading": "Leyendo el estado en vivo de las subvenciones…",
+  "notify.error":
+    "Las notificaciones no están disponibles porque no se pudieron leer los datos del espacio de trabajo.",
+  "notify.empty": "Ahora mismo no hay nada que requiera tu atención.",
+  "notify.partial":
+    "Al menos una bóveda asociada no se pudo leer, así que esta lista puede estar incompleta.",
+  "notify.unread": "Sin leer",
+  "notify.unreadCount": "{count} sin leer",
+  "notify.open": "Abrir subvención",
+  "notify.markRead": "Marcar como leída",
+  "notify.markAllRead": "Marcar todas como leídas",
+  "notify.markingAll": "Marcando…",
+  "notify.markError": "No se pudieron marcar como leídas. Inténtalo de nuevo.",
+  "notify.confidence.confirmed": "Confirmado en cadena",
+  "notify.confidence.unverified": "Sin verificar",
+  "notify.kind.milestonePendingReview": "Hito pendiente de tu revisión",
+  "notify.kind.claimable": "Tienes fondos reclamables",
+  "notify.kind.cliffReached": "Cliff alcanzado",
+  "notify.kind.vestingComplete": "Consolidación por tiempo completada",
+  "notify.kind.completed": "Subvención completada",
+  "notify.kind.revoked": "Subvención revocada",
+  "notify.kind.syncUnavailable": "No se pudo leer el estado de la subvención",
+  "notify.reason.milestonePendingReview":
+    "Eres el revisor de esta bóveda y el hito {position} ({milestone}, {amount}) todavía no está aprobado.",
+  "notify.reason.claimable":
+    "Eres el beneficiario y la bóveda indica {amount} desbloqueado y aún sin reclamar.",
+  "notify.reason.cliffReached":
+    "El cliff de esta bóveda se alcanzó el {date}, así que la asignación consolidable ya se está liberando.",
+  "notify.reason.vestingComplete":
+    "El calendario temporal de esta bóveda terminó el {date}.",
+  "notify.reason.completed":
+    "La bóveda indica que se ha reclamado su asignación completa de {amount}.",
+  "notify.reason.revoked": "El emisor revocó esta bóveda el {date}.",
+  "notify.reason.syncUnavailable":
+    "Esta bóveda está asociada a la organización, pero la lectura en cadena no se completó. No se afirma nada sobre su estado.",
 
   // Gestión de plantillas de organización (HAS-13).
   "templates.title": "Plantillas",

@@ -1,24 +1,16 @@
 "use client";
 
-import {
-  useMutation,
-  useQueries,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { useAccount, usePublicClient } from "wagmi";
-import { type Address } from "viem";
-import { grantVaultAbi, hskTestnet } from "@hashvest/web3";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAccount } from "wagmi";
 
 import { organizationApi } from "@/lib/cloud/organizations/client";
 import { deriveGrantLifecycle } from "@/lib/protocol/grant-state";
-import { readRevocationState } from "@/lib/protocol/revocation";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
 import type { OrganizationTemplateContent } from "@/lib/shared/grant-presets/organization-template";
 import { parseTemplateKey } from "@/lib/shared/grant-presets/template-key";
 import { useGrantPresets } from "@/lib/shared/grant-presets/use-grant-presets";
-import { useTranslations } from "@/lib/shared/i18n/provider";
 
+import { useOrganizationGrantSnapshots } from "./use-organization-grant-snapshots";
 import { useSession } from "./use-session";
 
 export const organizationQueryKey = (organizationId: string) =>
@@ -45,8 +37,6 @@ export const templatesQueryKey = (
     organizationId,
     includeArchived ? "all" : "active",
   ] as const;
-
-const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
 export function useOrganizations() {
   const { walletMatches } = useSession();
@@ -328,105 +318,39 @@ export function useUpdateOrganizationSponsorshipPolicy(organizationId: string) {
   });
 }
 
-type GrantSummary = {
-  vaultAddress: Address;
-  issuer: Address;
-  totalAllocation: bigint;
-  claimedAmount: bigint;
-  claimableAmount: bigint;
-  beneficiary: Address;
-  reviewer: Address;
-  milestones: readonly { approved: boolean }[];
-  revoked: boolean;
-};
-
+/**
+ * Overview metrics for an organization, derived from the shared per-vault
+ * snapshots. Role-scoped counts use the connected wallet's onchain role only:
+ * a member never sees another member's review queue or claimable funds.
+ */
 export function useOrganizationGrantStats(
   grants: { vaultAddress: string }[] | undefined,
 ) {
-  const t = useTranslations();
   const { address: walletAddress } = useAccount();
-  const client = usePublicClient({ chainId: 133 });
-  const queries = useQueries({
-    queries: (grants ?? []).map((grant) => ({
-      queryKey: ["organization-grant-summary", 133, grant.vaultAddress],
-      enabled: Boolean(client),
-      staleTime: 7_000,
-      queryFn: async (): Promise<GrantSummary> => {
-        if (!client) throw new Error(t("tx.error.rpcUnavailable", NETWORK));
-        const address = grant.vaultAddress as Address;
-        const blockNumber = await client.getBlockNumber();
-        const contract = { address, abi: grantVaultAbi, blockNumber };
-        const [
-          issuer,
-          totalAllocation,
-          claimedAmount,
-          claimableAmount,
-          beneficiary,
-          reviewer,
-          milestones,
-          revocationState,
-        ] = await Promise.all([
-          client.readContract({ ...contract, functionName: "issuer" }),
-          client.readContract({ ...contract, functionName: "totalAllocation" }),
-          client.readContract({ ...contract, functionName: "claimedAmount" }),
-          client.readContract({ ...contract, functionName: "claimableAmount" }),
-          client.readContract({ ...contract, functionName: "beneficiary" }),
-          client.readContract({ ...contract, functionName: "reviewer" }),
-          client.readContract({ ...contract, functionName: "getMilestones" }),
-          readRevocationState({
-            revocable: () =>
-              client.readContract({ ...contract, functionName: "revocable" }),
-            revoked: () =>
-              client.readContract({ ...contract, functionName: "revoked" }),
-            revokedAt: () =>
-              client.readContract({ ...contract, functionName: "revokedAt" }),
-            revocationEarnedAmount: () =>
-              client.readContract({
-                ...contract,
-                functionName: "revocationEarnedAmount",
-              }),
-          }),
-        ]);
-        return {
-          vaultAddress: address,
-          issuer,
-          totalAllocation,
-          claimedAmount,
-          claimableAmount,
-          beneficiary,
-          reviewer,
-          milestones,
-          revoked: revocationState.revoked,
-        };
-      },
-    })),
-  });
-  const summaries = queries
-    .map((query) => query.data)
-    .filter((summary): summary is GrantSummary => Boolean(summary));
+  const reads = useOrganizationGrantSnapshots(grants);
   const wallet = walletAddress?.toLowerCase();
   return {
-    queries,
-    isPending: queries.some((query) => query.isPending),
-    hasError: queries.some((query) => query.isError),
-    activeGrants: summaries.filter(
-      (summary) =>
+    queries: reads.queries,
+    isPending: reads.isPending,
+    hasError: reads.hasError,
+    activeGrants: reads.snapshots.filter(
+      (snapshot) =>
         deriveGrantLifecycle({
-          totalAllocation: summary.totalAllocation,
-          claimedAmount: summary.claimedAmount,
-          revoked: summary.revoked,
+          totalAllocation: snapshot.totalAllocation,
+          claimedAmount: snapshot.claimedAmount,
+          revoked: snapshot.revoked,
         }) === "ACTIVE",
     ).length,
-    pendingReviews: summaries.filter(
-      (summary) =>
-        resolveProtocolRoles(wallet, summary).isReviewer &&
-        !summary.revoked &&
-        summary.milestones.some((milestone) => !milestone.approved),
+    pendingReviews: reads.snapshots.filter(
+      (snapshot) =>
+        resolveProtocolRoles(wallet, snapshot).isReviewer &&
+        !snapshot.revoked &&
+        snapshot.milestones.some((milestone) => !milestone.approved),
     ).length,
-    claimableGrants: summaries.filter(
-      (summary) =>
-        resolveProtocolRoles(wallet, summary).isBeneficiary &&
-        summary.claimableAmount > 0n,
+    claimableGrants: reads.snapshots.filter(
+      (snapshot) =>
+        resolveProtocolRoles(wallet, snapshot).isBeneficiary &&
+        snapshot.claimableAmount > 0n,
     ).length,
   };
 }

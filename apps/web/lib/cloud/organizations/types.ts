@@ -147,6 +147,35 @@ export type OrganizationMilestoneEvidenceInput = Pick<
   "evidenceUrl" | "evidenceType" | "note"
 >;
 
+/**
+ * A member has seen one derived notification. Product context only: the
+ * notification itself is derived from live GrantVault state and never stored,
+ * so a row here can never contradict the chain.
+ */
+export type OrganizationNotificationRead = {
+  organizationId: string;
+  memberWallet: string;
+  /** The derived identity of the observed state fact. */
+  notificationKey: string;
+  chainId: 133;
+  vaultAddress: string;
+  readAt: string;
+};
+
+export type OrganizationNotificationReadInput = Pick<
+  OrganizationNotificationRead,
+  "notificationKey" | "vaultAddress"
+>;
+
+export type OrganizationNotificationReadRow = {
+  organization_id: string;
+  member_wallet: string;
+  notification_key: string;
+  chain_id: 133;
+  vault_address: string;
+  read_at: string;
+};
+
 export type Session = {
   walletAddress: string;
   chainId: 133;
@@ -308,6 +337,12 @@ export type Database = {
             | "updated_at"
           >
         >
+      >;
+      organization_notification_reads: TableDefinition<
+        OrganizationNotificationReadRow,
+        Omit<OrganizationNotificationReadRow, "read_at"> &
+          Partial<Pick<OrganizationNotificationReadRow, "read_at">>,
+        Partial<Pick<OrganizationNotificationReadRow, "read_at">>
       >;
       organization_templates: TableDefinition<
         OrganizationTemplateRow,

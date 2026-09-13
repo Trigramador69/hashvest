@@ -514,6 +514,116 @@ export const en = {
   "workspace.tab.grants": "Grants",
   "workspace.tab.members": "Members",
   "workspace.tab.templates": "Templates",
+  "workspace.tab.reports": "Reports",
+
+  // Organization report (HAS-41). Every figure is a live GrantVault read;
+  // Supabase supplies only which vaults belong to the organization.
+  "report.title": "Operational report",
+  "report.lede":
+    "Read live from every GrantVault this organization is associated with. Amounts are grouped by token and never combined across tokens, because the protocol knows no prices.",
+  "report.loading.title": "Loading the organization report",
+  "report.loading.body": "Reading workspace data…",
+  "report.error.title": "The report is unavailable",
+  "report.error.body":
+    "Workspace data could not be read, so there is nothing to report against. Try again in a moment.",
+  "report.empty.title": "No associated grants yet",
+  "report.empty.body":
+    "Create or link a GrantVault for this organization and the report will read it live.",
+  "report.reading.title": "Reading live grant state",
+  "report.reading.body":
+    "Each associated vault is read at a single block so its figures agree with each other.",
+  "report.freshness.readAt": "Read from the chain at {time}",
+  "report.freshness.none": "Nothing has been read yet",
+  "report.partial.title": "This report is partial",
+  "report.partial.body":
+    "{unreadable} of {associated} associated vaults could not be read. Their values are missing from every figure below, not counted as zero.",
+  "report.partial.retry": "Read again",
+  "report.metric.active": "Active grants",
+  "report.metric.completed": "Completed grants",
+  "report.metric.revoked": "Revoked grants",
+  "report.metric.lifecycle.source":
+    "Source: totalAllocation, claimedAmount and revoked on each GrantVault. Counts cover every associated vault that could be read.",
+  "report.viewer.title": "Your queues",
+  "report.viewer.lede":
+    "Scoped to the wallet you have connected. Another member sees their own queues here, never yours.",
+  "report.metric.pendingReviews": "Grants awaiting your review",
+  "report.metric.claimable": "Grants claimable by you",
+  "report.viewer.source":
+    "Source: reviewer, beneficiary, getMilestones and claimableAmount on each GrantVault, matched against the connected wallet.",
+  "report.tokens.title": "Allocations by token",
+  "report.tokens.lede":
+    "One report per ERC20 contract. HashVest has no price feed, so there is no combined total, no conversion and no portfolio value.",
+  "report.token.title": "{symbol} allocations",
+  "report.token.count.one": "{count} grant in this token",
+  "report.token.count.other": "{count} grants in this token",
+  "report.token.unlockedShare": "Unlocked share of allocation",
+  "report.token.allocation": "Allocated",
+  "report.token.allocation.source":
+    "Source: GrantVault.totalAllocation, summed within this token only.",
+  "report.token.unlocked": "Unlocked",
+  "report.token.unlocked.source":
+    "Source: GrantVault.unlockedAmount — vested by time and approved milestones.",
+  "report.token.unvested": "Not yet unlocked",
+  "report.token.unvested.source":
+    "Source: allocation minus unlocked, per vault, summed within this token.",
+  "report.token.claimed": "Claimed",
+  "report.token.claimed.source":
+    "Source: GrantVault.claimedAmount — already withdrawn by beneficiaries.",
+  "report.token.claimable": "Claimable now",
+  "report.token.claimable.source":
+    "Source: GrantVault.claimableAmount — unlocked and not yet claimed.",
+  "report.token.reconcile": "Vaults behind these figures",
+  "report.token.reconcileHint":
+    "Open any vault to check its own values. The totals above are the sum of exactly these grants.",
+  "report.upcoming.title": "Upcoming unlocks",
+  "report.upcoming.lede":
+    "Future dates only, from the schedule each vault was created with. Revoked grants are omitted because their schedule stopped at revocation.",
+  "report.upcoming.empty": "No future cliff or vesting date on record.",
+  "report.upcoming.cliff": "Cliff releases the vesting allocation",
+  "report.upcoming.vestingEnd": "Time vesting completes",
+  "report.upcoming.source":
+    "Source: GrantVault.start plus cliff or duration. Milestone-only grants have no time condition and never appear here.",
+
+  // Organization lifecycle notifications (HAS-37). Derived from live vault
+  // state; only the read marks are stored.
+  "notify.title": "Lifecycle notifications",
+  "notify.lede":
+    "Derived from the current state of every associated GrantVault, scoped to your own onchain role. Nothing here is stored except whether you have seen it.",
+  "notify.loading": "Reading live grant state…",
+  "notify.error":
+    "Notifications are unavailable because workspace data could not be read.",
+  "notify.empty": "Nothing needs your attention right now.",
+  "notify.partial":
+    "At least one associated vault could not be read, so this list may be incomplete.",
+  "notify.unread": "Unread",
+  "notify.unreadCount": "{count} unread",
+  "notify.open": "Open grant",
+  "notify.markRead": "Mark read",
+  "notify.markAllRead": "Mark all read",
+  "notify.markingAll": "Marking…",
+  "notify.markError": "Those could not be marked read. Try again.",
+  "notify.confidence.confirmed": "Confirmed onchain",
+  "notify.confidence.unverified": "Unverified",
+  "notify.kind.milestonePendingReview": "Milestone awaiting your review",
+  "notify.kind.claimable": "Funds are claimable by you",
+  "notify.kind.cliffReached": "Cliff reached",
+  "notify.kind.vestingComplete": "Time vesting complete",
+  "notify.kind.completed": "Grant completed",
+  "notify.kind.revoked": "Grant revoked",
+  "notify.kind.syncUnavailable": "Grant state could not be read",
+  "notify.reason.milestonePendingReview":
+    "You are the reviewer on this vault, and milestone {position} ({milestone}, {amount}) is not approved yet.",
+  "notify.reason.claimable":
+    "You are the beneficiary, and the vault reports {amount} unlocked and not yet claimed.",
+  "notify.reason.cliffReached":
+    "The cliff on this vault was reached on {date}, so the vesting allocation is now releasing.",
+  "notify.reason.vestingComplete":
+    "The time schedule on this vault ended on {date}.",
+  "notify.reason.completed":
+    "The vault reports its full allocation of {amount} claimed.",
+  "notify.reason.revoked": "The issuer revoked this vault on {date}.",
+  "notify.reason.syncUnavailable":
+    "This vault is associated with the organization, but the chain read did not complete. Nothing is being claimed about its state.",
 
   // Organization template management (HAS-13). Owner-only writes; every
   // member reads the same list.

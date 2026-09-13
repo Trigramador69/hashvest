@@ -6,6 +6,7 @@ import {
   normalizeWalletAddress,
   parseMilestoneEvidenceInput,
   parseMilestoneIndex,
+  parseNotificationReadInput,
   parseMemberInput,
   parseOrganizationGrantInput,
   parseOrganizationInput,
@@ -169,5 +170,42 @@ describe("organization input validation", () => {
     for (const value of ["-1", "1.5", "", "1e2", "999999999999999999999"]) {
       expect(() => parseMilestoneIndex(value)).toThrow();
     }
+  });
+
+  it("accepts notification keys that belong to the vault they name", () => {
+    const vaultAddress = "0x00000000000000000000000000000000000000aa";
+    expect(
+      parseNotificationReadInput({
+        reads: [
+          {
+            notificationKey: `${vaultAddress}:milestone-pending:0`,
+            vaultAddress,
+          },
+          { notificationKey: `${vaultAddress}:claimable`, vaultAddress },
+        ],
+      }),
+    ).toEqual([
+      {
+        notificationKey: `${vaultAddress}:milestone-pending:0`,
+        vaultAddress,
+      },
+      { notificationKey: `${vaultAddress}:claimable`, vaultAddress },
+    ]);
+    expect(parseNotificationReadInput({ reads: [] })).toEqual([]);
+  });
+
+  it("rejects a notification key that does not name its own vault", () => {
+    const vaultAddress = "0x00000000000000000000000000000000000000aa";
+    const other = "0x00000000000000000000000000000000000000bb";
+    for (const reads of [
+      [{ notificationKey: `${other}:claimable`, vaultAddress }],
+      [{ notificationKey: "claimable", vaultAddress }],
+      [{ notificationKey: "", vaultAddress }],
+      [{ notificationKey: `${vaultAddress}:claimable`, vaultAddress: "0x01" }],
+    ]) {
+      expect(() => parseNotificationReadInput({ reads })).toThrow();
+    }
+    expect(() => parseNotificationReadInput({})).toThrow();
+    expect(() => parseNotificationReadInput(null)).toThrow();
   });
 });

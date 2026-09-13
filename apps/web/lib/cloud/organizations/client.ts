@@ -6,6 +6,8 @@ import type {
   OrganizationMember,
   OrganizationMilestoneEvidence,
   OrganizationMilestoneEvidenceInput,
+  OrganizationNotificationRead,
+  OrganizationNotificationReadInput,
   OrganizationSummary,
   OrganizationTemplate,
   SponsoredClaimPolicy,
@@ -54,6 +56,18 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const organizationApi = {
+  getNotificationReads: (organizationId: string) =>
+    request<{ reads: OrganizationNotificationRead[] }>(
+      `/api/organizations/${organizationId}/notification-reads`,
+    ),
+  markNotificationsRead: (
+    organizationId: string,
+    reads: OrganizationNotificationReadInput[],
+  ) =>
+    request<{ reads: OrganizationNotificationRead[] }>(
+      `/api/organizations/${organizationId}/notification-reads`,
+      { method: "POST", body: JSON.stringify({ reads }) },
+    ),
   getSession: () => request<SessionResponse>("/api/auth/session"),
   requestNonce: (address: string, chainId: number) =>
     request<{ message: string; nonce: string; expiresAt: string }>(

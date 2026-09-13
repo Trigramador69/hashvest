@@ -471,6 +471,107 @@ export const zhCN: TranslationDictionary = {
   "workspace.tab.grants": "资助",
   "workspace.tab.members": "成员",
   "workspace.tab.templates": "模板",
+  "workspace.tab.reports": "报表",
+
+  "report.title": "运营报表",
+  "report.lede":
+    "实时读取本组织关联的每个 GrantVault。金额按代币分组，绝不跨代币合并，因为协议不知道价格。",
+  "report.loading.title": "正在加载组织报表",
+  "report.loading.body": "正在读取工作区数据…",
+  "report.error.title": "报表不可用",
+  "report.error.body": "无法读取工作区数据，因此无法生成报表。请稍后重试。",
+  "report.empty.title": "尚无关联的资助",
+  "report.empty.body":
+    "为本组织创建或关联一个 GrantVault，报表就会实时读取它。",
+  "report.reading.title": "正在读取实时资助状态",
+  "report.reading.body":
+    "每个关联金库均在同一个区块上读取，使各项数字相互一致。",
+  "report.freshness.readAt": "于 {time} 从链上读取",
+  "report.freshness.none": "尚未读取任何内容",
+  "report.partial.title": "本报表不完整",
+  "report.partial.body":
+    "{associated} 个关联金库中有 {unreadable} 个无法读取。它们的数值在下方所有数字中缺失，而非计为零。",
+  "report.partial.retry": "重新读取",
+  "report.metric.active": "活跃资助",
+  "report.metric.completed": "已完成资助",
+  "report.metric.revoked": "已撤销资助",
+  "report.metric.lifecycle.source":
+    "来源：各 GrantVault 的 totalAllocation、claimedAmount 与 revoked。计数覆盖每个可读取的关联金库。",
+  "report.viewer.title": "你的队列",
+  "report.viewer.lede":
+    "仅限你当前连接的钱包。其他成员在此处看到的是他们自己的队列，永远不是你的。",
+  "report.metric.pendingReviews": "等待你审核的资助",
+  "report.metric.claimable": "你可领取的资助",
+  "report.viewer.source":
+    "来源：各 GrantVault 的 reviewer、beneficiary、getMilestones 与 claimableAmount，与已连接钱包比对。",
+  "report.tokens.title": "按代币分组的分配",
+  "report.tokens.lede":
+    "每个 ERC20 合约一份报表。HashVest 没有价格预言机，因此没有合并总额、没有换算、也没有投资组合价值。",
+  "report.token.title": "{symbol} 分配",
+  "report.token.count.one": "该代币下有 {count} 项资助",
+  "report.token.count.other": "该代币下有 {count} 项资助",
+  "report.token.unlockedShare": "已解锁占分配的比例",
+  "report.token.allocation": "已分配",
+  "report.token.allocation.source":
+    "来源：GrantVault.totalAllocation，仅在该代币内求和。",
+  "report.token.unlocked": "已解锁",
+  "report.token.unlocked.source":
+    "来源：GrantVault.unlockedAmount — 按时间归属与已批准里程碑。",
+  "report.token.unvested": "尚未解锁",
+  "report.token.unvested.source":
+    "来源：每个金库的分配减去已解锁，再在该代币内求和。",
+  "report.token.claimed": "已领取",
+  "report.token.claimed.source":
+    "来源：GrantVault.claimedAmount — 受益人已提取的部分。",
+  "report.token.claimable": "当前可领取",
+  "report.token.claimable.source":
+    "来源：GrantVault.claimableAmount — 已解锁且尚未领取。",
+  "report.token.reconcile": "这些数字背后的金库",
+  "report.token.reconcileHint":
+    "打开任一金库即可核对其自身数值。上方总计恰是这些资助的合计。",
+  "report.upcoming.title": "即将解锁",
+  "report.upcoming.lede":
+    "仅列未来日期，来自每个金库创建时的时间表。已撤销的资助不列入，因为其时间表在撤销时已停止。",
+  "report.upcoming.empty": "没有记录到未来的悬崖期或归属日期。",
+  "report.upcoming.cliff": "悬崖期释放可归属分配",
+  "report.upcoming.vestingEnd": "按时间归属完成",
+  "report.upcoming.source":
+    "来源：GrantVault.start 加上 cliff 或 duration。仅里程碑的资助没有时间条件，永远不会出现在此处。",
+
+  "notify.title": "生命周期通知",
+  "notify.lede":
+    "由每个关联 GrantVault 的当前状态推导而来，并限定于你自己的链上角色。除了你是否已查看之外，此处不存储任何内容。",
+  "notify.loading": "正在读取实时资助状态…",
+  "notify.error": "无法读取工作区数据，因此通知不可用。",
+  "notify.empty": "目前没有需要你处理的事项。",
+  "notify.partial": "至少有一个关联金库无法读取，因此此列表可能不完整。",
+  "notify.unread": "未读",
+  "notify.unreadCount": "{count} 条未读",
+  "notify.open": "打开资助",
+  "notify.markRead": "标记为已读",
+  "notify.markAllRead": "全部标记为已读",
+  "notify.markingAll": "正在标记…",
+  "notify.markError": "无法标记为已读。请重试。",
+  "notify.confidence.confirmed": "链上已确认",
+  "notify.confidence.unverified": "未经验证",
+  "notify.kind.milestonePendingReview": "里程碑等待你审核",
+  "notify.kind.claimable": "你有可领取的资金",
+  "notify.kind.cliffReached": "已到达悬崖期",
+  "notify.kind.vestingComplete": "按时间归属已完成",
+  "notify.kind.completed": "资助已完成",
+  "notify.kind.revoked": "资助已撤销",
+  "notify.kind.syncUnavailable": "无法读取资助状态",
+  "notify.reason.milestonePendingReview":
+    "你是该金库的审核人，里程碑 {position}（{milestone}，{amount}）尚未获批。",
+  "notify.reason.claimable":
+    "你是受益人，金库显示有 {amount} 已解锁且尚未领取。",
+  "notify.reason.cliffReached":
+    "该金库的悬崖期已于 {date} 到达，可归属分配开始释放。",
+  "notify.reason.vestingComplete": "该金库的时间表已于 {date} 结束。",
+  "notify.reason.completed": "金库显示其全部分配 {amount} 已被领取。",
+  "notify.reason.revoked": "发放方已于 {date} 撤销该金库。",
+  "notify.reason.syncUnavailable":
+    "该金库与本组织关联，但链上读取未完成。此处不对其状态作出任何断言。",
 
   // 组织模板管理（HAS-13）。
   "templates.title": "模板",
