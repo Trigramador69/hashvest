@@ -52,6 +52,7 @@ function run(command, args, cwd = root) {
     cwd,
     env: process.env,
     stdio: "inherit",
+    shell: process.platform === "win32",
   });
   if (result.error) {
     throw new Error(`Unable to run ${command}: ${result.error.message}`);
