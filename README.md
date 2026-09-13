@@ -150,7 +150,9 @@ AI_BASE_URL=
 AI_MODEL=
 ```
 
-Any OpenAI-compatible `/chat/completions` endpoint works, so `AI_BASE_URL` and `AI_MODEL` are the only difference between xAI (the default, `https://api.x.ai/v1` and `grok-4.6`), OpenRouter, DeepSeek, Zhipu, or a local Ollama or LM Studio server. With `AI_API_KEY` blank the feature still works: it falls back to a deterministic offline drafter, so the demo never depends on a provider being reachable. See [`docs/ai-grant-builder.md`](docs/ai-grant-builder.md).
+Any OpenAI-compatible `/chat/completions` endpoint works, so `AI_BASE_URL` and `AI_MODEL` are the only difference between Groq (the default, `https://api.groq.com/openai/v1` and `openai/gpt-oss-20b`, verified end to end on its free tier), xAI, OpenRouter, DeepSeek, Zhipu, or a local Ollama or LM Studio server. Setting only `AI_API_KEY` is enough to get a working provider.
+
+The model must honour `response_format: json_schema`; one that does not never gets past the draft parser, so the feature degrades to offline drafting silently. Check `source` on a draft — `"model"` or `"fallback"` — before concluding a provider is configured correctly. With `AI_API_KEY` blank the feature still works: it falls back to a deterministic offline drafter, so the demo never depends on a provider being reachable. [`docs/ai-grant-builder.md`](docs/ai-grant-builder.md) records the measured provider matrix.
 
 Apply the tracked organization migration to the existing Supabase project from a machine with Supabase CLI access:
 

@@ -7,6 +7,7 @@ const config: AiProviderConfig = {
   baseUrl: "https://api.example.test/v1",
   model: "test-model",
   apiKey: "sk-do-not-leak-this-value",
+  maxOutputTokens: 2500,
 };
 
 const draftJson = JSON.stringify({ strategy: 0, title: "Advisor vesting" });
@@ -54,6 +55,9 @@ describe("requestAiGrantDraft", () => {
     expect(body.response_format.type).toBe("json_schema");
     expect(body.response_format.json_schema.name).toBe("hashvest_grant_draft");
     expect(body.messages).toHaveLength(2);
+    // A reasoning model spends this budget before it emits any content, so the
+    // ceiling is configuration rather than a constant. See config.ts.
+    expect(body.max_tokens).toBe(config.maxOutputTokens);
     expect(
       (seen?.init.headers as Record<string, string>).authorization,
     ).toContain(config.apiKey);

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { AI_MAX_OUTPUT_TOKENS } from "../../shared/ai-grant-draft/schema";
+
 /**
  * AI provider configuration (HAS-16).
  *
@@ -14,22 +16,36 @@ import "server-only";
  * baseline demo to work without one: the caller falls back to the offline
  * drafter instead of showing an error.
  *
- * There is no provider SDK. Every endpoint the product targets — xAI,
+ * There is no provider SDK. Every endpoint the product targets — Groq, xAI,
  * OpenRouter, DeepSeek, Zhipu, and a local Ollama or LM Studio server — speaks
  * the same OpenAI-compatible `/chat/completions` shape, so switching provider
  * is two environment variables and no code.
  */
 
 export type AiProviderConfig = {
-  /** Base URL without a trailing slash, e.g. `https://api.x.ai/v1`. */
+  /** Base URL without a trailing slash, e.g. `https://api.groq.com/openai/v1`. */
   baseUrl: string;
   model: string;
   apiKey: string;
+  /** Output ceiling for one draft. See AI_MAX_OUTPUT_TOKENS for why it moves. */
+  maxOutputTokens: number;
 };
 
-/** xAI's Grok is the default: it is the one the demo is rehearsed against. */
-const DEFAULT_BASE_URL = "https://api.x.ai/v1";
-const DEFAULT_MODEL = "grok-4.6";
+/**
+ * Groq is the default: it is the endpoint the demo is rehearsed against, it
+ * has a free tier, and `gpt-oss-20b` is measured to honour
+ * `response_format: json_schema` at the default output ceiling. A default
+ * nobody on the team holds a key for would be a default that is never
+ * exercised. See the provider matrix in docs/ai-grant-builder.md.
+ */
+const DEFAULT_BASE_URL = "https://api.groq.com/openai/v1";
+const DEFAULT_MODEL = "openai/gpt-oss-20b";
+
+/** Ignore a non-numeric or nonsensical override rather than failing a request. */
+function positiveInteger(value: string | undefined, fallback: number): number {
+  const parsed = Number(value?.trim());
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
 
 export function resolveAiProvider(): AiProviderConfig | null {
   const apiKey = process.env.AI_API_KEY?.trim();
@@ -41,6 +57,10 @@ export function resolveAiProvider(): AiProviderConfig | null {
     ),
     model: process.env.AI_MODEL?.trim() || DEFAULT_MODEL,
     apiKey,
+    maxOutputTokens: positiveInteger(
+      process.env.AI_MAX_TOKENS,
+      AI_MAX_OUTPUT_TOKENS,
+    ),
   };
 }
 

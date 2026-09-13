@@ -25,6 +25,7 @@ import { InvalidAiDraftError, type ParsedAiDraft } from "./parse-draft";
 import {
   AI_MAX_ALLOCATION,
   AI_MAX_MILESTONES,
+  AI_MAX_SCHEDULE_SECONDS,
   type AiGrantDraft,
 } from "./schema";
 
@@ -32,6 +33,7 @@ export type AiAdjustmentCode =
   | "allocationClamped"
   | "cliffClamped"
   | "durationDefaulted"
+  | "durationClamped"
   | "timingDefaulted"
   | "timingDropped"
   | "milestonesDefaulted"
@@ -139,6 +141,18 @@ function normalizeTiming(
     duration = DEFAULT_TIMING.duration;
     adjustments.push({ code: "durationDefaulted", values: { duration } });
   }
+  // A duration written in seconds when the unit is already seconds-per-step
+  // is well-formed and absurd. Clamp it rather than submit a grant that
+  // finishes in the year 40,000.
+  const maxSteps = BigInt(AI_MAX_SCHEDULE_SECONDS) / BigInt(draft.timing.unit);
+  if (BigInt(duration) > maxSteps) {
+    adjustments.push({
+      code: "durationClamped",
+      values: { requested: duration, maximum: String(maxSteps) },
+    });
+    duration = String(maxSteps);
+  }
+
   if (BigInt(cliff) > BigInt(duration)) {
     adjustments.push({ code: "cliffClamped", values: { cliff, duration } });
     cliff = duration;

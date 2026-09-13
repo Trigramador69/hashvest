@@ -968,6 +968,8 @@ export const es: TranslationDictionary = {
     "Se acortó el cliff de {cliff} a {duration}: un cliff no puede durar más que su propio calendario.",
   "ai.adjustment.durationDefaulted":
     "Se fijó la duración en {duration}, porque el borrador no pedía ninguna.",
+  "ai.adjustment.durationClamped":
+    "Se acortó la duración de {requested} a {maximum}: el borrador pedía un calendario de más de diez años.",
   "ai.adjustment.timingDefaulted":
     "Se añadió un calendario por defecto, porque esta estrategia necesita uno.",
   "ai.adjustment.timingDropped":

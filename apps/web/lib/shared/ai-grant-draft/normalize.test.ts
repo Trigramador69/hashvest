@@ -79,6 +79,66 @@ describe("normalizeAiDraft", () => {
     expect(codes(result)).toContain("durationDefaulted");
   });
 
+  it("clamps a schedule written in seconds when the unit already is", () => {
+    // Observed live: a model answered unit "86400" with duration "15552000",
+    // meaning six months expressed in seconds — a forty-thousand-year grant
+    // that is otherwise perfectly well-formed, so nothing else would catch it.
+    const result = normalize({
+      timing: {
+        unit: "86400",
+        cliff: "0",
+        duration: "15552000",
+        realWorldNote: "",
+      },
+    });
+    expect(result.preset.timing).toMatchObject({ duration: "3650" });
+    expect(result.adjustments).toContainEqual({
+      code: "durationClamped",
+      values: { requested: "15552000", maximum: "3650" },
+    });
+  });
+
+  it("measures the ceiling in seconds, not in steps", () => {
+    // Ten years is 5,256,000 minutes but only 3,650 days, so the same number
+    // of steps is fine in one unit and absurd in another.
+    expect(
+      normalize({
+        timing: {
+          unit: "60",
+          cliff: "0",
+          duration: "100000",
+          realWorldNote: "",
+        },
+      }).preset.timing,
+    ).toMatchObject({ duration: "100000" });
+    expect(
+      normalize({
+        timing: {
+          unit: "86400",
+          cliff: "0",
+          duration: "100000",
+          realWorldNote: "",
+        },
+      }).preset.timing,
+    ).toMatchObject({ duration: "3650" });
+  });
+
+  it("leaves a real schedule alone", () => {
+    const result = normalize({
+      timing: {
+        unit: "86400",
+        cliff: "30",
+        duration: "180",
+        realWorldNote: "",
+      },
+    });
+    expect(result.preset.timing).toMatchObject({
+      duration: "180",
+      cliff: "30",
+    });
+    expect(codes(result)).not.toContain("durationClamped");
+  });
+
   it("drops milestones from a time grant and a schedule from a milestone grant", () => {
     const time = normalize({ strategy: 0 });
     expect(time.preset.milestones).toBeNull();

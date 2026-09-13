@@ -36,6 +36,17 @@ export const AI_PROMPT_MAX_LENGTH = 400;
  */
 export const AI_MAX_ALLOCATION = "1000";
 
+/**
+ * The longest schedule a draft may suggest, in seconds: ten years.
+ *
+ * Generous for any real vesting schedule, and a guard against the one mistake
+ * models reliably make here — writing the duration in seconds while the unit
+ * already says seconds-per-step. Observed live: `unit: "86400"` with
+ * `duration: "15552000"`, a forty-thousand-year grant that is otherwise
+ * perfectly well-formed.
+ */
+export const AI_MAX_SCHEDULE_SECONDS = 10 * 365 * 24 * 60 * 60;
+
 export const AI_MAX_MILESTONES = MAX_PRESET_MILESTONES;
 export const AI_MAX_ASSUMPTIONS = 6;
 export const AI_MAX_UNSUPPORTED = 6;
@@ -46,8 +57,22 @@ export const AI_DESCRIPTION_MAX_LENGTH = 1000;
 export const AI_MILESTONE_TITLE_MAX_LENGTH = 120;
 export const AI_NOTE_MAX_LENGTH = 280;
 
-/** Output and cost guardrails. A draft is small; anything larger is a symptom. */
-export const AI_MAX_OUTPUT_TOKENS = 700;
+/**
+ * Output and cost guardrails.
+ *
+ * A draft itself is small — roughly 250 tokens — but a reasoning model spends
+ * its budget thinking before it emits any content, and a budget that runs out
+ * mid-thought produces nothing at all. Measured against Groq: `gpt-oss-20b`
+ * fails outright with `json_validate_failed` and an empty generation at 700,
+ * and answers correctly at 2500. This is a ceiling, not a charge: a model that
+ * needs less is billed for less.
+ *
+ * Overridable with `AI_MAX_TOKENS`, because the ceiling is provider policy as
+ * much as model behaviour. Groq's free tier caps some models at 1000 output
+ * tokens per minute and rejects a larger request outright, so a deployment on
+ * one of those has to ask for less.
+ */
+export const AI_MAX_OUTPUT_TOKENS = 2500;
 export const AI_REQUEST_TIMEOUT_MS = 15_000;
 export const AI_TEMPERATURE = 0.2;
 
