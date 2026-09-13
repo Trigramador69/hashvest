@@ -932,6 +932,8 @@ export const es: TranslationDictionary = {
   "ai.field.prompt.placeholder":
     "Una subvención de seis meses para una persona desarrolladora, 500 tokens, liberados contra tres hitos.",
   "ai.field.prompt.counter": "{count} de {max} caracteres",
+  "ai.field.prompt.hint":
+    "Enter para redactar · Shift+Enter para una nueva línea",
   "ai.action.draft": "Redactar",
   "ai.action.drafting": "Redactando",
   "ai.action.apply": "Aplicar al asistente",
