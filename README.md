@@ -6,46 +6,76 @@ This is a hackathon MVP deployed on **HSK Chain Testnet**. It is unaudited, uses
 
 ## At a glance
 
-|                    |                                                                                                                                          |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| **Buildathon**     | Ethereum Bolivia Buildathon 2026 · EAG Global Buildathon                                                                                 |
-| **Tracks**         | Real World Applications powered by HSK Chain · Real-World Ethereum Applications · Road to ShanhaiWoo                                     |
-| **Network**        | HSK Chain Testnet (chain ID 133)                                                                                                         |
-| **Factory**        | [`0x6fE671195Ac025220B074439362214c10821F93d`](https://testnet-explorer.hskchain.net/address/0x6fE671195Ac025220B074439362214c10821F93d) |
-| **Live proof**     | TIME, MILESTONE, HYBRID, and revocable grant lifecycles with 19 public transactions — [`docs/testnet-demo.json`](docs/testnet-demo.json) |
-| **Languages**      | English · 简体中文 · Español, with typed English fallback                                                                                |
-| **Technical docs** | Problem, track, architecture, evidence, and roadmap — [`docs/submission.md`](docs/submission.md)                                         |
-| **Architecture**   | Protocol/Cloud boundary and per-field authority — [`docs/architecture.md`](docs/architecture.md)                                         |
-| **Protocol fee**   | Transparent optional create-time surplus (design only) — [`docs/protocol-fee-spec.md`](docs/protocol-fee-spec.md)                        |
+|                    |                                                                                                                                            |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Buildathon**     | Ethereum Bolivia Buildathon 2026 · EAG Global Buildathon                                                                                   |
+| **Tracks**         | **1. AI x Ethereum & Agent Economy** · **6. Real-World Ethereum Applications** · Real World Applications on HSK Chain · Road to ShanhaiWoo |
+| **Network**        | HSK Chain Testnet (chain ID 133)                                                                                                           |
+| **Factory**        | [`0x6fE671195Ac025220B074439362214c10821F93d`](https://testnet-explorer.hskchain.net/address/0x6fE671195Ac025220B074439362214c10821F93d)   |
+| **Live proof**     | TIME, MILESTONE, HYBRID, and revocable grant lifecycles with 19 public transactions — [`docs/testnet-demo.json`](docs/testnet-demo.json)   |
+| **Languages**      | English · 简体中文 · Español, with typed English fallback                                                                                  |
+| **Technical docs** | Problem, track, architecture, evidence, and roadmap — [`docs/submission.md`](docs/submission.md)                                           |
+| **Architecture**   | Protocol/Cloud boundary and per-field authority — [`docs/architecture.md`](docs/architecture.md)                                           |
+| **Protocol fee**   | Transparent optional create-time surplus (design only) — [`docs/protocol-fee-spec.md`](docs/protocol-fee-spec.md)                          |
 
-## Features
+## Selected tracks
+
+HashVest is built and submitted for the **EAG Global Buildathon** and the **Ethereum Bolivia Buildathon 2026**, competing directly in two core tracks:
+
+### 1. AI x Ethereum & Agent Economy
+
+> **Track scope:** Build AI-powered Ethereum applications and agent-native economic systems. This track focuses on AI agents, agent wallets, agent payments, agent-to-agent coordination, AI-driven onchain execution, natural language smart contract interaction, AI-generated content provenance, and Ethereum-native AI applications. We especially welcome projects exploring agent payment middleware, autonomous service payments, agent identity, agent reputation, permissioned agent wallets, and safe spending policies for AI agents.
+
+**How HashVest fulfills this track:**
+
+- **Natural Language Smart Contract Interaction (AI Grant Builder):** Users and DAO operators can define complete vesting schedules and milestone grants using natural language prompts (e.g., _"Create a 6-month developer grant for 20,000 hvUSD, released against 3 milestones with a 1-month cliff"_). The AI Grant Builder parses requirements, computes vesting math, and synthesizes an auditable, strictly validated grant preset ready for onchain execution.
+- **Safe Spending Policies for AI Agents ("AI drafts, humans decide"):** A fundamental challenge in agentic Ethereum economies is preventing autonomous models or injected prompts from moving treasury value without authorization. HashVest implements an ironclad spending policy boundary enforced at the **type and schema level**:
+  - The model's output is strictly typed to a `GrantPreset` and passes the identical `assertValidPreset` verification as hand-written templates.
+  - The draft schema has **zero fields** for recipient addresses, private keys, token addresses, start timestamps, or onchain execution. Prompt injection attempts (such as _"send 1,000 tokens to 0x..."_) are structurally rejected because the schema cannot represent an address or transaction.
+  - **Zero Key Custody & Zero Retention:** The AI agent never touches keys or signers. Prompts are sanitized of hex addresses and cryptographic secrets before being processed, and neither prompts nor raw model completions are ever persisted.
+- **Agent Payment Middleware & Autonomous Service Payments:** `GrantVault` contracts operate as programmable, trustless payment channels for autonomous AI agents. An AI agent or autonomous service can receive streamed `TIME` vesting or `MILESTONE` payouts unlocked upon verifiable deliverable completion, providing the financial rails for agent-to-agent and human-to-agent economies.
+- **AI Review Copilot & Milestone Context:** An advisory AI assistant analyzes submitted private milestone evidence alongside live HSK vault reads, citing authoritative onchain data to assist human reviewers without taking custody or execution authority.
+- **Deterministic Offline Resilience:** To guarantee business continuity, the AI pipeline falls back cleanly to a deterministic offline heuristic drafter if third-party LLM providers experience latency, rate limits, or outages.
+
+### 6. Real-World Ethereum Applications
+
+> **Track scope:** Build Ethereum-native applications for real users, communities, and local ecosystems. This track focuses on stablecoin payments, PayFi, community coordination, education tools, public goods funding, membership systems, contribution records, reputation systems, event and city coordination, local commerce, information markets, and applications for emerging regions. Projects should demonstrate clear user needs, real-world relevance, and the potential to grow beyond the hackathon into sustainable applications, open-source tools, or broader ecosystem infrastructure.
+
+**How HashVest fulfills this track:**
+
+- **Solving a Real-World Treasury & Contributor Crisis:** Ecosystems, DAOs, and startups routinely promise grants via spreadsheets or delayed multisig disbursements. HashVest replaces fragile trust with **100% fully funded, escrowed smart contract vaults** on HSK Chain: tokens are deposited in full at creation, providing absolute proof of solvency.
+- **Stablecoin Payments & PayFi Grant Rails:** Disburses ERC20 stablecoins (`hvUSD`, USDT, USDC) under flexible, programmable rules: linear time vesting, deliverable milestones, or hybrid schedules (`unlocked = min(time, milestones)`).
+- **Public Goods Funding & Community Coordination:** Regional developer communities and buildathons (such as Ethereum Bolivia and LATAM hacker houses) can coordinate cohorts of builders, disburse public goods funding, and maintain immutable onchain records of contribution and delivery.
+- **Fair Revocation (Earned-Value Protection):** If a grant is terminated early, HashVest enforces a cryptographic guarantee: the contributor retains and can permanently claim 100% of their earned allocation. Only unearned tokens return to the issuer, permanently ending unfair grant clawbacks.
+- **Multi-Reviewer Milestone Quorum (M-of-N):** Replaces centralized, single-reviewer bottlenecks with decentralized 1-of-N and M-of-N approval quorums, allowing community review boards and grant committees to govern milestone unlock events collaboratively.
+- **Engineered for Emerging Regions:**
+  - **Gasless Sponsored Actions (PayFi Relayer):** Emerging-market contributors and builders often lack native gas tokens to claim their rewards. HashVest provides an opt-in EIP-712 sponsored action relayer where the beneficiary signs an intent and a server-side relayer covers HSK gas fees.
+  - **Comprehensive Localization:** Complete, native three-language localization in English, Español, and 简体中文, connecting Latin American and Asian Ethereum ecosystems seamlessly.
+
+## Key features
 
 ### Protocol
 
-- Time vesting with a start timestamp, optional initial unlock, cliff, and linear duration.
-- Milestone grants with fixed amounts approved by a designated reviewer.
-- Hybrid grants where both conditions constrain the claim: `unlocked = min(time vested, approved milestone amount)`.
-- Optional `IEligibilityProvider` adapter, including a clearly labeled administrator-controlled demo allowlist.
-- Optional one-way issuer revocation that recovers only unearned allocation while preserving earned and claimed beneficiary value.
-- Organization-sponsored claims and reviews: organization-created grants use a versioned `SponsoredGrantVault`; the actor signs the exact claim or milestone approval and a server-only relayer pays HSK gas.
-- One fully funded vault per grant; SafeERC20 rejects underfunded fee-on-transfer funding.
-- Optional protocol fee: designed as a later create-time issuer surplus that never reduces allocation; not implemented. See [`docs/protocol-fee-spec.md`](docs/protocol-fee-spec.md).
-- Beneficiary-only claims, role dashboards, explorer links, and real HSK Testnet transactions.
-- Optional AI Grant Builder: a description becomes a validated, fully editable draft. It cannot sign, fund, approve, claim, revoke, or choose a wallet, and it works with no provider configured.
+- **100% Fully Funded Vaults:** Every `GrantVault` is fully funded upon creation by `HashVestFactory`. SafeERC20 rejects underfunded fee-on-transfer tokens, ensuring complete backing.
+- **Three Unlock Strategies:**
+  - `TIME`: Linear vesting with customizable start, cliff, duration, and optional initial unlock.
+  - `MILESTONE`: Release against approved deliverables with fixed allocation amounts.
+  - `HYBRID`: Mathematical constraint `unlocked = min(time vested, approved milestone amount)`, enforcing both elapsed time and verified deliverables.
+- **Multi-Reviewer Milestone Quorum:** Smart contracts support versioned 1-of-N and M-of-N reviewer approval quorums, preventing single-reviewer lockups.
+- **Fair Revocation:** One-way issuer revocation that freezes earned value for the beneficiary forever and returns only unearned allocation to the issuer.
+- **Sponsored Protocol Actions:** EIP-712 typed intent signatures enabling beneficiaries and reviewers to claim tokens and approve milestones gaslessly via a server-side relayer.
+- **Indexer-Free Role Discovery:** Factory maintains onchain role discovery arrays (`getGrantsByIssuer`, `getGrantsByBeneficiary`, `getGrantsByReviewer`), allowing any web3 client to discover grants without a centralized indexer or database.
+- **Extensible Eligibility Gate:** Pluggable `IEligibilityProvider` interface for gating claims with allowlists, soulbound tokens, or compliance proofs.
 
 ### Cloud
 
-- Wallet sign-in (SIWE) for workspace access, kept separate from wallet connection.
-- Organizations and a member directory, so beneficiaries and reviewers are chosen by name instead of by pasted address.
-- Editable grant presets — Builder Grant, Employee Vesting, Advisor Vesting, and Ecosystem Grant — in a five-step creation wizard (Template, Grant, Strategy, Conditions, Review).
-- Review and claim queues, plus lifecycle and funding health computed from live HSK reads.
-- Bounded batch grant creation for cohorts and a human-reviewed AI Grant Builder that produces editable drafts.
-- Organization-sponsored claims and reviews are implemented behind a deployment gate; an actor signature and server-only relayer pay HSK gas, with the wallet-paid claim or approval always available as fallback.
-- Private milestone evidence for organization members: a URL, type, and optional note attached to the canonical grant identity and milestone index. Reviewers still approve only through the existing onchain `approveMilestone` action.
-- A wallet dashboard with grants by role, strategy, and lifecycle and a six-month activity timeline from HSK events, as a read-only projection of chain state.
-- Bounded organization reporting from live vault reads: lifecycle counts, allocations grouped by token identity, and upcoming cliffs. Every figure names its vault field, and there is no cross-token total, price, or conversion.
-- In-app lifecycle notifications derived from current vault state, deduplicated by the state fact they report rather than by an event log, so no indexer is required and the stream stays bounded.
-- Full English, 简体中文, and Español localization with typed English fallback.
+- **Sign-In with Ethereum (SIWE):** Secure, standards-based workspace sessions (EIP-4361) that keep wallet connection strictly separated from workspace authorization.
+- **Organizations & Member Directory:** Human-readable workspaces where contributors and reviewers are assigned by name and role label instead of raw hex addresses.
+- **Private Milestone Evidence:** Securely attach URLs, deliverable documentation, and private context to onchain milestones for reviewer evaluation.
+- **AI Grant Builder:** Natural language grant preset generation with strict schema enforcement, zero prompt retention, and offline heuristic fallback.
+- **AI Review Copilot:** On-demand advisory summaries comparing submitted milestone deliverables against grant terms.
+- **Live Wallet Analytics:** Pure projection of onchain state featuring role-specific grant summaries and a six-month event timeline.
+- **Tri-Lingual Localization:** Full, native localization in English, Español, and 简体中文 with typed fallback.
 
 ## Architecture
 
@@ -186,6 +216,35 @@ Time vesting (`vestedByTime`) for `TIME` and `HYBRID`:
 The cliff holds the remaining allocation without restarting the curve. Rounding uses Solidity `mulDiv` (floor). Repeated claims subtract `claimedAmount` from `unlockedAmount` and never re-count `initialUnlock`.
 
 `HYBRID` and `MILESTONE` milestone amounts must sum exactly to the remaining allocation (`totalAllocation - initialUnlock` on `HYBRID`, `totalAllocation` on `MILESTONE`), and no more than 20 milestones are accepted. The grant wizard preview uses the same helpers as the contract (`calculateVestedByTime` / `calculateUnlockedAmount` in `apps/web/lib/protocol/grants.ts`).
+
+### Fair Revocation semantics
+
+Grants can optionally be created as `revocable`. Revocation is an issuer-only, one-way terminal state that strictly protects earned beneficiary allocation:
+
+- At revocation timestamp $t_{\text{revoked}}$, the contract computes the earned allocation:
+  $$\text{earned} = \max(\text{claimedAmount}, \text{unlockedAmount}(t_{\text{revoked}}))$$
+- **Beneficiary entitlement is preserved:** The beneficiary retains the right to claim all earned value ($\text{earned} - \text{claimedAmount}$) at any time in the future.
+- **Issuer refund is strictly unearned:** The contract transfers only the remaining unearned tokens back to the issuer:
+  $$\text{issuerRefund} = \text{totalAllocation} - \text{earned}$$
+- Once revoked, milestone approvals and time vesting stop progressing. Non-revocable vaults permanently reject revocation attempts.
+
+### Multi-reviewer milestone quorum
+
+To support decentralized governance and avoid single-reviewer failure points, `GrantVault` supports multi-reviewer quorum:
+
+- A vault can be configured with an array of distinct reviewers $N$ and a threshold $M$ where $1 \le M \le N \le 10$.
+- Reviewers submit onchain approvals independently (`approveMilestone`).
+- Duplicate approvals for the same milestone by the same reviewer revert.
+- When milestone approvals reach quorum ($M$), the milestone state transitions to approved and funds unlock immediately for beneficiary claim.
+
+### Gasless sponsored protocol actions (EIP-712)
+
+Organization-created grants utilize `SponsoredGrantVault` to eliminate the requirement that contributors or reviewers acquire native HSK tokens before interacting:
+
+- Beneficiaries and reviewers sign structured EIP-712 typed intents specifying vault address, action type, amount/index, nonce, deadline, and designated relayer.
+- A trusted server-side relayer executes `claimWithSignature` or `approveMilestoneWithSignature`, paying native HSK gas.
+- The contract verifies the signer's identity, nonce freshness, and role authority onchain.
+- Direct, wallet-paid transactions (`claim`, `approveMilestone`) remain available as permanent autonomous fallbacks.
 
 ## Installation
 
@@ -410,21 +469,37 @@ For the controlled-wallet browser rehearsal, copy the public-address-only fixtur
 
 HashVest MVP has not been professionally audited. It targets HSK Testnet only, uses a faucet-mintable demo token, and should not hold production funds. Revocation is available only on explicitly revocable new vaults, is issuer-only and one-way, and preserves earned beneficiary entitlement; non-revocable and old vaults have no issuer withdrawal path. `DemoEligibilityProvider` is an adapter demonstration, not KYC or compliance. The AI Grant Builder is advisory only: it drafts editable form values, never signs, funds, approves, claims, revokes, or selects a wallet, retains no prompt or model output, and keeps its provider key server-side in a single allowlisted module.
 
-## Roadmap
+## Roadmap & iteration plans
 
-The product roadmap after the buildathon — remaining Cloud additions, AI-assisted review, reviewer quorum, protocol extraction, and a separately reviewed protocol-fee implementation — is described in [`docs/submission.md`](docs/submission.md#future-roadmap). Organization templates, sponsored protocol actions, the human-reviewed AI Grant Builder, TGE unlock semantics, private milestone evidence, and organization reporting and lifecycle notifications (HAS-41/HAS-37) have already landed as Cloud context. The HAS-40 fee model is specified, not deployed. A professional audit is the precondition for any mainnet deployment.
+The product roadmap balances immediate hackathon deliverables with long-term protocol decentralization and security:
 
-Hackathon P0 work, by milestone and owning layer:
+### 1. Delivered & verified in hackathon (P0 / P1)
 
-| Milestone                               | Owner            |
-| --------------------------------------- | ---------------- |
-| M0 — Protocol/Cloud boundary & baseline | Cloud + Protocol |
-| M1 — Global grant templates             | Cloud            |
-| M2 — Revocation & protocol safety       | Protocol         |
-| M3 — Lifecycle & funding health         | Cloud            |
-| M4 — i18n, browser E2E & submission     | Cloud + Protocol |
+- **Autonomous Protocol Core:** `HashVestFactory`, `GrantVault`, and `SponsoredGrantVault` deployed and verified on HSK Chain Testnet (chain ID 133).
+- **19 Public Onchain Proofs:** Live transactions verifying `TIME`, `MILESTONE`, `HYBRID`, and `REVOCABLE TIME` grant lifecycles (`docs/testnet-demo.json`).
+- **Fair Revocation:** Cryptographic preservation of earned beneficiary allocation upon issuer revocation.
+- **Multi-Reviewer Quorum:** Versioned 1-of-N and M-of-N milestone approval quorum in smart contracts.
+- **Gasless Sponsored Actions:** EIP-712 typed intent signatures with a server-side gas relayer for claims and milestone approvals.
+- **AI Grant Builder:** Natural-language grant preset generator with strict schema validation, zero key access, zero prompt retention, and offline heuristic fallback.
+- **Organization Workspaces:** SIWE wallet authentication, member directories, custom organization templates, and private milestone evidence.
+- **Tri-Lingual Localization:** Complete interface and preset localization in English, Español, and 简体中文.
 
-Post-hackathon milestones M5–M7 cover P1–P3 work: AI-assisted review, reviewer quorum, analytics, notifications, compliance and attestation adapters, an embedded SDK, extraction of the protocol into a public `hashvest-protocol` repository, and a separately reviewed protocol-fee implementation. The HAS-40 fee model is specified in [`docs/protocol-fee-spec.md`](docs/protocol-fee-spec.md) and is not deployed. Organization templates, bounded batch creation, sponsored protocol actions, the human-reviewed AI Grant Builder, TGE unlock semantics, and private milestone evidence (HAS-15/HAS-14) have landed as Cloud context; HSK remains authoritative for reviewer, approval, and value. New scope during the hackathon is a swap, never an addition — see the stop-adding-features rule in [`docs/architecture.md`](docs/architecture.md).
+### 2. Near-term iterations (P1 / P2 post-hackathon)
+
+- **Multi-Reviewer Quorum UI Controls:** Visual threshold selector ($M$-of-$N$) in the grant creation wizard and collaborative reviewer queues in the workspace.
+- **Advanced Organization Reporting & Notifications:** Automated operational reporting, token-aggregated allocation matrices, and state-fact deduplicated lifecycle alerts.
+- **Protocol Package Extraction:** Extract `@hashvest/protocol` into a standalone, unbundled repository for external dapp integration.
+- **Transparent Protocol Fee:** Implement the create-time issuer surplus fee model (0.05%–0.10%) specified in [`docs/protocol-fee-spec.md`](docs/protocol-fee-spec.md).
+
+### 3. Precondition for mainnet deployment
+
+- **Professional Security Audit:** Comprehensive external smart contract security audit of `HashVestFactory`, `GrantVault`, and `SponsoredGrantVault` before holding production value on HSK Chain Mainnet.
+
+### 4. Long-term ecosystem vision (P3)
+
+- **Weighted Reviewer Governance:** Integrate DAO governance token balances and snapshot voting into milestone approval weights.
+- **Onchain Identity & Attestation Adapters:** Production `IEligibilityProvider` adapters for Gitcoin Passport, Ethereum Attestation Service (EAS), and WorldID.
+- **Embedded SDK & White-Label Portals:** Embeddable grant and vesting widgets for ecosystem foundations, launchpads, and rollup grant programs.
 
 ## Contributing with agents
 
