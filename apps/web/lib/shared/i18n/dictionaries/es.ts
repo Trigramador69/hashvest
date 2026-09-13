@@ -189,6 +189,7 @@ export const es: TranslationDictionary = {
   "overview.review.item.reviewer": "{name} es el revisor",
   "overview.review.item.next": "Siguiente:",
   "overview.review.item.action": "Revisar subvención",
+  "overview.review.evidence.title": "Evidencia del hito pendiente",
   "overview.claim.title": "Reclamable por ti",
   "overview.claim.lede":
     "Los importes reclamables vienen de cada GrantVault, nunca de Supabase.",
@@ -572,6 +573,25 @@ export const es: TranslationDictionary = {
   "detail.milestone.approved": "Aprobado",
   "detail.milestone.pending": "Pendiente",
   "detail.milestone.approveAction": "Aprobar hito",
+  "detail.evidence.title": "Evidencia del hito",
+  "detail.evidence.loading": "Cargando evidencia del workspace…",
+  "detail.evidence.error":
+    "La evidencia del workspace no está disponible temporalmente.",
+  "detail.evidence.retry": "Reintentar",
+  "detail.evidence.empty": "No hay evidencia enviada para este hito.",
+  "detail.evidence.unsafeLink":
+    "Este enlace de evidencia no es seguro para abrir.",
+  "detail.evidence.status.submitted": "Enviada",
+  "detail.evidence.submitter": "Enviada por",
+  "detail.evidence.created": "Creada",
+  "detail.evidence.updated": "Actualizada",
+  "detail.evidence.note": "Nota",
+  "detail.evidence.type.githubPr": "PR de GitHub",
+  "detail.evidence.type.githubCommit": "Commit de GitHub",
+  "detail.evidence.type.deployment": "Despliegue",
+  "detail.evidence.type.document": "Documento",
+  "detail.evidence.type.hskTransaction": "Transacción HSK",
+  "detail.evidence.type.ipfs": "IPFS",
   "detail.terms.title": "Términos de la subvención",
   "detail.terms.fixed":
     "Los términos y la asignación son fijos. Esta subvención no se puede revocar.",

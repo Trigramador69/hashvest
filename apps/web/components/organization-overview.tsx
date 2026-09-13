@@ -9,6 +9,7 @@ import { hskTestnet } from "@hashvest/web3";
 import {
   useLinkOrganizationGrant,
   useOrganization,
+  useOrganizationGrantEvidence,
   useOrganizationGrantStats,
   useOrganizationGrants,
   useOrganizationMembers,
@@ -29,6 +30,7 @@ import type {
 } from "@/lib/cloud/organizations/types";
 
 import { GrantCard } from "./grant-card";
+import { MilestoneEvidenceList } from "./milestone-evidence";
 import { MembersPreview } from "./organization-ui";
 import { Button, buttonVariants } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
@@ -44,15 +46,21 @@ function LiveMetric({ label, value }: { label: string; value: string }) {
 }
 
 function ReviewQueueItem({
+  organizationId,
   grant,
   members,
 }: {
+  organizationId: string;
   grant: OrganizationGrant;
   members: OrganizationMember[] | undefined;
 }) {
   const t = useTranslations();
   const { address } = useAccount();
   const live = useGrant(grant.vaultAddress as Address);
+  const evidence = useOrganizationGrantEvidence(
+    organizationId,
+    grant.vaultAddress,
+  );
   if (live.isPending)
     return (
       <p className="text-sm text-muted-foreground">
@@ -81,11 +89,12 @@ function ReviewQueueItem({
     revoked: live.data.revoked,
   });
   const roles = resolveProtocolRoles(address, live.data);
-  const pending = live.data.milestones.filter(
-    (milestone) => !milestone.approved,
-  );
+  const pending = live.data.milestones
+    .map((milestone, index) => ({ milestone, index }))
+    .filter(({ milestone }) => !milestone.approved);
   if (live.data.revoked || !roles.isReviewer || !pending.length) return null;
   const reviewer = findMemberByWallet(members, live.data.reviewer);
+  const next = pending[0];
   return (
     <Card>
       <CardContent className="flex flex-wrap items-center justify-between gap-4 p-5">
@@ -109,10 +118,19 @@ function ReviewQueueItem({
           </p>
           <p className="mt-2 text-sm">
             {t("overview.review.item.next")}{" "}
-            <strong>{pending[0]?.title}</strong> ·{" "}
-            {tokenAmount(pending[0]?.amount ?? 0n, live.data.decimals)}{" "}
+            <strong>{next.milestone.title}</strong> ·{" "}
+            {tokenAmount(next.milestone.amount, live.data.decimals)}{" "}
             {live.data.symbol}
           </p>
+          <MilestoneEvidenceList
+            evidence={evidence.data}
+            isPending={evidence.isPending}
+            isError={evidence.isError}
+            onRetry={() => void evidence.refetch()}
+            milestones={[{ index: next.index, title: next.milestone.title }]}
+            members={members}
+            compact
+          />
           <div className="mt-4 max-w-xl">
             <FundingHealthSummary
               funding={state.funding}
@@ -544,6 +562,7 @@ export function OrganizationOverview({
               grantsData.map((grant) => (
                 <ReviewQueueItem
                   key={`review:${grant.vaultAddress}`}
+                  organizationId={organizationId}
                   grant={grant}
                   members={members.data}
                 />
