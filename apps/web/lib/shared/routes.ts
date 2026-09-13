@@ -16,6 +16,8 @@ export const appRoutes = {
     `${organizationsRoot}/${organizationId}/members`,
   organizationTemplates: (organizationId: string) =>
     `${organizationsRoot}/${organizationId}/templates`,
+  organizationReports: (organizationId: string) =>
+    `${organizationsRoot}/${organizationId}/reports`,
   organizationGrants: (organizationId: string) =>
     `${organizationsRoot}/${organizationId}/grants`,
   organizationNewGrant: (organizationId: string) =>
