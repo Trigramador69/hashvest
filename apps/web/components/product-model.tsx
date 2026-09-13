@@ -18,7 +18,13 @@ type ProductModelPresentationProps = {
   variant: "summary" | "detail";
 };
 
-function StatusLabel({ status, t }: { status: CapabilityStatus; t: Translator }) {
+function StatusLabel({
+  status,
+  t,
+}: {
+  status: CapabilityStatus;
+  t: Translator;
+}) {
   const roadmap = status === "roadmap";
   return (
     <span
@@ -163,7 +169,10 @@ function PlansGrid({
 
 function Addons({ t }: { t: Translator }) {
   return (
-    <section aria-labelledby="product-model-addons-heading" className="space-y-5">
+    <section
+      aria-labelledby="product-model-addons-heading"
+      className="space-y-5"
+    >
       <header className="max-w-2xl">
         <p className="mb-3 font-mono text-[10px] uppercase tracking-[.08em] text-primary">
           {t("productModel.addons.eyebrow")}
@@ -269,7 +278,10 @@ export function ProductModelPresentation({
         </p>
       </header>
 
-      <section aria-labelledby="product-model-surfaces-heading" className="space-y-5">
+      <section
+        aria-labelledby="product-model-surfaces-heading"
+        className="space-y-5"
+      >
         <header>
           <h2
             id="product-model-surfaces-heading"
@@ -288,7 +300,10 @@ export function ProductModelPresentation({
         </div>
       </section>
 
-      <section aria-labelledby="product-model-plans-heading" className="space-y-5">
+      <section
+        aria-labelledby="product-model-plans-heading"
+        className="space-y-5"
+      >
         <header>
           <p className="mb-3 font-mono text-[10px] uppercase tracking-[.08em] text-primary">
             {t("productModel.plans.eyebrow")}

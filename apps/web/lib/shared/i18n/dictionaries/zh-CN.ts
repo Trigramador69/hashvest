@@ -83,8 +83,7 @@ export const zhCN: TranslationDictionary = {
     "面向 HashKey Chain 可编程资助的开放基础设施。",
   "productModel.protocol.body":
     "Protocol 在链上持有资金并执行解锁计算、角色权限、领取和已获得价值保护。",
-  "productModel.protocol.feature.0":
-    "TIME、MILESTONE 和 HYBRID 资助策略",
+  "productModel.protocol.feature.0": "TIME、MILESTONE 和 HYBRID 资助策略",
   "productModel.protocol.feature.1": "条款不可变且全额注资的 GrantVault",
   "productModel.protocol.feature.2": "由 HSK 授权的权限与受益人领取",
   "productModel.protocol.cta": "创建 Protocol 资助",

@@ -105,7 +105,8 @@ export const en = {
     "Cloud adds context and coordination while remaining optional to every protocol operation.",
   "productModel.cloud.feature.0": "Organizations and workspace management",
   "productModel.cloud.feature.1": "Members, roles, and named participants",
-  "productModel.cloud.feature.2": "Standard grant templates and editable presets",
+  "productModel.cloud.feature.2":
+    "Standard grant templates and editable presets",
   "productModel.cloud.feature.3": "Review queues and claim visibility",
   "productModel.cloud.feature.4": "Live funding health and read-only reporting",
   "productModel.cloud.feature.5": "Bounded batch grant creation for cohorts",

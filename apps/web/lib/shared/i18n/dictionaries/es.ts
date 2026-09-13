@@ -104,11 +104,14 @@ export const es: TranslationDictionary = {
   "productModel.cloud.body":
     "Cloud añade contexto y coordinación, pero sigue siendo opcional para cada operación del Protocol.",
   "productModel.cloud.feature.0": "Organizaciones y gestión del espacio",
-  "productModel.cloud.feature.1": "Miembros, roles y participantes identificados",
+  "productModel.cloud.feature.1":
+    "Miembros, roles y participantes identificados",
   "productModel.cloud.feature.2": "Plantillas estándar y presets editables",
   "productModel.cloud.feature.3": "Colas de revisión y visibilidad de reclamos",
-  "productModel.cloud.feature.4": "Salud de financiación y reporting de solo lectura",
-  "productModel.cloud.feature.5": "Creación acotada de subvenciones por cohortes",
+  "productModel.cloud.feature.4":
+    "Salud de financiación y reporting de solo lectura",
+  "productModel.cloud.feature.5":
+    "Creación acotada de subvenciones por cohortes",
   "productModel.cloud.feature.6": "AI Grant Builder revisado por personas",
   "productModel.cloud.feature.7":
     "Experiencia de plantillas personalizadas (el esquema existe; la UI de propietario está en la hoja de ruta)",
