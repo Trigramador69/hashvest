@@ -45,7 +45,8 @@ export type AiAdjustmentCode =
   | "proseRedacted"
   // Request-level notes, added by the caller rather than by normalization.
   | "offlineDraft"
-  | "scheduleCompressed"
+  | "scheduleConverted"
+  | "allocationAssumed"
   | "requestAddressIgnored"
   | "requestSecretIgnored"
   | "requestActionIgnored";

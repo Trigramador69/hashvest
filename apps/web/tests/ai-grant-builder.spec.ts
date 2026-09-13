@@ -199,6 +199,35 @@ test.describe("AI grant draft panel", () => {
     expect(requests).toBe(1);
   });
 
+  test("applies the draft on a second Enter instead of redrafting", async ({
+    page,
+  }) => {
+    // Redrafting on the same key would silently swap the preset the reader is
+    // reading for a different one, which is the opposite of what pressing
+    // Enter again means.
+    let requests = 0;
+    await page.route("**/api/ai/grant-draft", (route) => {
+      requests += 1;
+      return route.fulfill({ json: { draft: DRAFT } });
+    });
+    await openPanel(page);
+
+    const prompt = page.getByLabel("What should this grant do?");
+    await prompt.fill("A six-month developer grant for 500 tokens");
+    await prompt.press("Enter");
+    await expect(page.getByText("Protocol integration grant")).toBeVisible();
+    expect(requests).toBe(1);
+
+    await prompt.press("Enter");
+
+    // The panel closed because the draft was applied, not redrafted.
+    await expect(page.getByRole("dialog")).toBeHidden();
+    expect(requests).toBe(1);
+    await expect(page.getByLabel("Grant title")).toHaveValue(
+      "Protocol integration grant",
+    );
+  });
+
   test("keeps every control legible", async ({ page }) => {
     // `--secondary` is `--surface-2`, a near-black background. Used as a text
     // colour it rendered the ghost button at a 1.04:1 contrast ratio, which is
@@ -239,6 +268,65 @@ test.describe("AI grant draft panel", () => {
         : luminance(background);
       expect(ratio(luminance(color), behind)).toBeGreaterThan(4.5);
     }
+  });
+
+  test("says so when a draft outlives the language it was written in", async ({
+    page,
+    context,
+  }) => {
+    // The chrome re-renders from the dictionary when the reader switches
+    // language. A model's sentences cannot, so an old draft ends up as Chinese
+    // prose inside an English panel with nothing to explain it.
+    //
+    // The locale is a cookie, not a route segment, so the host has to match the
+    // config's baseURL or the page simply renders in English.
+    await context.addCookies([
+      {
+        name: "hashvest_locale",
+        value: "zh-CN",
+        domain: "127.0.0.1",
+        path: "/",
+      },
+    ]);
+    await page.route("**/api/ai/grant-draft", (route) =>
+      route.fulfill({
+        json: {
+          draft: {
+            ...DRAFT,
+            preset: { ...DRAFT.preset, titleSuggestion: "里程碑赠款" },
+            assumptions: ["采用混合策略。"],
+          },
+        },
+      }),
+    );
+
+    await page.goto("/grants/new", { waitUntil: "domcontentloaded" });
+    await page
+      .getByRole("button", { name: "根据一段描述起草一笔赠款" })
+      .click();
+    await page
+      .getByRole("dialog")
+      .locator("textarea")
+      .fill("给一位开发者创建一笔赠款");
+    await page.getByRole("button", { name: "生成草稿" }).click();
+    await expect(page.getByText("里程碑赠款")).toBeVisible();
+
+    // Nothing to warn about while the draft and the reader still agree.
+    await expect(page.getByRole("button", { name: "重新起草" })).toBeHidden();
+
+    await page.locator("select").first().selectOption({ label: "English" });
+
+    const panel = page.getByRole("dialog");
+    await expect(
+      panel.getByText("written in the language you were reading before", {
+        exact: false,
+      }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Draft again" }),
+    ).toBeVisible();
+    // The draft is kept rather than destroyed: it is still the user's work.
+    await expect(panel.getByText("里程碑赠款")).toBeVisible();
   });
 
   test("matches the panel reference", async ({ page }) => {

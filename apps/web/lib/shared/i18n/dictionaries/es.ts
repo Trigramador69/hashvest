@@ -1164,6 +1164,7 @@ export const es: TranslationDictionary = {
   "ai.field.prompt.placeholder":
     "Una subvención de seis meses para una persona desarrolladora, 500 tokens, liberados contra tres hitos.",
   "ai.field.prompt.counter": "{count} de {max} caracteres",
+  "ai.field.prompt.hintApply": "Enter aplica este borrador",
   "ai.field.prompt.hint":
     "Enter para redactar · Shift+Enter para una nueva línea",
   "ai.action.draft": "Redactar",
@@ -1171,6 +1172,7 @@ export const es: TranslationDictionary = {
   "ai.action.apply": "Aplicar al asistente",
   "ai.action.discard": "Descartar",
   "ai.action.retry": "Reintentar",
+  "ai.action.redraft": "Volver a redactar",
 
   "ai.progress.0": "Leyendo la petición",
   "ai.progress.1": "Quitando todo lo privado",
@@ -1178,6 +1180,8 @@ export const es: TranslationDictionary = {
   "ai.progress.3": "Repartiendo la asignación",
   "ai.progress.4": "Comprobándolo contra las reglas del protocolo",
 
+  "ai.notice.localeChanged":
+    "Este borrador se escribió en el idioma que leías antes. Su redacción no va a cambiar sola: vuelve a redactarlo para tenerlo en este.",
   "ai.draft.name": "Borrador de IA",
   "ai.draft.tagline": "Un punto de partida. Todo valor sigue siendo editable.",
   "ai.draft.sourceModel": "Redactado por el proveedor configurado",
@@ -1224,8 +1228,10 @@ export const es: TranslationDictionary = {
     "Se quitó algo privado que el borrador había escrito en su propio texto.",
   "ai.adjustment.offlineDraft":
     "Redactado sin conexión solo con tus palabras. No se usó ningún proveedor.",
-  "ai.adjustment.scheduleCompressed":
-    "Se comprimió {requested} en {duration} unidades de demo para que el ciclo entero se pueda ver.",
+  "ai.adjustment.scheduleConverted":
+    "Se interpretó {requested} como {duration} días, la unidad más cercana que ofrece el asistente.",
+  "ai.adjustment.allocationAssumed":
+    "No indicaste un monto, así que se sugiere {allocation} de la plantilla más cercana. Cámbialo antes de financiar.",
   "ai.adjustment.requestAddressIgnored":
     "Se ignoró la dirección de wallet de tu petición. Cada wallet la eliges tú.",
   "ai.adjustment.requestSecretIgnored":

@@ -72,52 +72,59 @@ const NUMBER_WORD_SOURCE = [...NUMBER_WORDS.keys()].join("|");
 /**
  * Time words mapped to the wizard's `<select>`.
  *
- * Weeks, months and years have no unit of their own. Months and years borrow
- * the catalog's demo compression — one minute stands in for one period — so a
- * "six month" request stays watchable on stage, which is the same trade every
- * hand-written preset already makes.
+ * The wizard offers minutes, hours and days, so weeks, months and years are
+ * converted into days rather than substituted: "two months" is 60 days, not
+ * two of anything else.
+ *
+ * The hand-written presets compress a year into a demo minute, and say so in
+ * their own `realWorldNote`. A draft does not inherit that trade. A preset is
+ * a demo script the reader chose knowing what it is; a duration the reader
+ * typed is a statement of intent, and answering "two months" with "2 minutes"
+ * changes what they asked for.
  */
 const TIME_WORDS: {
   pattern: RegExp;
   unit: AiScheduleUnit;
+  /** Multiplier onto `unit`, so a week is seven days. */
   scale: number;
-  compressed: boolean;
+  /** Whether the reader's own word had to be converted to reach `unit`. */
+  converted: boolean;
 }[] = [
   {
     pattern: /^(minutes?|mins?|minutos?|分钟)$/i,
     unit: "60",
     scale: 1,
-    compressed: false,
+    converted: false,
   },
   {
     pattern: /^(hours?|hrs?|horas?|小时)$/i,
     unit: "3600",
     scale: 1,
-    compressed: false,
+    converted: false,
   },
   {
     pattern: /^(days?|d[ií]as?|天)$/i,
     unit: "86400",
     scale: 1,
-    compressed: false,
+    converted: false,
   },
   {
     pattern: /^(weeks?|semanas?|周)$/i,
     unit: "86400",
     scale: 7,
-    compressed: false,
+    converted: true,
   },
   {
     pattern: /^(months?|mes|meses|个月|月)$/i,
-    unit: "60",
-    scale: 1,
-    compressed: true,
+    unit: "86400",
+    scale: 30,
+    converted: true,
   },
   {
     pattern: /^(years?|a[ñn]os?|年)$/i,
-    unit: "60",
-    scale: 1,
-    compressed: true,
+    unit: "86400",
+    scale: 365,
+    converted: true,
   },
 ];
 
@@ -190,7 +197,7 @@ function normalizeDigits(token: string): number | undefined {
 type ScheduleMatch = {
   unit: AiScheduleUnit;
   amount: number;
-  compressed: boolean;
+  converted: boolean;
   index: number;
   source: string;
 };
@@ -204,7 +211,7 @@ function findSchedules(prompt: string): ScheduleMatch[] {
     matches.push({
       unit: word.unit,
       amount: amount * word.scale,
-      compressed: word.compressed,
+      converted: word.converted,
       index: match.index ?? 0,
       source: match[0].trim(),
     });
@@ -332,12 +339,13 @@ export function heuristicDraft(
   const base = pickBasePreset(prompt, presets, requested);
   const resolvedStrategy: 0 | 1 | 2 = requested ?? base.strategy;
 
+  const requestedAllocation = findAllocation(prompt, schedules);
   const unit = duration?.unit ?? base.timing?.unit ?? "60";
   const draft: AiGrantDraft = {
     strategy: resolvedStrategy,
     title: base.titleSuggestion,
     description: base.descriptionSuggestion ?? base.description,
-    allocation: findAllocation(prompt, schedules) ?? base.allocationSuggestion,
+    allocation: requestedAllocation ?? base.allocationSuggestion,
     timing:
       resolvedStrategy === 1
         ? null
@@ -350,7 +358,9 @@ export function heuristicDraft(
               cliff?.unit === unit ? cliff.amount : (base.timing?.cliff ?? 0),
             ),
             duration: String(duration?.amount ?? base.timing?.duration ?? 5),
-            realWorldNote: base.timing?.realWorldNote ?? "",
+            // The preset's note explains *its* compressed schedule. Once the
+            // request supplies a duration, that note describes something else.
+            realWorldNote: duration ? "" : (base.timing?.realWorldNote ?? ""),
           },
     milestones:
       resolvedStrategy === 0
@@ -371,10 +381,15 @@ export function heuristicDraft(
   });
 
   const adjustments: AiAdjustment[] = [{ code: "offlineDraft" }];
-  if (duration?.compressed)
+  if (duration?.converted)
     adjustments.push({
-      code: "scheduleCompressed",
+      code: "scheduleConverted",
       values: { requested: duration.source, duration: duration.amount },
+    });
+  if (requestedAllocation === undefined)
+    adjustments.push({
+      code: "allocationAssumed",
+      values: { allocation: normalized.preset.allocationSuggestion },
     });
   adjustments.push(...normalized.adjustments);
   for (const code of scanRequest(prompt)) adjustments.push({ code });
