@@ -3,6 +3,9 @@ node_modules/
 
 # Next.js
 .next/
+.next-visual/
+.playwright-browsers/
+.tmp/
 out/
 
 # Build output

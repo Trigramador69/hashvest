@@ -24,6 +24,21 @@ const methods = [
   "getGrantsByBeneficiary",
   "getGrantsByReviewer",
 ] as const;
+const tabLabelKeys = [
+  "dashboard.tab.0",
+  "dashboard.tab.1",
+  "dashboard.tab.2",
+] as const;
+const emptyTitleKeys = [
+  "dashboard.empty.0.title",
+  "dashboard.empty.1.title",
+  "dashboard.empty.2.title",
+] as const;
+const emptyBodyKeys = [
+  "dashboard.empty.0.body",
+  "dashboard.empty.1.body",
+  "dashboard.empty.2.body",
+] as const;
 
 function WorkspaceStrip() {
   const t = useTranslations();
@@ -68,11 +83,11 @@ function DirectGrants({ address, connected }: { address?: `0x${string}`; connect
       </div>
       <div className="flex gap-1 border-b border-border-soft px-5 pt-3" role="tablist" aria-label={t("dashboard.tablist")}>
         {tabs.map((id) => (
-          <Button key={id} role="tab" aria-selected={tab === id} variant={tab === id ? "secondary" : "ghost"} size="sm" onClick={() => setTab(id)}>{t(`dashboard.tab.${id}`)}</Button>
+          <Button key={id} role="tab" aria-selected={tab === id} variant={tab === id ? "secondary" : "ghost"} size="sm" onClick={() => setTab(id)}>{t(tabLabelKeys[id])}</Button>
         ))}
       </div>
       <div className="p-5" role="tabpanel">
-        {grants.isPending ? <Notice title={t("dashboard.grants.loading.title")}><p>{t("dashboard.grants.loading.body", { network: "HSK Testnet", chainId: 133 })}</p></Notice> : grants.isError ? <Notice title={t("dashboard.grants.error.title")} error><p>{errorMessage(grants.error)}</p><Button className="mt-3" variant="outline" size="sm" onClick={() => void grants.refetch()}>{t("dashboard.retry")}</Button></Notice> : !grants.data?.length ? <div className="border border-dashed border-border p-8 text-center"><p className="font-mono text-sm text-foreground">{t(`dashboard.empty.${tabs[tab]}.title`)}</p><p className="mx-auto mt-2 max-w-md text-xs leading-5 text-muted-foreground">{t(`dashboard.empty.${tabs[tab]}.body`)}</p>{tab === 0 && <Link className={`${buttonVariants({ size: "sm" })} mt-4`} href="/grants/new">{t("dashboard.empty.createGrant")}</Link>}</div> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{grants.data.map((grant) => <GrantCard key={grant} address={grant} received={tab === 1} />)}</div>}
+        {grants.isPending ? <Notice title={t("dashboard.grants.loading.title")}><p>{t("dashboard.grants.loading.body", { network: "HSK Testnet", chainId: 133 })}</p></Notice> : grants.isError ? <Notice title={t("dashboard.grants.error.title")} error><p>{errorMessage(grants.error)}</p><Button className="mt-3" variant="outline" size="sm" onClick={() => void grants.refetch()}>{t("dashboard.retry")}</Button></Notice> : !grants.data?.length ? <div className="border border-dashed border-border p-8 text-center"><p className="font-mono text-sm text-foreground">{t(emptyTitleKeys[tab])}</p><p className="mx-auto mt-2 max-w-md text-xs leading-5 text-muted-foreground">{t(emptyBodyKeys[tab])}</p>{tab === 0 && <Link className={`${buttonVariants({ size: "sm" })} mt-4`} href="/grants/new">{t("dashboard.empty.createGrant")}</Link>}</div> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{grants.data.map((grant) => <GrantCard key={grant} address={grant} received={tab === 1} />)}</div>}
       </div>
     </Panel>
   );
@@ -92,7 +107,7 @@ export default function Dashboard() {
           <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">{t("dashboard.lede")}</p>
         </div>
         <DataArt variant="orb" className="absolute -right-4 top-0 h-52 w-[52%] opacity-75 lg:col-span-3" />
-        <div className="absolute right-0 top-6 hidden font-mono text-[10px] leading-6 text-muted-foreground/60 sm:block">IDEAS<br />DATA<br />PEOPLE<br />IMPACT</div>
+        <div className="absolute right-0 top-6 hidden whitespace-pre-line font-mono text-[10px] leading-6 text-muted-foreground/60 sm:block">{t("dashboard.hero.rail")}</div>
       </section>
       <NetworkNotice />
       <DashboardOverview analytics={analytics} organizationCount={organizations.data?.length ?? 0} connected={isConnected} />
@@ -103,4 +118,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

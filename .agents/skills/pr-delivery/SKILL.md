@@ -1,6 +1,6 @@
 ---
 name: pr-delivery
-description: Deliver focused HashVest work through Linear-linked branches, incremental commits, evidence-backed review, and a validated pull-request workflow.
+description: Deliver focused HashVest work through incremental commits, evidence-backed review, and a validated pull-request workflow, with Linear linkage when required by the requester.
 compatibility: Codex, Claude Code, and Agy with Git access; remote publication remains explicitly authorized
 ---
 
@@ -10,11 +10,11 @@ Use this skill for branch preparation, commit organization, PR readiness, PR rev
 
 ## Procedure
 
-1. Identify the Linear issue and acceptance criteria. Inspect the current branch, upstream refs, worktree, and recent history before deciding what belongs in the change.
+1. Identify the Linear issue and acceptance criteria when one exists. If the requester explicitly opts out, record the acceptance criteria in the branch name, design source of truth, and final handoff. Inspect the current branch, upstream refs, worktree, and recent history before deciding what belongs in the change.
 2. Keep the branch focused and make small, logically grouped commits. Each commit should be understandable, reversible, and validated before the next slice. Never add AI attribution or co-author trailers.
 3. For each slice, run the narrowest useful tests. Before creating or updating a PR, run `pnpm agents:sync`, `pnpm agents:check`, and `pnpm ci:check` from the repository root.
 4. Review the final diff for scope creep, secret exposure, authorization regressions, stale docs, generated-file drift, missing tests, and accidental changes to user data or deployment state.
-5. Write the PR with the Linear issue, behavior changed, source-of-truth docs, exact checks and results, manual/browser/testnet evidence, limitations, and rollback notes where applicable.
+5. Write the PR with the Linear issue when applicable, behavior changed, source-of-truth docs, exact checks and results, manual/browser/testnet evidence, limitations, and rollback notes where applicable.
 6. Push, create, merge, or force-update a remote PR only when that exact remote action is authorized. After publishing, verify the remote branch/PR state instead of inferring it from local commits.
 
 ## Completion criteria

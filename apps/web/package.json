@@ -8,7 +8,8 @@
     "start": "next start",
     "test": "vitest run",
     "lint": "eslint .",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "visual": "playwright test"
   },
   "dependencies": {
     "@hashvest/web3": "workspace:*",
@@ -31,6 +32,7 @@
   },
   "devDependencies": {
     "@hashvest/config": "workspace:*",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "22.20.2",
     "@types/react": "19.2.10",

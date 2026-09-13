@@ -23,6 +23,7 @@ import {
 
 import { cn } from "@/lib/shared/utils";
 import { useTranslations } from "@/lib/shared/i18n/provider";
+import type { TranslationKey } from "@/lib/shared/i18n/dictionaries/en";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { SessionControl } from "@/components/session-control";
 import { useOrganizations } from "@/hooks/use-organizations";
@@ -30,13 +31,17 @@ import { useSession } from "@/hooks/use-session";
 
 type Icon = typeof LayoutDashboard;
 
-const NAV_ITEMS: Array<{ href: string; label: string; icon: Icon }> = [
-  { href: "/app", label: "Overview", icon: LayoutDashboard },
-  { href: "/app", label: "Projects", icon: FolderKanban },
-  { href: "/app", label: "Data", icon: Database },
-  { href: "/app", label: "Models", icon: BrainCircuit },
-  { href: "/app", label: "Insights", icon: BarChart3 },
-  { href: "/app", label: "Team", icon: UsersRound },
+const NAV_ITEMS: Array<{
+  href: string;
+  label: Extract<TranslationKey, `shell.nav.${string}`>;
+  icon: Icon;
+}> = [
+  { href: "/app", label: "shell.nav.overview", icon: LayoutDashboard },
+  { href: "/app", label: "shell.nav.projects", icon: FolderKanban },
+  { href: "/app", label: "shell.nav.data", icon: Database },
+  { href: "/app", label: "shell.nav.models", icon: BrainCircuit },
+  { href: "/app", label: "shell.nav.insights", icon: BarChart3 },
+  { href: "/app", label: "shell.nav.team", icon: UsersRound },
 ];
 
 function OrganizationSwitcher() {
@@ -78,21 +83,37 @@ function OrganizationSwitcher() {
 
 function GlobalSearch({ onNavigate }: { onNavigate: () => void }) {
   const router = useRouter();
+  const t = useTranslations();
   const organizations = useOrganizations();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const entries = useMemo(
     () => [
-      { label: "Overview", detail: "Dashboard", href: "/app" },
-      { label: "Create grant", detail: "New allocation", href: "/grants/new" },
-      { label: "New organization", detail: "Workspace", href: "/app/organizations/new" },
+      {
+        label: t("shell.search.overview"),
+        detail: t("shell.search.overviewDetail"),
+        href: "/app",
+      },
+      {
+        label: t("shell.search.createGrant"),
+        detail: t("shell.search.createGrantDetail"),
+        href: "/grants/new",
+      },
+      {
+        label: t("shell.search.newOrganization"),
+        detail: t("shell.workspace.label"),
+        href: "/app/organizations/new",
+      },
       ...(organizations.data ?? []).map((organization) => ({
         label: organization.name,
-        detail: `${organization.memberCount} members · ${organization.grantCount} grants`,
+        detail: t("shell.search.workspaceDetail", {
+          members: organization.memberCount,
+          grants: organization.grantCount,
+        }),
         href: `/app/organizations/${organization.id}`,
       })),
     ],
-    [organizations.data],
+    [organizations.data, t],
   );
   const results = entries
     .filter((entry) =>
@@ -138,7 +159,7 @@ function GlobalSearch({ onNavigate }: { onNavigate: () => void }) {
         role="combobox"
         aria-expanded={open}
         aria-controls="global-search-results"
-        aria-label="Search projects, workspaces and grants"
+        aria-label={t("shell.search.label")}
         value={query}
         onFocus={() => setOpen(true)}
         onChange={(event) => {
@@ -149,7 +170,7 @@ function GlobalSearch({ onNavigate }: { onNavigate: () => void }) {
           if (event.key === "Enter") submit();
           if (event.key === "Escape") setOpen(false);
         }}
-        placeholder="Search projects, workspaces, grants…"
+        placeholder={t("shell.search.placeholder")}
         className="field h-10 pl-10 pr-16 font-mono text-xs"
       />
       <span className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 items-center gap-1 text-[10px] text-muted-foreground sm:flex">
@@ -182,7 +203,7 @@ function GlobalSearch({ onNavigate }: { onNavigate: () => void }) {
             ))
           ) : (
             <p className="px-3 py-3 text-xs text-muted-foreground">
-              Press Enter to search this grant address.
+              {t("shell.search.empty")}
             </p>
           )}
         </div>
@@ -210,7 +231,7 @@ function ShellNav({ onNavigate }: { onNavigate: () => void }) {
             aria-current={active ? "page" : undefined}
           >
             <IconComponent className="size-4" strokeWidth={1.25} />
-            <span>{label}</span>
+            <span>{t(label)}</span>
           </Link>
         );
       })}
@@ -220,7 +241,7 @@ function ShellNav({ onNavigate }: { onNavigate: () => void }) {
         className="flex min-h-[42px] items-center gap-3 rounded-control px-4 font-mono text-xs text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
       >
         <Settings2 className="size-4" strokeWidth={1.25} />
-        <span>Settings</span>
+        <span>{t("shell.nav.settings")}</span>
       </Link>
     </nav>
   );
@@ -233,7 +254,7 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
       {open && (
         <button
           type="button"
-          aria-label="Close navigation"
+          aria-label={t("shell.navigation.close")}
           className="fixed inset-0 z-30 bg-black/60 md:hidden"
           onClick={onClose}
         />
@@ -256,7 +277,7 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
             type="button"
             className="rounded-control p-2 text-muted-foreground hover:bg-surface-2 hover:text-foreground md:hidden"
             onClick={onClose}
-            aria-label="Close navigation"
+            aria-label={t("shell.navigation.close")}
           >
             <X className="size-4" strokeWidth={1.25} />
           </button>
@@ -265,9 +286,9 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
         <div className="mt-auto space-y-4 border-t border-border-soft px-3 pt-4">
           <div className="flex items-center gap-2 font-mono text-[10px] text-muted-foreground">
             <Sparkles className="size-3 text-primary" strokeWidth={1.25} />
-            <span>HashVest Labs</span>
+            <span>{t("shell.brand")}</span>
           </div>
-          <p className="font-mono text-[10px] text-[#50524F]">v1.0.0 · HSK</p>
+          <p className="font-mono text-[10px] text-[#50524F]">{t("shell.version")}</p>
         </div>
       </aside>
     </>
@@ -275,6 +296,7 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
 }
 
 function Topbar({ onMenu }: { onMenu: () => void }) {
+  const t = useTranslations();
   return (
     <header className="sticky top-0 z-20 min-h-[64px] border-b border-border-soft bg-[rgba(7,8,8,.96)] md:ml-[192px] md:min-h-[84px]">
       <div className="mx-auto flex min-h-[64px] max-w-[1440px] items-center gap-3 px-3 md:min-h-[84px] md:px-5">
@@ -282,7 +304,7 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
           type="button"
           className="rounded-control p-2 text-muted-foreground hover:bg-surface-2 hover:text-foreground md:hidden"
           onClick={onMenu}
-          aria-label="Open navigation"
+          aria-label={t("shell.navigation.open")}
         >
           <Menu className="size-5" strokeWidth={1.25} />
         </button>
@@ -291,7 +313,7 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
           <button
             type="button"
             className="relative rounded-control p-2 text-muted-foreground hover:bg-surface-2 hover:text-foreground"
-            aria-label="Notifications"
+            aria-label={t("shell.notifications")}
           >
             <Bell className="size-4" strokeWidth={1.25} />
             <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-primary" />
@@ -344,6 +366,7 @@ function MarketingShell({ children }: { children: ReactNode }) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const t = useTranslations();
   const [menuOpen, setMenuOpen] = useState(false);
   if (pathname === "/") return <MarketingShell>{children}</MarketingShell>;
   return (
@@ -354,8 +377,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
       <footer className="mx-auto flex max-w-[1440px] flex-wrap justify-between gap-3 border-t border-border-soft px-3 py-6 font-mono text-[10px] text-muted-foreground sm:px-5 md:ml-[192px] md:px-5">
-        <span>HashVest · HSK Testnet</span>
-        <span>Unaudited · Testnet assets only</span>
+        <span>{t("shell.appTagline")}</span>
+        <span>{t("shell.appDisclaimer")}</span>
       </footer>
     </div>
   );

@@ -8,7 +8,7 @@ This is a hackathon MVP for HSK Testnet. It is unaudited, uses demo assets, and 
 
 The shared agent contract is [`AGENTS.md`](AGENTS.md). Canonical project skills live in [`.agents/skills/`](.agents/skills/), and generated Claude adapters live in [`.claude/skills/`](.claude/skills/). The compatibility and maintenance rules are in [`docs/agents/`](docs/agents/README.md).
 
-Before creating or updating a PR, agents must run `pnpm agents:sync`, `pnpm agents:check`, and `pnpm ci:check`. Work should be tied to a Linear issue and delivered in small, logically grouped commits. Changes to commands, paths, APIs, schemas, locales, architecture, deployments, CI, or user flows must update the affected skills, this README, `AGENTS.md`, and relevant docs in the same change.
+Before creating or updating a PR, agents must run `pnpm agents:sync`, `pnpm agents:check`, and `pnpm ci:check`. Work is delivered in small, logically grouped commits; a Linear issue is used when available, while an explicitly requested issue-free design branch records its scope in `design.md` and the handoff. Changes to commands, paths, APIs, schemas, locales, architecture, deployments, CI, or user flows must update the affected skills, this README, `AGENTS.md`, and relevant docs in the same change.
 
 <!-- BEGIN:hashvest-agent-catalog -->
 
@@ -135,7 +135,14 @@ pnpm build
 pnpm test
 ```
 
-The application is available at `http://localhost:3000`. Routes are `/` (landing), `/app` (organization entry point plus Issued / Received / Review dashboard), `/grants/new` (the shared five-step template-aware creation wizard: Template, Grant, Strategy, Conditions, Review), `/grants/<GrantVault address>` (public role-aware detail page), `/app/organizations/new`, `/app/organizations/<uuid>`, `/app/organizations/<uuid>/members`, `/app/organizations/<uuid>/grants`, and `/app/organizations/<uuid>/grants/new`.
+The responsive design contract is covered by Playwright snapshots. Install a
+local browser once with `pnpm --filter @hashvest/web exec playwright install chromium`,
+then run `pnpm --filter @hashvest/web visual`. The snapshots exercise the public
+landing, disconnected mobile navigation, and deterministic connected dashboard
+fixture; the fixture route returns 404 in production and never reads or writes
+HSK state.
+
+The application is available at `http://localhost:3000`. Routes are `/` (landing), `/app` (organization entry point plus Issued / Received / Review dashboard), `/grants/new` (the shared five-step template-aware creation wizard: Template, Grant, Strategy, Conditions, Review), `/grants/<GrantVault address>` (public role-aware detail page), `/app/organizations/new`, `/app/organizations/<uuid>`, `/app/organizations/<uuid>/members`, `/app/organizations/<uuid>/grants`, and `/app/organizations/<uuid>/grants/new`. `/visual/dashboard` is a local-only deterministic fixture for the Playwright visual contract and is unavailable in production.
 
 Wallet connection and workspace authentication are separate. After connecting an HSK Testnet wallet, click **Sign in to workspace** and approve one SIWE/EIP-4361 message. The server stores a five-minute, one-time nonce and issues a 24-hour HttpOnly, SameSite session cookie signed with `AUTH_SECRET`. If the connected wallet changes, organization reads and writes are disabled until the new wallet explicitly signs in; the application never silently signs or writes as the previous wallet.
 
