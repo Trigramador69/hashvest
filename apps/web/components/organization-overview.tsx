@@ -431,7 +431,7 @@ function SponsorshipPolicyForm({
       <label className="flex cursor-pointer items-start gap-3">
         <input
           checked={enabled}
-          className="mt-1 size-4 rounded border-gray-300 text-primary focus:ring-primary"
+          className="mt-1 accent-primary"
           type="checkbox"
           onChange={(event) => setEnabled(event.target.checked)}
         />
@@ -453,6 +453,7 @@ function SponsorshipPolicyForm({
             <label className="flex min-h-11 items-center gap-2" key={action}>
               <input
                 checked={allowedActions.includes(action)}
+                className="accent-primary"
                 type="checkbox"
                 onChange={(event) => toggleAction(action, event.target.checked)}
               />

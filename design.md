@@ -150,6 +150,11 @@ Se eligió azul cobalto porque:
 }
 ```
 
+Native choice controls (`checkbox`, `radio`, `range`) inherit
+`accent-color: var(--accent-green)`. Do not leave the browser-default blue, and
+do not style checked state with leftover `border-gray-*` / `text-primary` form
+plugin classes.
+
 ## 2.3. Distribución de color
 
 En un viewport desktop promedio:

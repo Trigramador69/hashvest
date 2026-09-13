@@ -101,6 +101,19 @@
 html {
   color-scheme: dark;
   background: var(--canvas-deep);
+  accent-color: var(--accent-green);
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  accent-color: var(--accent-green);
+}
+
+input[type="range"] {
+  accent-color: var(--accent-green);
 }
 
 body {

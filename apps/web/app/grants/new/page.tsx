@@ -1542,7 +1542,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                         <label className="flex items-start gap-3 cursor-pointer">
                           <input
                             type="checkbox"
-                            className="mt-1 size-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            className="mt-1 accent-primary"
                             checked={revocable}
                             onChange={(event) =>
                               setRevocable(event.target.checked)

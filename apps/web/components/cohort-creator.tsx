@@ -525,6 +525,7 @@ export function CohortCreator({
                     <div className="flex items-center gap-2">
                       <input
                         type="radio"
+                        className="accent-primary"
                         name="cohort-strategy"
                         checked={strategy === s.id}
                         onChange={() => setStrategy(s.id as 0 | 1 | 2)}
@@ -648,7 +649,7 @@ export function CohortCreator({
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
-                  className="mt-1 size-4 rounded border-gray-300 text-primary"
+                  className="mt-1 accent-primary"
                   checked={revocable}
                   onChange={(e) => setRevocable(e.target.checked)}
                 />
