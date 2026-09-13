@@ -23,10 +23,10 @@ export function DemoFaucet() {
   });
   if (!token) return null;
   return (
-    <div className="space-y-4 rounded-xl border border-primary/20 bg-primary/5 p-5">
+    <div className="space-y-4 rounded-card border border-primary/20 bg-[rgba(87,217,139,.05)] p-5">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold">Demo token · hvUSD</p>
+          <p className="font-mono text-[15px] font-medium">Demo token · hvUSD</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Test tokens for your first grant. No monetary value.
           </p>

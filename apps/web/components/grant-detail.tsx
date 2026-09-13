@@ -237,8 +237,8 @@ export function GrantDetail({ address }: { address: Address }) {
   }
 
   return (
-    <div className="space-y-7">
-      <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
         <Link className="text-primary" href="/app">
           ← My grants
         </Link>
@@ -262,10 +262,10 @@ export function GrantDetail({ address }: { address: Address }) {
         action={
           <div className="flex flex-wrap items-center gap-2">
             <GrantLifecycleBadge lifecycle={state.lifecycle} />
-            <span className="rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary">
+            <span className="border border-primary/20 bg-[rgba(87,217,139,.05)] px-3 py-2 font-mono text-xs text-primary">
               {strategies[g.strategy]}
             </span>
-            <span className="rounded-full border border-primary/20 bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
+            <span className="border border-primary/20 bg-secondary px-2 py-1 font-mono text-[10px] text-muted-foreground">
               {g.revocable ? "Revocable" : "Non-revocable"}
             </span>
             {canRevoke && (
@@ -319,7 +319,7 @@ export function GrantDetail({ address }: { address: Address }) {
           </p>
         </Notice>
       )}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
           ["Total allocated", g.totalAllocation],
           ["Unlocked", g.unlockedAmount],
@@ -331,7 +331,7 @@ export function GrantDetail({ address }: { address: Address }) {
               <p className="text-xs font-medium text-muted-foreground">
                 {String(label)}
               </p>
-              <p className="mt-3 break-all text-2xl font-semibold tracking-tight">
+              <p className="mt-3 break-all font-mono text-[28px] font-medium tracking-tight tabular-nums">
                 {typeof value === "bigint"
                   ? tokenAmount(value, g.decimals)
                   : ""}
@@ -348,12 +348,12 @@ export function GrantDetail({ address }: { address: Address }) {
         decimals={g.decimals}
         symbol={g.symbol}
       />
-      <div className="grid items-start gap-7 lg:grid-cols-[1.65fr_1fr]">
-        <div className="space-y-7">
+      <div className="grid items-start gap-3 lg:grid-cols-12">
+        <div className="space-y-3 lg:col-span-8">
           {showTime && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Vesting schedule</CardTitle>
+                 <CardTitle className="text-[18px]">Vesting schedule</CardTitle>
                 <p className="text-sm leading-6 text-muted-foreground">
                   Linear from the start. The cliff delays claiming without
                   restarting the curve.
@@ -389,7 +389,7 @@ export function GrantDetail({ address }: { address: Address }) {
                   ))}
                 </dl>
                 {g.strategy === 2 && (
-                  <div className="rounded-lg bg-secondary/70 p-4 text-sm leading-6">
+                   <div className="rounded-card border border-border-soft bg-secondary/70 p-4 text-sm leading-6">
                     <p className="font-medium">
                       Hybrid = min(time vested, approved milestones)
                     </p>
@@ -410,7 +410,7 @@ export function GrantDetail({ address }: { address: Address }) {
           {showMilestones && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Milestones</CardTitle>
+               <CardTitle className="text-[18px]">Milestones</CardTitle>
                 <p className="text-sm text-muted-foreground">
                   {g.milestones.filter((item) => item.approved).length} of{" "}
                   {g.milestones.length} approved ·{" "}
@@ -426,7 +426,7 @@ export function GrantDetail({ address }: { address: Address }) {
                     >
                       <div className="flex min-w-0 gap-3">
                         <span
-                          className={`mt-0.5 grid size-7 shrink-0 place-items-center rounded-full text-xs ${milestone.approved ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}
+                          className={`mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border text-xs ${milestone.approved ? "border-primary bg-primary text-primary-foreground" : "border-border bg-secondary text-muted-foreground"}`}
                         >
                           {milestone.approved ? "✓" : index + 1}
                         </span>
@@ -523,11 +523,11 @@ export function GrantDetail({ address }: { address: Address }) {
             </CardContent>
           </Card>
         </div>
-        <aside className="space-y-5">
-          <Card className="border-primary/25">
+        <aside className="space-y-3 lg:col-span-4">
+          <Card className="border-primary/25 bg-[rgba(87,217,139,.04)]">
             <CardHeader>
-              <CardTitle className="text-lg">Ready to claim</CardTitle>
-              <p className="pt-3 text-3xl font-semibold text-primary">
+              <CardTitle className="text-[18px]">Ready to claim</CardTitle>
+              <p className="pt-3 font-mono text-[28px] font-medium text-primary tabular-nums">
                 {tokenAmount(g.claimableAmount, g.decimals)}{" "}
                 <span className="text-base font-normal">{g.symbol}</span>
               </p>
@@ -603,8 +603,8 @@ export function GrantDetail({ address }: { address: Address }) {
         </aside>
       </div>
       {showRevokeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <Card className="w-full max-w-lg border-destructive/30 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <Card className="w-full max-w-lg border-[#E9832D]/40">
             <CardHeader>
               <CardTitle className="text-xl text-destructive">
                 Confirm Grant Revocation
@@ -615,7 +615,7 @@ export function GrantDetail({ address }: { address: Address }) {
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="divide-y rounded-lg border text-sm">
+              <div className="divide-y rounded-card border border-border text-sm">
                 <div className="flex justify-between p-3">
                   <span className="text-muted-foreground">
                     Total Allocation:
@@ -655,7 +655,7 @@ export function GrantDetail({ address }: { address: Address }) {
                   </span>
                 </div>
               </div>
-              <div className="rounded-lg bg-destructive/10 p-3 text-xs leading-5 text-destructive">
+              <div className="rounded-card border border-[#E9832D]/30 bg-[rgba(233,131,45,.08)] p-3 text-xs leading-5 text-[#E9832D]">
                 <strong>Irreversible Action:</strong> Revoking stops all future
                 vesting and milestone approvals permanently. Tokens already
                 earned or claimed by the beneficiary remain strictly in their

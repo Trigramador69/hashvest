@@ -130,7 +130,7 @@ function PresetOption({
 }) {
   return (
     <label
-      className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 ${selected ? "border-primary bg-primary/5" : "bg-card"}`}
+      className={`flex cursor-pointer items-start gap-3 rounded-card border p-4 ${selected ? "border-primary bg-[rgba(87,217,139,.06)]" : "bg-card"}`}
     >
       <input
         className="mt-1 accent-primary"
@@ -190,7 +190,7 @@ function PresetPicker({
         />
       </div>
       {active && (
-        <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
+        <div className="rounded-card border border-primary/20 bg-[rgba(87,217,139,.05)] p-5">
           <p className="text-sm leading-6">{active.description}</p>
           <div className="mt-3 flex flex-wrap gap-2">
             {active.bestFor.map((audience) => (
@@ -829,7 +829,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             <div className="grid size-12 place-items-center rounded-full bg-primary/10 text-2xl text-primary">
               ✓
             </div>
-            <h2 className="text-2xl font-semibold">{prepared?.config.title}</h2>
+            <h2 className="font-mono text-[22px] font-normal">{prepared?.config.title}</h2>
             {createdAddress ? (
               <>
                 <AddressDisplay address={createdAddress} full />
@@ -1060,7 +1060,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                       {strategies.map((name, index) => (
                         <label
                           key={name}
-                          className={`flex cursor-pointer items-start gap-4 rounded-xl border p-5 ${strategy === index ? "border-primary bg-primary/5" : "bg-card"}`}
+                          className={`flex cursor-pointer items-start gap-4 rounded-card border p-5 ${strategy === index ? "border-primary bg-[rgba(87,217,139,.06)]" : "bg-card"}`}
                         >
                           <input
                             className="mt-1 accent-primary"
@@ -1186,7 +1186,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                           </div>
                           {milestones.map((item, index) => (
                             <div
-                              className="space-y-3 rounded-xl border bg-secondary/30 p-4"
+                              className="space-y-3 rounded-card border bg-secondary/30 p-4"
                               key={index}
                             >
                               <div className="flex justify-between">
@@ -1260,7 +1260,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                           </Button>
                         </div>
                       )}
-                      <details className="rounded-xl border p-4">
+                      <details className="rounded-card border border-border p-4">
                         <summary className="cursor-pointer text-sm font-medium">
                           Advanced · optional eligibility provider
                         </summary>
@@ -1281,7 +1281,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                           </Field>
                         </div>
                       </details>
-                      <div className="rounded-xl border p-4">
+                      <div className="rounded-card border border-border p-4">
                         <label className="flex items-start gap-3 cursor-pointer">
                           <input
                             type="checkbox"
@@ -1307,14 +1307,14 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                   )}
                   {step === STEP.review && prepared && (
                     <>
-                      <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+                      <div className="rounded-card border border-primary/20 bg-[rgba(87,217,139,.05)] p-5">
+                        <p className="font-mono text-[10px] font-medium uppercase tracking-[.08em] text-primary">
                           {strategies[prepared.config.strategy]}
                         </p>
-                        <h3 className="mt-2 text-xl font-semibold">
+                        <h3 className="mt-2 font-mono text-[18px] font-normal">
                           {prepared.config.title}
                         </h3>
-                        <p className="mt-4 break-all text-3xl font-semibold">
+                        <p className="mt-4 break-all font-mono text-[28px] font-medium tabular-nums">
                           {formatUnits(
                             prepared.config.totalAllocation,
                             prepared.decimals,
