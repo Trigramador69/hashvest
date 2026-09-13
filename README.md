@@ -35,6 +35,7 @@ After changing a skill, run `pnpm agents:sync` and `pnpm agents:check`.
 - Hybrid grants where both conditions constrain the claim: `unlocked = min(time vested, approved milestone amount)`.
 - Optional `IEligibilityProvider` adapter, including a clearly labeled administrator-controlled demo allowlist.
 - Optional one-way issuer revocation that recovers only unearned allocation while preserving earned and claimed beneficiary value.
+- Organization-sponsored first claims: organization-created grants use a versioned `SponsoredGrantVault`; the beneficiary signs the exact first claim and a server-only relayer pays HSK gas.
 - One fully funded vault per grant; SafeERC20 rejects underfunded fee-on-transfer funding.
 - Beneficiary-only claims, role dashboards, explorer links, and real HSK Testnet transactions.
 
@@ -54,6 +55,7 @@ HSK Testnet (chain 133)
 HashVestFactory ---- role discovery arrays
    |
 GrantVault #1, #2, #3 ...
+SponsoredGrantVault #organization grants
 ```
 
 Each vault stores the issuer, beneficiary, reviewer, token, allocation, strategy, vesting schedule, milestone titles and amounts, eligibility provider, and revocable mode as immutable terms. Milestone approvals, claims, and the optional one-way revocation state are the only lifecycle changes after creation. Revocation freezes earned value and returns only unearned allocation to the issuer; non-revocable grants and previously deployed vaults remain permanent. Organization metadata is an optional off-chain product layer and never replaces contract state.
@@ -91,6 +93,8 @@ The canonical identities are lowercase EVM addresses for wallets, `(chain_id, va
 
 Organization writes go through authenticated Next.js Route Handlers. The browser never uses the Supabase service-role key or writes organization tables directly. Workspace grant cards and queues join organization metadata with fresh GrantVault reads; they do not aggregate token balances or invent USD values.
 
+Organization sponsorship is an opt-in Cloud policy around a protocol operation. The beneficiary wallet signs an EIP-712 intent binding the exact vault, beneficiary, amount, nonce, deadline, and relayer; `SponsoredGrantVault` enforces those fields and the one-time first-claim rule on HSK. Supabase tracks policy reservations and request/receipt status only. If the relayer is unavailable, the policy is disabled, the grant is legacy, or the request fails, the beneficiary-paid claim remains available. See [`docs/sponsored-claims.md`](docs/sponsored-claims.md) for the decision, threat model, and deployment gate.
+
 ### Unlock semantics
 
 - `TIME`: `unlockedAmount = vestedByTime`.
@@ -125,6 +129,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 AUTH_SECRET=
 AUTH_APP_URL=http://localhost:3000
 HSK_TESTNET_RPC_URL=
+SPONSORED_CLAIM_RELAYER_PRIVATE_KEY=
 ```
 
 Generate `AUTH_SECRET` with `openssl rand -base64 32` or another cryptographically random secret. Never prefix `SUPABASE_SERVICE_ROLE_KEY` or `AUTH_SECRET` with `NEXT_PUBLIC_`, commit them, or expose them to browser code. `AUTH_APP_URL` should be the canonical application origin when deployed behind a proxy; leave it at the local origin for local development.
@@ -137,7 +142,9 @@ supabase link --project-ref <your-project-ref>
 supabase db push
 ```
 
-The migration is [`supabase/migrations/20260912000000_hashvest_organizations.sql`](supabase/migrations/20260912000000_hashvest_organizations.sql). It creates `organizations`, `organization_members`, `organization_grants`, and server-only `auth_nonces`, adds constraints/indexes, enables RLS, and intentionally grants no public/anon/authenticated table policies. The application uses the service role only from server Route Handlers, while business authorization still checks the verified session and organization membership/ownership.
+The migration is [`supabase/migrations/20260912000000_hashvest_organizations.sql`](supabase/migrations/20260912000000_hashvest_organizations.sql). It creates `organizations`, `organization_members`, `organization_grants`, server-only `auth_nonces`, `sponsored_claim_policies`, and `sponsored_claim_requests`, plus server-only reservation/lease functions. It adds constraints/indexes, enables RLS, and intentionally grants no public/anon/authenticated table policies. The application uses the service role only from server Route Handlers, while business authorization still checks the verified session and organization membership/ownership.
+
+`SPONSORED_CLAIM_RELAYER_PRIVATE_KEY` is server-only and must be a separately funded HSK relayer account. It is not a deployer key and must never be placed in a `NEXT_PUBLIC_` variable. The feature is disabled by default; do not configure it against production funds.
 
 If a wallet reports HSK Testnet chain 133 but an approval shows `eth_getBlockByNumber` or a thirdweb support error, its saved RPC endpoint is unavailable. Use the **Use canonical HSK RPC** action in the app, or set the wallet network RPC to `https://testnet.hsk.xyz` with chain ID `133`.
 
@@ -185,7 +192,7 @@ pnpm contracts:deploy:testnet
 pnpm contracts:smoke:testnet
 ```
 
-The current deployment is written to `packages/web3/src/addresses/hsk-testnet.json` after a successful broadcast. The canonical explorer is [HSK Testnet Explorer](https://testnet-explorer.hskchain.net). The generated deployment artifact remains the source of truth; the current values are repeated below for demo convenience.
+The current deployment is written to `packages/web3/src/addresses/hsk-testnet.json` after a successful broadcast. The canonical explorer is [HSK Testnet Explorer](https://testnet-explorer.hskchain.net). The generated deployment artifact remains the source of truth; the current values are repeated below for demo convenience. The checked-in deployment predates `createSponsoredGrant`; organization-sponsored claims require an explicitly authorized factory redeployment and address synchronization before use. This change does not broadcast or redeploy.
 
 Current HSK Testnet deployment (chain 133; bytecode and read-only smoke verified):
 
@@ -216,6 +223,8 @@ The current Blockscout endpoint returned HTTP 413 (`Request Entity Too Large`) f
 5. Wait for the HSK transaction to confirm. The app then links `(133, GrantVault address)` to the organization with the optional description. If that metadata request fails, use **Retry workspace sync**; do not create another grant.
 6. Switch to the reviewer wallet, connect, sign in explicitly, and open the organization review queue. **Review grant** opens the existing GrantDetail page, where the reviewer approves the pending milestone.
 7. Switch to the beneficiary wallet, connect, sign in explicitly, and open the organization workspace. The grant appears with its live claimable amount; open GrantDetail and claim the real hvUSD.
+
+To use the sponsored-first-claim path after the new factory is deployed, the owner enables **Sponsored first claims** in the organization overview and sets a reservation limit. On the beneficiary's GrantDetail, **Sponsor my first claim** shows the exact amount and relayer, asks for an EIP-712 signature, and displays the request/receipt state. The normal **Claim** action remains the fallback and is always beneficiary-paid.
 
 The direct protocol flow remains available at `/grants/new`: enter raw beneficiary/reviewer addresses and create TIME, MILESTONE, or HYBRID grants without organization metadata. Existing GrantVaults can be attached later by an organization owner from the overview using **Link an existing GrantVault**. The server verifies bytecode, GrantVault reads, and the actual onchain issuer before association.
 

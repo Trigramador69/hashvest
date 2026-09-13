@@ -24,6 +24,8 @@ export const membersQueryKey = (organizationId: string) =>
   ["organization-members", organizationId] as const;
 export const grantsQueryKey = (organizationId: string) =>
   ["organization-grants", organizationId] as const;
+export const sponsorshipPolicyQueryKey = (organizationId: string) =>
+  ["organization-sponsorship-policy", organizationId] as const;
 export const grantContextQueryKey = (vaultAddress: string) =>
   ["grant-context", 133, vaultAddress] as const;
 
@@ -73,6 +75,21 @@ export function useOrganizationGrants(organizationId: string | undefined) {
       : ["organization-grants", "missing"],
     queryFn: async () =>
       (await organizationApi.getGrants(organizationId as string)).grants,
+    enabled: Boolean(organizationId && walletMatches),
+    staleTime: 15_000,
+  });
+}
+
+export function useOrganizationSponsorshipPolicy(
+  organizationId: string | undefined,
+) {
+  const { walletMatches } = useSession();
+  return useQuery({
+    queryKey: organizationId
+      ? sponsorshipPolicyQueryKey(organizationId)
+      : ["organization-sponsorship-policy", "missing"],
+    queryFn: () =>
+      organizationApi.getSponsorshipPolicy(organizationId as string),
     enabled: Boolean(organizationId && walletMatches),
     staleTime: 15_000,
   });
@@ -159,6 +176,20 @@ export function useLinkOrganizationGrant(organizationId: string) {
   return useMutation({
     mutationFn: organizationApi.linkGrant.bind(null, organizationId),
     onSuccess: () => invalidateOrganization(queryClient, organizationId),
+  });
+}
+
+export function useUpdateOrganizationSponsorshipPolicy(organizationId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: organizationApi.updateSponsorshipPolicy.bind(
+      null,
+      organizationId,
+    ),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: sponsorshipPolicyQueryKey(organizationId),
+      }),
   });
 }
 
