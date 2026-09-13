@@ -9,16 +9,23 @@
 
 import { formatUnits, parseUnits } from "viem";
 
-import type { GrantPreset } from "./presets";
+import type {
+  GrantPreset,
+  GrantPresetMilestone,
+  GrantPresetTiming,
+} from "./presets";
+import {
+  GLOBAL_PRESET_KEY_PATTERN,
+  TEMPLATE_KEY_MAX_LENGTH,
+} from "./template-key";
 
 /** The default used when the ERC20's decimals have not loaded yet. Amounts stay editable. */
 export const FALLBACK_DECIMALS = 18;
 
 export const MAX_PRESET_MILESTONES = 20;
 
-/** Mirrors TEMPLATE_KEY_MAX_LENGTH in lib/cloud/organizations/validation.ts.
- * lib/shared may import neither layer — by alias or relative path. */
-export const MAX_PRESET_KEY_LENGTH = 80;
+/** A preset key is stored in `organization_grants.template_key`, so it shares that column's limit. */
+export const MAX_PRESET_KEY_LENGTH = TEMPLATE_KEY_MAX_LENGTH;
 
 /** The wizard's schedule <select> values, in seconds. */
 const SCHEDULE_UNITS = ["60", "3600", "86400"];
@@ -29,6 +36,26 @@ export class InvalidPresetError extends Error {
     this.name = "InvalidPresetError";
   }
 }
+
+/**
+ * The part of a preset that decides what the wizard is filled with.
+ *
+ * Global presets carry display copy on top of this (tagline, best-for,
+ * assumptions); organization templates (docs/organization-templates.md) do
+ * not. Both are validated and applied through this one shape, so they cannot
+ * drift in the rules they follow or in how they fill the wizard. `GrantPreset`
+ * satisfies it structurally.
+ */
+export type GrantDraftDefinition = {
+  key: string;
+  strategy: 0 | 1 | 2;
+  titleSuggestion: string;
+  descriptionSuggestion?: string;
+  allocationSuggestion: string;
+  timing: Pick<GrantPresetTiming, "unit" | "cliff" | "duration"> | null;
+  milestones: readonly GrantPresetMilestone[] | null;
+  reviewerRequired: boolean;
+};
 
 /** Exactly the wizard state a preset may prefill. Every field is editable afterwards. */
 export type AppliedPresetDraft = {
@@ -50,7 +77,7 @@ export type AppliedPresetDraft = {
  * writes `zeroAddress` for the reviewer on strategy 0, so suggesting one would
  * be a lie in the UI. MILESTONE (1) has no vesting schedule at all.
  */
-export function assertValidPreset(preset: GrantPreset): void {
+export function assertValidPreset(preset: GrantDraftDefinition): void {
   const { key, strategy, timing, milestones, reviewerRequired } = preset;
 
   if (!key.trim() || key !== key.trim() || key.length > MAX_PRESET_KEY_LENGTH)
@@ -145,6 +172,13 @@ export function assertValidCatalog(presets: readonly GrantPreset[]): void {
   const seen = new Set<string>();
   for (const preset of presets) {
     assertValidPreset(preset);
+    // Global keys share organization_grants.template_key with organization
+    // templates, whose keys always contain a colon. Kebab-case keeps the two
+    // namespaces disjoint (see template-key.ts).
+    if (!GLOBAL_PRESET_KEY_PATTERN.test(preset.key))
+      throw new InvalidPresetError(
+        `Global preset keys must be lowercase kebab-case: "${preset.key}".`,
+      );
     if (seen.has(preset.key))
       throw new InvalidPresetError(`Duplicate preset key: ${preset.key}.`);
     seen.add(preset.key);
@@ -190,7 +224,7 @@ export function splitAllocationByPercent(
  * suggestion, so selecting a preset never silently discards their input.
  */
 export function applyPresetToDraft(
-  preset: GrantPreset,
+  preset: GrantDraftDefinition,
   options: {
     allocationDecimal?: string;
     decimals?: number;

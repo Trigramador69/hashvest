@@ -195,6 +195,30 @@ export const en = {
   "overview.claim.item.fallbackDescription": "Organization grant",
   "overview.claim.item.amount": "{amount} claimable",
   "overview.claim.item.action": "Open grant",
+  "overview.sponsorship.title": "Sponsored first claims",
+  "overview.sponsorship.lede":
+    "Organization grants can pay the HSK transaction fee for one beneficiary-authorized first claim.",
+  "overview.sponsorship.loading": "Reading sponsorship policy…",
+  "overview.sponsorship.error":
+    "The sponsorship policy is temporarily unavailable.",
+  "overview.sponsorship.enabled": "Enable sponsored first claims",
+  "overview.sponsorship.enabledHint":
+    "The beneficiary still signs the exact vault claim; the organization only pays the relayer fee.",
+  "overview.sponsorship.maxClaims": "Organization claim limit",
+  "overview.sponsorship.maxClaimsHint":
+    "Reserved claims count toward this limit. Maximum: {max}.",
+  "overview.sponsorship.usage": "Reserved",
+  "overview.sponsorship.remaining": "Remaining",
+  "overview.sponsorship.relayer": "Relayer",
+  "overview.sponsorship.relayerReady": "Configured",
+  "overview.sponsorship.relayerMissing": "Not configured",
+  "overview.sponsorship.manualFallback":
+    "Beneficiaries can always use the normal wallet-paid claim if sponsorship is unavailable.",
+  "overview.sponsorship.save": "Save policy",
+  "overview.sponsorship.saving": "Saving policy…",
+  "overview.sponsorship.saved": "Sponsorship policy saved.",
+  "overview.sponsorship.updateError":
+    "The policy could not be saved. Try again without changing the existing reservation limit.",
   "overview.members.title": "Members",
   "overview.members.manage": "Manage",
   "overview.link.summary": "Link an existing GrantVault",
@@ -533,6 +557,50 @@ export const en = {
   "detail.claim.pending": "Transaction in progress…",
   "detail.claim.action": "Claim {amount}",
   "detail.claim.beneficiaryBalance": "Beneficiary token balance",
+  "detail.sponsor.title": "Organization-paid first claim",
+  "detail.sponsor.lede":
+    "You authorize this exact vault, amount, and relayer with your wallet signature. The organization pays the HSK fee; it never chooses a different beneficiary or amount.",
+  "detail.sponsor.action": "Sponsor my first claim",
+  "detail.sponsor.confirmTitle": "Confirm sponsored first claim",
+  "detail.sponsor.confirmBody":
+    "Your signature authorizes a one-time claim of {amount} from this vault. The organization relayer will pay the HSK transaction fee.",
+  "detail.sponsor.confirm": "Sign and submit",
+  "detail.sponsor.cancel": "Cancel",
+  "detail.sponsor.signing": "Waiting for wallet signature…",
+  "detail.sponsor.submitting": "Submitting sponsored claim…",
+  "detail.sponsor.retry": "Retry sponsored claim",
+  "detail.sponsor.gasPayer": "Gas payer",
+  "detail.sponsor.transaction": "Sponsored transaction",
+  "detail.sponsor.status.requested": "Sponsorship request recorded",
+  "detail.sponsor.status.processing": "Relayer is preparing the transaction…",
+  "detail.sponsor.status.submitted": "Sponsored transaction submitted",
+  "detail.sponsor.status.confirmed": "Sponsored first claim confirmed",
+  "detail.sponsor.status.failed": "Sponsored claim failed",
+  "detail.sponsor.statusUnavailable":
+    "The sponsored claim status could not be refreshed. The request remains tracked; the normal claim is still available.",
+  "detail.sponsor.expired":
+    "This signed request has expired. Start a new sponsored claim or use the normal claim.",
+  "detail.sponsor.failedFallback":
+    "The relayer could not complete this request. Use the normal wallet-paid claim or retry while the request is still valid.",
+  "detail.sponsor.manualFallback":
+    "The normal wallet-paid claim remains available at all times.",
+  "detail.sponsor.error":
+    "The sponsored claim could not be completed. Your wallet was not charged by HashVest; use the normal claim or try again.",
+  "detail.sponsor.unavailable":
+    "Sponsored claims are temporarily unavailable. The normal claim remains available.",
+  "detail.sponsor.legacy":
+    "This GrantVault uses the legacy manual-claim contract. Use the normal claim below.",
+  "detail.sponsor.firstClaimOnly":
+    "Sponsorship is limited to the first claim. Use the normal claim for this grant.",
+  "detail.sponsor.noClaimable":
+    "There is no currently claimable amount to sponsor.",
+  "detail.sponsor.checking": "Checking the organization sponsorship policy…",
+  "detail.sponsor.policyDisabled":
+    "The organization has not enabled sponsored claims. The normal claim remains available.",
+  "detail.sponsor.limitReached":
+    "The organization sponsorship limit has been reached. The normal claim remains available.",
+  "detail.sponsor.relayerMissing":
+    "The organization relayer is not configured or funded yet. Use the normal claim.",
   "detail.eligibility.title": "Eligibility",
   "detail.eligibility.none":
     "No provider configured. Claims do not require an eligibility check.",
@@ -831,6 +899,94 @@ export const en = {
     "Two milestones (40% / 60%) are a starting split; rename, resize, add, or remove them freely.",
   "preset.ecosystem-grant.assumption.3":
     "A reviewer wallet is required to approve milestones; choose it before funding.",
+
+  // AI Grant Builder (HAS-16/HAS-18). Chrome for the optional draft panel.
+  // Adjustment and confirmation keys are resolved from the machine codes in
+  // lib/shared/ai-grant-draft/normalize.ts and lib/cloud/ai/draft-service.ts,
+  // so the server never ships a user-facing sentence.
+  "ai.launcher.label": "Draft a grant from a description",
+  "ai.launcher.short": "AI",
+  "ai.panel.title": "Describe the grant",
+  "ai.panel.lede":
+    "Optional. Write what the grant should do and this fills the wizard with an editable draft.",
+  "ai.panel.close": "Close the draft panel",
+  "ai.field.prompt.label": "What should this grant do?",
+  "ai.field.prompt.placeholder":
+    "A six-month grant for a developer, 500 tokens, released against three milestones.",
+  "ai.field.prompt.counter": "{count} of {max} characters",
+  "ai.action.draft": "Draft it",
+  "ai.action.drafting": "Drafting",
+  "ai.action.apply": "Apply to the wizard",
+  "ai.action.discard": "Discard",
+  "ai.action.retry": "Try again",
+
+  // Progress steps. These name the real pipeline, not a loading animation.
+  "ai.progress.0": "Reading the request",
+  "ai.progress.1": "Removing anything private",
+  "ai.progress.2": "Choosing an unlock strategy",
+  "ai.progress.3": "Splitting the allocation",
+  "ai.progress.4": "Checking it against the protocol rules",
+
+  "ai.draft.name": "AI draft",
+  "ai.draft.tagline": "A starting point. Every value stays editable.",
+  "ai.draft.sourceModel": "Drafted by the configured provider",
+  "ai.draft.sourceFallback": "Drafted offline, without a provider",
+  "ai.draft.strategy": "Strategy",
+  "ai.draft.allocation": "Allocation",
+  "ai.draft.schedule": "Schedule",
+  "ai.draft.milestones": "Milestones",
+  "ai.preset.applied": "From an AI draft",
+
+  "ai.section.assumptions": "Assumptions",
+  "ai.section.adjustments": "Changed for you",
+  "ai.section.unsupported": "Not supported",
+  "ai.section.confirm": "You still choose",
+  "ai.confirm.beneficiary": "The beneficiary wallet",
+  "ai.confirm.reviewer": "The reviewer wallet",
+  "ai.confirm.token": "The token to grant",
+
+  "ai.adjustment.allocationClamped":
+    "Reduced the allocation from {requested} to {maximum}: the demo faucet cannot fund more.",
+  "ai.adjustment.cliffClamped":
+    "Shortened the cliff from {cliff} to {duration}: a cliff cannot outlast its own schedule.",
+  "ai.adjustment.durationDefaulted":
+    "Set the duration to {duration}, because the draft asked for none.",
+  "ai.adjustment.timingDefaulted":
+    "Added a default schedule, because this strategy needs one.",
+  "ai.adjustment.timingDropped":
+    "Removed the schedule: a milestone grant has none.",
+  "ai.adjustment.milestonesDefaulted":
+    "Added a single milestone covering the whole allocation.",
+  "ai.adjustment.milestonesDropped":
+    "Removed the milestones: time vesting has none.",
+  "ai.adjustment.milestonesTruncated":
+    "Kept the first {maximum} milestones, which is all a vault accepts.",
+  "ai.adjustment.milestoneTitlesFilled":
+    "Named the milestones the draft left blank.",
+  "ai.adjustment.percentagesRescaled":
+    "Rescaled the milestone split so it adds up to 100%.",
+  "ai.adjustment.fieldsDropped":
+    "Ignored {count} field(s) a grant template has no place for: {fields}.",
+  "ai.adjustment.proseRedacted":
+    "Removed something private the draft had written into its own text.",
+  "ai.adjustment.offlineDraft":
+    "Drafted offline from your words alone. No provider was used.",
+  "ai.adjustment.scheduleCompressed":
+    "Compressed {requested} into {duration} demo units so the whole cycle is watchable.",
+  "ai.adjustment.requestAddressIgnored":
+    "Ignored the wallet address in your request. You pick every wallet yourself.",
+  "ai.adjustment.requestSecretIgnored":
+    "Removed something that looked like a key or a seed phrase. Never paste one here.",
+  "ai.adjustment.requestActionIgnored":
+    "This drafts a template only. It cannot sign, send, approve, claim, or revoke.",
+
+  "ai.error.unauthenticated": "Sign in to draft a grant.",
+  "ai.error.rateLimited": "Too many drafts. Try again in {seconds} seconds.",
+  "ai.error.invalidPrompt": "Describe the grant in {min} to {max} characters.",
+  "ai.error.failed":
+    "The draft could not be produced. The wizard below still works.",
+  "ai.disclaimer":
+    "A draft only suggests. You confirm every value, and the protocol's own checks still run before anything is signed.",
 
   // Document metadata.
   "meta.title": "HashVest — Programmable grants",

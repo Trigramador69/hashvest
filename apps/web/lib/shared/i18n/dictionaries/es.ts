@@ -203,6 +203,30 @@ export const es: TranslationDictionary = {
   "overview.claim.item.fallbackDescription": "Subvención de la organización",
   "overview.claim.item.amount": "{amount} reclamables",
   "overview.claim.item.action": "Abrir subvención",
+  "overview.sponsorship.title": "Primeros reclamos patrocinados",
+  "overview.sponsorship.lede":
+    "Las subvenciones de la organización pueden pagar la comisión HSK de un primer reclamo autorizado por el beneficiario.",
+  "overview.sponsorship.loading": "Leyendo la política de patrocinio…",
+  "overview.sponsorship.error":
+    "La política de patrocinio no está disponible temporalmente.",
+  "overview.sponsorship.enabled": "Activar primeros reclamos patrocinados",
+  "overview.sponsorship.enabledHint":
+    "El beneficiario sigue firmando el reclamo exacto del vault; la organización solo paga la comisión del relayer.",
+  "overview.sponsorship.maxClaims": "Límite de reclamos de la organización",
+  "overview.sponsorship.maxClaimsHint":
+    "Los reclamos reservados cuentan para este límite. Máximo: {max}.",
+  "overview.sponsorship.usage": "Reservados",
+  "overview.sponsorship.remaining": "Restantes",
+  "overview.sponsorship.relayer": "Relayer",
+  "overview.sponsorship.relayerReady": "Configurado",
+  "overview.sponsorship.relayerMissing": "No configurado",
+  "overview.sponsorship.manualFallback":
+    "El beneficiario siempre puede usar el reclamo normal pagado por su wallet si el patrocinio no está disponible.",
+  "overview.sponsorship.save": "Guardar política",
+  "overview.sponsorship.saving": "Guardando política…",
+  "overview.sponsorship.saved": "Política de patrocinio guardada.",
+  "overview.sponsorship.updateError":
+    "No se pudo guardar la política. Reintenta sin reducir el límite de reservas existentes.",
   "overview.members.title": "Miembros",
   "overview.members.manage": "Gestionar",
   "overview.link.summary": "Vincular un GrantVault existente",
@@ -555,6 +579,52 @@ export const es: TranslationDictionary = {
   "detail.claim.pending": "Transacción en curso…",
   "detail.claim.action": "Reclamar {amount}",
   "detail.claim.beneficiaryBalance": "Saldo de tokens del beneficiario",
+  "detail.sponsor.title": "Primer reclamo pagado por la organización",
+  "detail.sponsor.lede":
+    "Autorizas este vault, importe y relayer exactos con la firma de tu wallet. La organización paga la comisión HSK; nunca puede elegir otro beneficiario o importe.",
+  "detail.sponsor.action": "Patrocinar mi primer reclamo",
+  "detail.sponsor.confirmTitle": "Confirma el primer reclamo patrocinado",
+  "detail.sponsor.confirmBody":
+    "Tu firma autoriza un único reclamo de {amount} desde este vault. El relayer de la organización pagará la comisión de la transacción HSK.",
+  "detail.sponsor.confirm": "Firmar y enviar",
+  "detail.sponsor.cancel": "Cancelar",
+  "detail.sponsor.signing": "Esperando la firma de tu wallet…",
+  "detail.sponsor.submitting": "Enviando el reclamo patrocinado…",
+  "detail.sponsor.retry": "Reintentar reclamo patrocinado",
+  "detail.sponsor.gasPayer": "Pagador de gas",
+  "detail.sponsor.transaction": "Transacción patrocinada",
+  "detail.sponsor.status.requested": "Solicitud de patrocinio registrada",
+  "detail.sponsor.status.processing":
+    "El relayer está preparando la transacción…",
+  "detail.sponsor.status.submitted": "Transacción patrocinada enviada",
+  "detail.sponsor.status.confirmed": "Primer reclamo patrocinado confirmado",
+  "detail.sponsor.status.failed": "El reclamo patrocinado falló",
+  "detail.sponsor.statusUnavailable":
+    "No se pudo actualizar el estado del reclamo patrocinado. La solicitud sigue registrada; el reclamo normal continúa disponible.",
+  "detail.sponsor.expired":
+    "Esta solicitud firmada expiró. Inicia un nuevo reclamo patrocinado o usa el reclamo normal.",
+  "detail.sponsor.failedFallback":
+    "El relayer no pudo completar esta solicitud. Usa el reclamo normal pagado por tu wallet o reintenta mientras la solicitud siga vigente.",
+  "detail.sponsor.manualFallback":
+    "El reclamo normal pagado por tu wallet siempre continúa disponible.",
+  "detail.sponsor.error":
+    "No se pudo completar el reclamo patrocinado. HashVest no cobró tu wallet; usa el reclamo normal o reintenta.",
+  "detail.sponsor.unavailable":
+    "Los reclamos patrocinados no están disponibles temporalmente. El reclamo normal continúa disponible.",
+  "detail.sponsor.legacy":
+    "Este GrantVault usa el contrato legacy de reclamo manual. Usa el reclamo normal de abajo.",
+  "detail.sponsor.firstClaimOnly":
+    "El patrocinio está limitado al primer reclamo. Usa el reclamo normal para esta subvención.",
+  "detail.sponsor.noClaimable":
+    "No hay un importe reclamable actualmente para patrocinar.",
+  "detail.sponsor.checking":
+    "Comprobando la política de patrocinio de la organización…",
+  "detail.sponsor.policyDisabled":
+    "La organización no activó los reclamos patrocinados. El reclamo normal continúa disponible.",
+  "detail.sponsor.limitReached":
+    "Se alcanzó el límite de patrocinio de la organización. El reclamo normal continúa disponible.",
+  "detail.sponsor.relayerMissing":
+    "El relayer de la organización aún no está configurado o financiado. Usa el reclamo normal.",
   "detail.eligibility.title": "Elegibilidad",
   "detail.eligibility.none":
     "No hay proveedor configurado. Los reclamos no requieren comprobación de elegibilidad.",
@@ -851,6 +921,91 @@ export const es: TranslationDictionary = {
     "Los dos hitos (40% / 60%) son un reparto inicial; renómbralos, redimensiónalos, añade o elimina los que quieras.",
   "preset.ecosystem-grant.assumption.3":
     "Hace falta una wallet revisora para aprobar hitos; elígela antes de financiar.",
+
+  "ai.launcher.label": "Redactar una subvención a partir de una descripción",
+  "ai.launcher.short": "IA",
+  "ai.panel.title": "Describe la subvención",
+  "ai.panel.lede":
+    "Opcional. Escribe qué debe hacer la subvención y esto rellenará el asistente con un borrador editable.",
+  "ai.panel.close": "Cerrar el panel de borrador",
+  "ai.field.prompt.label": "¿Qué debe hacer esta subvención?",
+  "ai.field.prompt.placeholder":
+    "Una subvención de seis meses para una persona desarrolladora, 500 tokens, liberados contra tres hitos.",
+  "ai.field.prompt.counter": "{count} de {max} caracteres",
+  "ai.action.draft": "Redactar",
+  "ai.action.drafting": "Redactando",
+  "ai.action.apply": "Aplicar al asistente",
+  "ai.action.discard": "Descartar",
+  "ai.action.retry": "Reintentar",
+
+  "ai.progress.0": "Leyendo la petición",
+  "ai.progress.1": "Quitando todo lo privado",
+  "ai.progress.2": "Eligiendo una estrategia de desbloqueo",
+  "ai.progress.3": "Repartiendo la asignación",
+  "ai.progress.4": "Comprobándolo contra las reglas del protocolo",
+
+  "ai.draft.name": "Borrador de IA",
+  "ai.draft.tagline": "Un punto de partida. Todo valor sigue siendo editable.",
+  "ai.draft.sourceModel": "Redactado por el proveedor configurado",
+  "ai.draft.sourceFallback": "Redactado sin conexión, sin proveedor",
+  "ai.draft.strategy": "Estrategia",
+  "ai.draft.allocation": "Asignación",
+  "ai.draft.schedule": "Calendario",
+  "ai.draft.milestones": "Hitos",
+  "ai.preset.applied": "De un borrador de IA",
+
+  "ai.section.assumptions": "Supuestos",
+  "ai.section.adjustments": "Ajustado por ti",
+  "ai.section.unsupported": "No admitido",
+  "ai.section.confirm": "Tú sigues eligiendo",
+  "ai.confirm.beneficiary": "La wallet beneficiaria",
+  "ai.confirm.reviewer": "La wallet revisora",
+  "ai.confirm.token": "El token a conceder",
+
+  "ai.adjustment.allocationClamped":
+    "Se redujo la asignación de {requested} a {maximum}: el faucet de demo no puede financiar más.",
+  "ai.adjustment.cliffClamped":
+    "Se acortó el cliff de {cliff} a {duration}: un cliff no puede durar más que su propio calendario.",
+  "ai.adjustment.durationDefaulted":
+    "Se fijó la duración en {duration}, porque el borrador no pedía ninguna.",
+  "ai.adjustment.timingDefaulted":
+    "Se añadió un calendario por defecto, porque esta estrategia necesita uno.",
+  "ai.adjustment.timingDropped":
+    "Se quitó el calendario: una subvención por hitos no tiene ninguno.",
+  "ai.adjustment.milestonesDefaulted":
+    "Se añadió un único hito que cubre toda la asignación.",
+  "ai.adjustment.milestonesDropped":
+    "Se quitaron los hitos: la liberación por tiempo no tiene ninguno.",
+  "ai.adjustment.milestonesTruncated":
+    "Se conservaron los primeros {maximum} hitos, que es todo lo que acepta un vault.",
+  "ai.adjustment.milestoneTitlesFilled":
+    "Se nombraron los hitos que el borrador dejó en blanco.",
+  "ai.adjustment.percentagesRescaled":
+    "Se reescaló el reparto de hitos para que sume 100%.",
+  "ai.adjustment.fieldsDropped":
+    "Se ignoraron {count} campo(s) que una plantilla de subvención no contempla: {fields}.",
+  "ai.adjustment.proseRedacted":
+    "Se quitó algo privado que el borrador había escrito en su propio texto.",
+  "ai.adjustment.offlineDraft":
+    "Redactado sin conexión solo con tus palabras. No se usó ningún proveedor.",
+  "ai.adjustment.scheduleCompressed":
+    "Se comprimió {requested} en {duration} unidades de demo para que el ciclo entero se pueda ver.",
+  "ai.adjustment.requestAddressIgnored":
+    "Se ignoró la dirección de wallet de tu petición. Cada wallet la eliges tú.",
+  "ai.adjustment.requestSecretIgnored":
+    "Se quitó algo que parecía una clave o una frase semilla. Nunca pegues una aquí.",
+  "ai.adjustment.requestActionIgnored":
+    "Esto solo redacta una plantilla. No puede firmar, enviar, aprobar, reclamar ni revocar.",
+
+  "ai.error.unauthenticated": "Inicia sesión para redactar una subvención.",
+  "ai.error.rateLimited":
+    "Demasiados borradores. Reinténtalo en {seconds} segundos.",
+  "ai.error.invalidPrompt":
+    "Describe la subvención en entre {min} y {max} caracteres.",
+  "ai.error.failed":
+    "No se pudo producir el borrador. El asistente de abajo sigue funcionando.",
+  "ai.disclaimer":
+    "Un borrador solo sugiere. Tú confirmas cada valor, y las comprobaciones del propio protocolo se siguen ejecutando antes de firmar nada.",
 
   "meta.title": "HashVest — Subvenciones programables",
   "meta.description":

@@ -177,6 +177,29 @@ export const zhCN: TranslationDictionary = {
   "overview.claim.item.fallbackDescription": "组织资助",
   "overview.claim.item.amount": "可领取 {amount}",
   "overview.claim.item.action": "打开资助",
+  "overview.sponsorship.title": "组织赞助首次领取",
+  "overview.sponsorship.lede":
+    "组织资助可以为一次由受益人授权的首次领取支付 HSK 交易费用。",
+  "overview.sponsorship.loading": "正在读取赞助策略…",
+  "overview.sponsorship.error": "赞助策略暂时不可用。",
+  "overview.sponsorship.enabled": "启用赞助首次领取",
+  "overview.sponsorship.enabledHint":
+    "受益人仍需签署精确的金库领取授权；组织只支付 relayer 费用。",
+  "overview.sponsorship.maxClaims": "组织领取上限",
+  "overview.sponsorship.maxClaimsHint":
+    "已预留的领取会计入此上限。最大值：{max}。",
+  "overview.sponsorship.usage": "已预留",
+  "overview.sponsorship.remaining": "剩余",
+  "overview.sponsorship.relayer": "Relayer",
+  "overview.sponsorship.relayerReady": "已配置",
+  "overview.sponsorship.relayerMissing": "未配置",
+  "overview.sponsorship.manualFallback":
+    "如果赞助不可用，受益人始终可以使用由自己钱包支付费用的普通领取。",
+  "overview.sponsorship.save": "保存策略",
+  "overview.sponsorship.saving": "正在保存策略…",
+  "overview.sponsorship.saved": "赞助策略已保存。",
+  "overview.sponsorship.updateError":
+    "无法保存策略。请重试，但不要低于已有预留请求的上限。",
   "overview.members.title": "成员",
   "overview.members.manage": "管理",
   "overview.link.summary": "关联一个已有的 GrantVault",
@@ -498,6 +521,44 @@ export const zhCN: TranslationDictionary = {
   "detail.claim.pending": "交易进行中…",
   "detail.claim.action": "领取 {amount}",
   "detail.claim.beneficiaryBalance": "受益人代币余额",
+  "detail.sponsor.title": "组织支付首次领取费用",
+  "detail.sponsor.lede":
+    "你用钱包签名授权精确的金库、金额和 relayer。组织支付 HSK 费用；它无法更换受益人或金额。",
+  "detail.sponsor.action": "赞助我的首次领取",
+  "detail.sponsor.confirmTitle": "确认赞助首次领取",
+  "detail.sponsor.confirmBody":
+    "你的签名授权从此金库领取一次 {amount}。组织 relayer 将支付 HSK 交易费用。",
+  "detail.sponsor.confirm": "签名并提交",
+  "detail.sponsor.cancel": "取消",
+  "detail.sponsor.signing": "等待钱包签名…",
+  "detail.sponsor.submitting": "正在提交赞助领取…",
+  "detail.sponsor.retry": "重试赞助领取",
+  "detail.sponsor.gasPayer": "Gas 支付方",
+  "detail.sponsor.transaction": "赞助交易",
+  "detail.sponsor.status.requested": "赞助请求已记录",
+  "detail.sponsor.status.processing": "Relayer 正在准备交易…",
+  "detail.sponsor.status.submitted": "赞助交易已提交",
+  "detail.sponsor.status.confirmed": "赞助首次领取已确认",
+  "detail.sponsor.status.failed": "赞助领取失败",
+  "detail.sponsor.statusUnavailable":
+    "无法刷新赞助领取状态。请求仍会被跟踪；普通领取仍然可用。",
+  "detail.sponsor.expired":
+    "此签名请求已过期。请开始新的赞助领取或使用普通领取。",
+  "detail.sponsor.failedFallback":
+    "Relayer 无法完成此请求。请使用由钱包支付费用的普通领取，或在请求有效时重试。",
+  "detail.sponsor.manualFallback": "由钱包支付费用的普通领取始终可用。",
+  "detail.sponsor.error":
+    "无法完成赞助领取。HashVest 未向你的钱包收费；请使用普通领取或重试。",
+  "detail.sponsor.unavailable": "赞助领取暂时不可用。普通领取仍然可用。",
+  "detail.sponsor.legacy":
+    "此 GrantVault 使用旧版手动领取合约。请使用下面的普通领取。",
+  "detail.sponsor.firstClaimOnly": "赞助仅限首次领取。请为此资助使用普通领取。",
+  "detail.sponsor.noClaimable": "当前没有可赞助的可领取金额。",
+  "detail.sponsor.checking": "正在检查组织赞助策略…",
+  "detail.sponsor.policyDisabled": "组织尚未启用赞助领取。普通领取仍然可用。",
+  "detail.sponsor.limitReached": "组织赞助上限已达到。普通领取仍然可用。",
+  "detail.sponsor.relayerMissing":
+    "组织 relayer 尚未配置或没有资金。请使用普通领取。",
   "detail.eligibility.title": "资格校验",
   "detail.eligibility.none": "未配置校验合约。领取不需要资格校验。",
   "detail.eligibility.unavailable": "校验合约不可用",
@@ -759,6 +820,81 @@ export const zhCN: TranslationDictionary = {
     "两个里程碑（40% / 60%）只是初始拆分；可自由重命名、调整比例、增加或删除。",
   "preset.ecosystem-grant.assumption.3":
     "需要一个审核人钱包来批准里程碑；请在注资前选定。",
+
+  "ai.launcher.label": "根据一段描述起草一笔赠款",
+  "ai.launcher.short": "AI",
+  "ai.panel.title": "描述这笔赠款",
+  "ai.panel.lede":
+    "可选。写下这笔赠款要做什么，这里会为向导填入一份可编辑的草稿。",
+  "ai.panel.close": "关闭草稿面板",
+  "ai.field.prompt.label": "这笔赠款要做什么？",
+  "ai.field.prompt.placeholder":
+    "给一位开发者的六个月赠款，500 代币，按三个里程碑释放。",
+  "ai.field.prompt.counter": "{count} / {max} 个字符",
+  "ai.action.draft": "生成草稿",
+  "ai.action.drafting": "正在起草",
+  "ai.action.apply": "应用到向导",
+  "ai.action.discard": "放弃",
+  "ai.action.retry": "重试",
+
+  "ai.progress.0": "正在读取请求",
+  "ai.progress.1": "正在移除隐私内容",
+  "ai.progress.2": "正在选择解锁策略",
+  "ai.progress.3": "正在拆分分配额度",
+  "ai.progress.4": "正在按协议规则校验",
+
+  "ai.draft.name": "AI 草稿",
+  "ai.draft.tagline": "一个起点。每个值都仍可编辑。",
+  "ai.draft.sourceModel": "由已配置的提供方起草",
+  "ai.draft.sourceFallback": "离线起草，未使用提供方",
+  "ai.draft.strategy": "策略",
+  "ai.draft.allocation": "分配额度",
+  "ai.draft.schedule": "时间表",
+  "ai.draft.milestones": "里程碑",
+  "ai.preset.applied": "来自 AI 草稿",
+
+  "ai.section.assumptions": "假设",
+  "ai.section.adjustments": "已为你调整",
+  "ai.section.unsupported": "不支持",
+  "ai.section.confirm": "仍由你决定",
+  "ai.confirm.beneficiary": "受益人钱包",
+  "ai.confirm.reviewer": "审核人钱包",
+  "ai.confirm.token": "要发放的代币",
+
+  "ai.adjustment.allocationClamped":
+    "已将分配额度从 {requested} 降到 {maximum}：演示水龙头无法提供更多资金。",
+  "ai.adjustment.cliffClamped":
+    "已将悬崖期从 {cliff} 缩短到 {duration}：悬崖期不能超过它自己的时间表。",
+  "ai.adjustment.durationDefaulted":
+    "已将时长设为 {duration}，因为草稿没有给出时长。",
+  "ai.adjustment.timingDefaulted": "已补上默认时间表，因为该策略需要一个。",
+  "ai.adjustment.timingDropped": "已移除时间表：里程碑赠款没有时间表。",
+  "ai.adjustment.milestonesDefaulted": "已添加一个覆盖全部额度的里程碑。",
+  "ai.adjustment.milestonesDropped": "已移除里程碑：按时间释放没有里程碑。",
+  "ai.adjustment.milestonesTruncated":
+    "已保留前 {maximum} 个里程碑，这是金库所能接受的上限。",
+  "ai.adjustment.milestoneTitlesFilled": "已为草稿留空的里程碑补上名称。",
+  "ai.adjustment.percentagesRescaled":
+    "已重新缩放里程碑比例，使其合计为 100%。",
+  "ai.adjustment.fieldsDropped":
+    "已忽略 {count} 个赠款模板无法容纳的字段：{fields}。",
+  "ai.adjustment.proseRedacted": "已移除草稿写进自身文本中的隐私内容。",
+  "ai.adjustment.offlineDraft": "仅凭你的文字离线起草，未使用任何提供方。",
+  "ai.adjustment.scheduleCompressed":
+    "已把 {requested} 压缩为 {duration} 个演示单位，以便完整流程可以当场看到。",
+  "ai.adjustment.requestAddressIgnored":
+    "已忽略你请求中的钱包地址。每个钱包都由你自己选择。",
+  "ai.adjustment.requestSecretIgnored":
+    "已移除看起来像私钥或助记词的内容。请不要在这里粘贴它们。",
+  "ai.adjustment.requestActionIgnored":
+    "这里只起草模板。它不能签名、转账、批准、领取或撤销。",
+
+  "ai.error.unauthenticated": "请先登录再起草赠款。",
+  "ai.error.rateLimited": "草稿请求过多。请在 {seconds} 秒后重试。",
+  "ai.error.invalidPrompt": "请用 {min} 到 {max} 个字符描述这笔赠款。",
+  "ai.error.failed": "无法生成草稿。下面的向导仍然可用。",
+  "ai.disclaimer":
+    "草稿只是建议。每个值都由你确认，签名前协议自身的校验依然会执行。",
 
   "meta.title": "HashVest — 可编程资助",
   "meta.description":

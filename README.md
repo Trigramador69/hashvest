@@ -25,8 +25,10 @@ This is a hackathon MVP deployed on **HSK Chain Testnet**. It is unaudited, uses
 - Hybrid grants where both conditions constrain the claim: `unlocked = min(time vested, approved milestone amount)`.
 - Optional `IEligibilityProvider` adapter, including a clearly labeled administrator-controlled demo allowlist.
 - Optional one-way issuer revocation that recovers only unearned allocation while preserving earned and claimed beneficiary value.
+- Organization-sponsored first claims: organization-created grants use a versioned `SponsoredGrantVault`; the beneficiary signs the exact first claim and a server-only relayer pays HSK gas.
 - One fully funded vault per grant; SafeERC20 rejects underfunded fee-on-transfer funding.
 - Beneficiary-only claims, role dashboards, explorer links, and real HSK Testnet transactions.
+- Optional AI Grant Builder: a description becomes a validated, fully editable draft. It cannot sign, fund, approve, claim, revoke, or choose a wallet, and it works with no provider configured.
 
 ### Cloud
 
@@ -53,6 +55,7 @@ HSK Testnet (chain 133)
 HashVestFactory ---- role discovery arrays
    |
 GrantVault #1, #2, #3 ...
+SponsoredGrantVault #organization grants
 ```
 
 Each vault stores the issuer, beneficiary, reviewer, token, allocation, strategy, vesting schedule, milestone titles and amounts, eligibility provider, and revocable mode as immutable terms. Milestone approvals, claims, and the optional one-way revocation state are the only lifecycle changes after creation. Revocation freezes earned value and returns only unearned allocation to the issuer; non-revocable grants and previously deployed vaults remain permanent. Organization metadata is an optional off-chain product layer and never replaces contract state.
@@ -84,11 +87,21 @@ The repository holds two layers. **HashVest Protocol** is `packages/contracts` p
 
 ### Organizations product layer
 
-Organizations are workspaces around existing GrantVaults. Supabase stores organization names, members, presentation role labels, GrantVault associations, descriptions, and future-facing template metadata. HSK remains authoritative for issuer, beneficiary, reviewer, token, allocation, strategy, schedules, milestone approval, unlocked/claimable/claimed amounts, eligibility, balances, and funds.
+Organizations are workspaces around existing GrantVaults. Supabase stores organization names, members, presentation role labels, GrantVault associations, descriptions, and organization-owned grant templates — draft wizard configuration, never vault state or permission (see [`docs/organization-templates.md`](docs/organization-templates.md)). HSK remains authoritative for issuer, beneficiary, reviewer, token, allocation, strategy, schedules, milestone approval, unlocked/claimable/claimed amounts, eligibility, balances, and funds.
 
 The canonical identities are lowercase EVM addresses for wallets, `(chain_id, vault_address)` for grants, and UUIDs for organizations. The current organization schema accepts HSK Testnet only (`chain_id = 133`). Product role labels such as `Treasury Reviewer` are presentation metadata; they do not grant permission to approve or claim.
 
 Organization writes go through authenticated Next.js Route Handlers. The browser never uses the Supabase service-role key or writes organization tables directly. Workspace grant cards and queues join organization metadata with fresh GrantVault reads; they do not aggregate token balances or invent USD values.
+
+Organization sponsorship is an opt-in Cloud policy around a protocol operation. The beneficiary wallet signs an EIP-712 intent binding the exact vault, beneficiary, amount, nonce, deadline, and relayer; `SponsoredGrantVault` enforces those fields and the one-time first-claim rule on HSK. Supabase tracks policy reservations and request/receipt status only. If the relayer is unavailable, the policy is disabled, the grant is legacy, or the request fails, the beneficiary-paid claim remains available. See [`docs/sponsored-claims.md`](docs/sponsored-claims.md) for the decision, threat model, and deployment gate.
+
+### AI Grant Builder
+
+A floating panel on the grant wizard turns a short description into a draft. The draft is a _preset_, not a grant: it is validated by the same `assertValidPreset` gate the hand-written Builder/Employee/Advisor/Ecosystem templates pass and applied through the same preset path, so `prepare()` remains the only source of truth for what is submitted onchain. There is no submission path that only AI output uses.
+
+The draft type has no field for a beneficiary, reviewer, token, eligibility provider, start timestamp, or revocability, so a model cannot suggest an identity or a transaction at all. Prompts are redacted before they leave the server and are never retained. A provider that is unavailable, unauthorized, rate-limited, slow, or incoherent falls back to a deterministic offline drafter, so the feature never blocks the wizard.
+
+Full contract, limits, failure matrix, and privacy boundary: [`docs/ai-grant-builder.md`](docs/ai-grant-builder.md).
 
 ### Unlock semantics
 
@@ -124,9 +137,20 @@ SUPABASE_SERVICE_ROLE_KEY=
 AUTH_SECRET=
 AUTH_APP_URL=http://localhost:3000
 HSK_TESTNET_RPC_URL=
+SPONSORED_CLAIM_RELAYER_PRIVATE_KEY=
 ```
 
-Generate `AUTH_SECRET` with `openssl rand -base64 32` or another cryptographically random secret. Never prefix `SUPABASE_SERVICE_ROLE_KEY` or `AUTH_SECRET` with `NEXT_PUBLIC_`, commit them, or expose them to browser code. `AUTH_APP_URL` should be the canonical application origin when deployed behind a proxy; leave it at the local origin for local development.
+Generate `AUTH_SECRET` with `openssl rand -base64 32` or another cryptographically random secret. Never prefix `SUPABASE_SERVICE_ROLE_KEY`, `AUTH_SECRET`, or `AI_API_KEY` with `NEXT_PUBLIC_`, commit them, or expose them to browser code. `AUTH_APP_URL` should be the canonical application origin when deployed behind a proxy; leave it at the local origin for local development.
+
+The AI Grant Builder is optional and off unless a provider is configured:
+
+```dotenv
+AI_API_KEY=
+AI_BASE_URL=
+AI_MODEL=
+```
+
+Any OpenAI-compatible `/chat/completions` endpoint works, so `AI_BASE_URL` and `AI_MODEL` are the only difference between xAI (the default, `https://api.x.ai/v1` and `grok-4.6`), OpenRouter, DeepSeek, Zhipu, or a local Ollama or LM Studio server. With `AI_API_KEY` blank the feature still works: it falls back to a deterministic offline drafter, so the demo never depends on a provider being reachable. See [`docs/ai-grant-builder.md`](docs/ai-grant-builder.md).
 
 Apply the tracked organization migration to the existing Supabase project from a machine with Supabase CLI access:
 
@@ -136,7 +160,27 @@ supabase link --project-ref <your-project-ref>
 supabase db push
 ```
 
-The migration is [`supabase/migrations/20260912000000_hashvest_organizations.sql`](supabase/migrations/20260912000000_hashvest_organizations.sql). It creates `organizations`, `organization_members`, `organization_grants`, and server-only `auth_nonces`, adds constraints/indexes, enables RLS, and intentionally grants no public/anon/authenticated table policies. The application uses the service role only from server Route Handlers, while business authorization still checks the verified session and organization membership/ownership.
+`supabase db push` applies all tracked migrations in order. The base migration
+[`supabase/migrations/20260912000000_hashvest_organizations.sql`](supabase/migrations/20260912000000_hashvest_organizations.sql)
+creates `organizations`, `organization_members`, `organization_grants`, and
+server-only `auth_nonces`. The sponsorship migration
+[`supabase/migrations/20260913000000_hashvest_sponsored_claims.sql`](supabase/migrations/20260913000000_hashvest_sponsored_claims.sql)
+adds `sponsored_claim_policies`, `sponsored_claim_requests`, and server-only
+reservation/lease functions. The organization-template migration
+[`supabase/migrations/20260913010000_hashvest_organization_templates.sql`](supabase/migrations/20260913010000_hashvest_organization_templates.sql)
+adds `organization_templates` with database constraints for every grant
+strategy rule; it requires PostgreSQL 15 or later. All product tables use the
+same closed RLS posture and intentionally grant no public/anon/authenticated
+table policies. The application uses the service role only from server Route
+Handlers, while business authorization still checks the verified session and
+organization membership/ownership. [`supabase/verification/organization_templates.sql`](supabase/verification/organization_templates.sql)
+asserts the template constraints against a disposable database and must never
+run against a real project.
+
+`SPONSORED_CLAIM_RELAYER_PRIVATE_KEY` is server-only and must be a separately
+funded HSK relayer account. It is not a deployer key and must never be placed in
+a `NEXT_PUBLIC_` variable. The feature is disabled by default; do not configure
+it against production funds.
 
 If a wallet reports HSK Testnet chain 133 but an approval shows `eth_getBlockByNumber` or a thirdweb support error, its saved RPC endpoint is unavailable. Use the **Use canonical HSK RPC** action in the app, or set the wallet network RPC to `https://testnet.hsk.xyz` with chain ID `133`.
 
@@ -198,7 +242,7 @@ pnpm contracts:deploy:testnet
 pnpm contracts:smoke:testnet
 ```
 
-The current deployment is written to `packages/web3/src/addresses/hsk-testnet.json` after a successful broadcast. The canonical explorer is [HSK Testnet Explorer](https://testnet-explorer.hskchain.net). The generated deployment artifact remains the source of truth; the current values are repeated below for demo convenience.
+The current deployment is written to `packages/web3/src/addresses/hsk-testnet.json` after a successful broadcast. The canonical explorer is [HSK Testnet Explorer](https://testnet-explorer.hskchain.net). The generated deployment artifact remains the source of truth; the current values are repeated below for demo convenience. The checked-in deployment predates `createSponsoredGrant`; organization-sponsored claims require an explicitly authorized factory redeployment and address synchronization before use. This change does not broadcast or redeploy.
 
 Current HSK Testnet deployment (chain 133; bytecode and read-only smoke verified):
 
@@ -230,6 +274,8 @@ The current Blockscout endpoint returned HTTP 413 (`Request Entity Too Large`) f
 6. Switch to the reviewer wallet, connect, sign in explicitly, and open the organization review queue. **Review grant** opens the existing GrantDetail page, where the reviewer approves the pending milestone.
 7. Switch to the beneficiary wallet, connect, sign in explicitly, and open the organization workspace from **Settings**. The grant appears with its live claimable amount; open GrantDetail and claim the real hvUSD.
 
+To use the sponsored-first-claim path after the new factory is deployed, the owner enables **Sponsored first claims** in the organization overview and sets a reservation limit. On the beneficiary's GrantDetail, **Sponsor my first claim** shows the exact amount and relayer, asks for an EIP-712 signature, and displays the request/receipt state. The normal **Claim** action remains the fallback and is always beneficiary-paid.
+
 The direct protocol flow remains available at `/grants/new`: enter raw beneficiary/reviewer addresses and create TIME, MILESTONE, or HYBRID grants without organization metadata. Existing GrantVaults can be attached later by an organization owner from the overview using **Link an existing GrantVault**. The server verifies bytecode, GrantVault reads, and the actual onchain issuer before association.
 
 Every approval, creation, milestone, faucet, claim, and revocation transaction exposes an HSK Testnet explorer link. Use `/app/grants` to move between role-specific grants.
@@ -238,7 +284,7 @@ For the controlled-wallet browser rehearsal, copy the public-address-only fixtur
 
 ## Security boundary
 
-HashVest MVP has not been professionally audited. It targets HSK Testnet only, uses a faucet-mintable demo token, and should not hold production funds. Revocation is available only on explicitly revocable new vaults, is issuer-only and one-way, and preserves earned beneficiary entitlement; non-revocable and old vaults have no issuer withdrawal path. `DemoEligibilityProvider` is an adapter demonstration, not KYC or compliance.
+HashVest MVP has not been professionally audited. It targets HSK Testnet only, uses a faucet-mintable demo token, and should not hold production funds. Revocation is available only on explicitly revocable new vaults, is issuer-only and one-way, and preserves earned beneficiary entitlement; non-revocable and old vaults have no issuer withdrawal path. `DemoEligibilityProvider` is an adapter demonstration, not KYC or compliance. The AI Grant Builder is advisory only: it drafts editable form values, never signs, funds, approves, claims, revokes, or selects a wallet, retains no prompt or model output, and keeps its provider key server-side in a single allowlisted module.
 
 ## Roadmap
 
@@ -254,7 +300,7 @@ Hackathon P0 work, by milestone and owning layer:
 | M3 — Lifecycle & funding health         | Cloud            |
 | M4 — i18n, browser E2E & submission     | Cloud + Protocol |
 
-Post-hackathon milestones M5–M7 cover P1–P3 work: milestone evidence, AI-assisted grant building and review, batch creation, TGE semantics, reviewer quorum, analytics, notifications, compliance and attestation adapters, an embedded SDK, and extraction of the protocol into a public `hashvest-protocol` repository. None of it is implemented in this MVP. New scope during the hackathon is a swap, never an addition — see the stop-adding-features rule in [`docs/architecture.md`](docs/architecture.md).
+Post-hackathon milestones M5–M7 cover P1–P3 work: milestone evidence, AI-assisted review, batch creation, TGE semantics, reviewer quorum, analytics, notifications, compliance and attestation adapters, an embedded SDK, and extraction of the protocol into a public `hashvest-protocol` repository. The human-reviewed AI Grant Builder (HAS-16/HAS-18) is the one M5 item that has landed; the rest is not implemented in this MVP. New scope during the hackathon is a swap, never an addition — see the stop-adding-features rule in [`docs/architecture.md`](docs/architecture.md).
 
 ## Contributing with agents
 
@@ -269,6 +315,7 @@ Before creating or updating a PR, agents must run `pnpm agents:sync`, `pnpm agen
 Canonical skills live in `.agents/skills/`; Claude adapters are generated in `.claude/skills/`.
 
 - [`agent-maintenance`](.agents/skills/agent-maintenance/SKILL.md) — Keep HashVest agent instructions, skills, generated adapters, README, architecture docs, and CI contracts synchronized whenever repository behavior or references change.
+- [`ai-assistance`](.agents/skills/ai-assistance/SKILL.md) — Build or change HashVest AI assistance while keeping model output advisory, validated against the protocol's own rules, provider-agnostic, and free of retained prompts or exposed secrets.
 - [`architecture`](.agents/skills/architecture/SKILL.md) — Design or review HashVest changes while preserving the Cloud, web3, Protocol, Supabase, and HSK authority boundaries documented by the repository.
 - [`ci-preflight`](.agents/skills/ci-preflight/SKILL.md) — Reproduce the HashVest GitHub CI validation locally, diagnose failures without hiding them, and produce exact evidence before a pull request is created or updated.
 - [`deployment`](.agents/skills/deployment/SKILL.md) — Plan, rehearse, execute, or verify HashVest HSK Testnet operations with chain guards, explicit transaction authority, safe secrets, and evidence-backed state changes.
@@ -285,14 +332,15 @@ After changing a skill, run `pnpm agents:sync` and `pnpm agents:check`.
 ```text
 apps/web                 Cloud     Next.js wallet application
   lib/protocol           Protocol  chain-facing helpers, wagmi config, onchain roles, vault verification
-  lib/cloud              Cloud     Supabase, SIWE sessions, organizations
-  lib/shared             shared    layer-neutral utilities
+  lib/cloud              Cloud     Supabase, SIWE sessions, organizations, AI provider
+  lib/shared             shared    layer-neutral utilities, i18n, grant presets, AI draft contract
 packages/contracts       Protocol  Solidity contracts, Foundry tests, deployment script
 packages/web3            Protocol  HSK chain config, generated ABIs, deployment data, sync scripts
 packages/ui              shared    Shared UI package placeholder
 packages/config          shared    Shared TypeScript and ESLint configuration
 scripts                  shared    Repository-wide boundary checks
-supabase/migrations      Cloud     Tracked product-context schema and RLS migration
+supabase/migrations      Cloud     Tracked product-context schema and RLS migrations
+supabase/verification    Cloud     Constraint checks for migrations, disposable databases only
 ```
 
 Imports run one way: Cloud may depend on Protocol, never the reverse. `pnpm boundary:check` enforces this, along with service-role secret containment, protocol export drift, and documentation links. See [`docs/architecture.md`](docs/architecture.md).

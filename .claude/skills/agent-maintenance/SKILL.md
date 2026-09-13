@@ -14,7 +14,7 @@ Use this skill whenever an implementation change affects a command, path, API, s
 
 ## Procedure
 
-1. Search the repository for the changed path, command, symbol, environment variable, locale, and old behavior. Inspect the implementation and its callers before editing prose.
+1. Search the repository for the changed path, command, symbol, environment variable, locale, and old behavior. Inspect the implementation and its callers before editing prose. For protocol extensions, include the generated ABI surface, deployment caveat, server-only secret boundary, and user-facing fallback in that search.
 2. Update canonical skills under `.agents/skills/`, not `.claude/skills/`. Keep procedures focused and remove obsolete instructions rather than appending contradictory history.
 3. Update `README.md`, `AGENTS.md`, `docs/architecture.md`, `docs/agents/`, or product runbooks when their source-of-truth content changed. Preserve the generated Next.js block in `apps/web/AGENTS.md`.
 4. Run `pnpm agents:sync` to regenerate Claude skill copies and the root agent catalogs.

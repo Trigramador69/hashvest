@@ -1,3 +1,5 @@
+import type { OrganizationTemplateDefinition } from "../../shared/grant-presets/organization-template";
+
 export type Organization = {
   id: string;
   name: string;
@@ -25,6 +27,83 @@ export type OrganizationGrant = {
   templateKey: string | null;
   createdByWallet: string;
   createdAt: string;
+};
+
+/**
+ * An organization-owned grant template: draft configuration metadata, never
+ * vault state or permission. See docs/organization-templates.md.
+ */
+export type OrganizationTemplate = OrganizationTemplateDefinition & {
+  organizationId: string;
+  createdByWallet: string;
+  updatedByWallet: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SponsoredClaimPolicy = {
+  organizationId: string;
+  enabled: boolean;
+  maxClaims: number;
+  usedClaims: number;
+  remainingClaims: number;
+  updatedByWallet: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SponsoredClaimPolicyRow = {
+  organization_id: string;
+  enabled: boolean;
+  max_claims: number;
+  used_claims: number;
+  updated_by_wallet: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SponsoredClaimRequestStatus =
+  "requested" | "processing" | "submitted" | "confirmed" | "failed";
+
+export type SponsoredClaimRequestRow = {
+  id: string;
+  organization_id: string;
+  chain_id: 133;
+  vault_address: string;
+  beneficiary_wallet: string;
+  amount: string;
+  nonce: string;
+  deadline: string;
+  relayer_address: string;
+  signature: string;
+  status: SponsoredClaimRequestStatus;
+  attempts: number;
+  processing_at: string | null;
+  tx_hash: string | null;
+  failure_code: string | null;
+  failure_message: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SponsoredClaimRequest = {
+  id: string;
+  organizationId: string;
+  chainId: 133;
+  vaultAddress: string;
+  beneficiaryWallet: string;
+  amount: string;
+  nonce: string;
+  deadline: string;
+  relayerAddress: string;
+  status: SponsoredClaimRequestStatus;
+  attempts: number;
+  processingAt: string | null;
+  txHash: string | null;
+  failureCode: string | null;
+  failureMessage: string | null;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type OrganizationMembership = Pick<
@@ -98,6 +177,49 @@ export type OrganizationGrantRow = {
   created_at: string;
 };
 
+/**
+ * A milestone in a stored template: a title and a whole-number share of the
+ * allocation. Never a token amount (docs/organization-templates.md).
+ */
+export type OrganizationTemplateMilestoneRow = {
+  title: string;
+  percentOfAllocation: number;
+};
+
+export type OrganizationTemplateRow = {
+  id: string;
+  organization_id: string;
+  version: number;
+  name: string;
+  description: string | null;
+  strategy: 0 | 1 | 2;
+  schedule_unit_seconds: 60 | 3600 | 86400 | null;
+  cliff_units: number | null;
+  duration_units: number | null;
+  milestones: OrganizationTemplateMilestoneRow[] | null;
+  allocation_suggestion: string | null;
+  default_reviewer_member_id: string | null;
+  created_by_wallet: string;
+  updated_by_wallet: string;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+};
+
+/** Every column a template write may set; identity and audit columns are excluded. */
+export type OrganizationTemplateContentRow = Pick<
+  OrganizationTemplateRow,
+  | "name"
+  | "description"
+  | "strategy"
+  | "schedule_unit_seconds"
+  | "cliff_units"
+  | "duration_units"
+  | "milestones"
+  | "allocation_suggestion"
+  | "default_reviewer_member_id"
+>;
+
 type TableDefinition<Row, Insert, Update> = {
   Row: Row;
   Insert: Insert;
@@ -138,9 +260,85 @@ export type Database = {
           Partial<Pick<OrganizationGrantRow, "created_at">>,
         Partial<Pick<OrganizationGrantRow, "description" | "template_key">>
       >;
+      organization_templates: TableDefinition<
+        OrganizationTemplateRow,
+        OrganizationTemplateContentRow &
+          Pick<
+            OrganizationTemplateRow,
+            "organization_id" | "created_by_wallet" | "updated_by_wallet"
+          > &
+          Partial<
+            Pick<
+              OrganizationTemplateRow,
+              "id" | "version" | "created_at" | "updated_at" | "archived_at"
+            >
+          >,
+        Partial<
+          OrganizationTemplateContentRow &
+            Pick<
+              OrganizationTemplateRow,
+              "version" | "updated_by_wallet" | "updated_at" | "archived_at"
+            >
+        >
+      >;
+      sponsored_claim_policies: TableDefinition<
+        SponsoredClaimPolicyRow,
+        Omit<SponsoredClaimPolicyRow, "created_at" | "updated_at"> &
+          Partial<Pick<SponsoredClaimPolicyRow, "created_at" | "updated_at">>,
+        Partial<
+          Pick<
+            SponsoredClaimPolicyRow,
+            "enabled" | "max_claims" | "updated_by_wallet" | "updated_at"
+          >
+        >
+      >;
+      sponsored_claim_requests: TableDefinition<
+        SponsoredClaimRequestRow,
+        Omit<
+          SponsoredClaimRequestRow,
+          "id" | "created_at" | "updated_at" | "attempts" | "processing_at"
+        > &
+          Partial<
+            Pick<
+              SponsoredClaimRequestRow,
+              "id" | "created_at" | "updated_at" | "attempts" | "processing_at"
+            >
+          >,
+        Partial<
+          Pick<
+            SponsoredClaimRequestRow,
+            | "status"
+            | "attempts"
+            | "processing_at"
+            | "tx_hash"
+            | "failure_code"
+            | "failure_message"
+            | "updated_at"
+          >
+        >
+      >;
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      reserve_sponsored_claim: {
+        Args: {
+          p_organization_id: string;
+          p_chain_id: 133;
+          p_vault_address: string;
+          p_beneficiary_wallet: string;
+          p_amount: string;
+          p_nonce: string;
+          p_deadline: string;
+          p_relayer_address: string;
+          p_signature: string;
+        };
+        Returns: SponsoredClaimRequestRow[];
+      };
+      claim_sponsored_request: {
+        Args: { p_request_id: string };
+        Returns: SponsoredClaimRequestRow[];
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

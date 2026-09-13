@@ -52,6 +52,23 @@ test("reports a prefixed secret once rather than twice", () => {
   assert.equal(checkSecretContainment(files, allowlist).length, 1);
 });
 
+test("covers the AI provider key like any other server secret", () => {
+  const files = [
+    {
+      path: "apps/web/lib/cloud/ai/provider.ts",
+      text: "const key = process.env.AI_API_KEY;",
+    },
+    { path: "apps/web/.env.local.example", text: "NEXT_PUBLIC_AI_API_KEY=" },
+  ];
+  const violations = checkSecretContainment(files, allowlist);
+  assert.equal(violations.length, 2);
+  assert.match(
+    violations[0],
+    /reads AI_API_KEY outside the server-only allowlist/,
+  );
+  assert.match(violations[1], /would publish a server secret to the browser/);
+});
+
 test("requires server-only beside a createSupabaseAdmin import", () => {
   const missing = [
     {

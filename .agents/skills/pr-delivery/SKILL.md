@@ -13,7 +13,7 @@ Use this skill for branch preparation, commit organization, PR readiness, PR rev
 1. Identify the Linear issue and acceptance criteria when one exists. If the requester explicitly opts out, record the acceptance criteria in the branch name, design source of truth, and final handoff. Inspect the current branch, upstream refs, worktree, and recent history before deciding what belongs in the change.
 2. Keep the branch focused and make small, logically grouped commits. Each commit should be understandable, reversible, and validated before the next slice. Never add AI attribution or co-author trailers.
 3. For each slice, run the narrowest useful tests. Before creating or updating a PR, run `pnpm agents:sync`, `pnpm agents:check`, and `pnpm ci:check` from the repository root.
-4. Review the final diff for scope creep, secret exposure, authorization regressions, stale docs, generated-file drift, missing tests, and accidental changes to user data or deployment state.
+4. Review the final diff for scope creep, secret exposure, authorization regressions, stale docs, generated-file drift, missing tests, and accidental changes to user data or deployment state. For sponsored claims, require evidence of beneficiary/relayer/amount binding, idempotent request state, manual fallback, and the explicit no-broadcast deployment boundary.
 5. Write the PR with the Linear issue when applicable, behavior changed, source-of-truth docs, exact checks and results, manual/browser/testnet evidence, limitations, and rollback notes where applicable.
 6. Push, create, merge, or force-update a remote PR only when that exact remote action is authorized. After publishing, verify the remote branch/PR state instead of inferring it from local commits.
 
