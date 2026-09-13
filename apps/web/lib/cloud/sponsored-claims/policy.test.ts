@@ -6,6 +6,7 @@ import { SPONSORED_ACTION_LEASE_TIMEOUT_SECONDS } from "@/lib/shared/sponsored-c
 
 import {
   assertLiveAction,
+  assertPolicyLimitsAboveCommitted,
   canAutoRecoverSponsoredRequest,
   classifyRelayerFailure,
   isFreshProcessingLease,
@@ -193,6 +194,59 @@ describe("sponsored action policy", () => {
         reviewer,
       ),
     ).toThrow(/revoked grant/);
+  });
+
+  it("names the floor a refused policy limit would have crossed (HAS-49)", () => {
+    const committed = {
+      usedActions: 7,
+      reservedGasWei: 3_000_000_000_000_000_000n,
+      spentGasWei: 1_000_000_000_000_000_000n,
+    };
+
+    // Telling an owner "not lower than reserved" without saying what is
+    // reserved leaves them guessing the number.
+    try {
+      assertPolicyLimitsAboveCommitted(
+        { maxActions: 6, maxGasBudgetWei: 9n ** 20n },
+        committed,
+      );
+      throw new Error("expected the action floor to be refused");
+    } catch (error) {
+      expect(error).toBeInstanceOf(ApiError);
+      expect((error as ApiError).status).toBe(409);
+      expect((error as ApiError).details).toEqual({
+        reason: "actionsBelowReserved",
+        minActions: 7,
+      });
+    }
+
+    // Reserved and spent both count: the budget may not drop under what the
+    // workspace has already committed.
+    try {
+      assertPolicyLimitsAboveCommitted(
+        { maxActions: 7, maxGasBudgetWei: 3_500_000_000_000_000_000n },
+        committed,
+      );
+      throw new Error("expected the gas floor to be refused");
+    } catch (error) {
+      expect((error as ApiError).details).toEqual({
+        reason: "gasBudgetBelowCommitted",
+        minGasBudgetWei: "4000000000000000000",
+      });
+    }
+  });
+
+  it("accepts a policy edit that sits exactly on the floor", () => {
+    expect(() =>
+      assertPolicyLimitsAboveCommitted(
+        { maxActions: 7, maxGasBudgetWei: 4_000_000_000_000_000_000n },
+        {
+          usedActions: 7,
+          reservedGasWei: 3_000_000_000_000_000_000n,
+          spentGasWei: 1_000_000_000_000_000_000n,
+        },
+      ),
+    ).not.toThrow();
   });
 
   it("maps reserve policy codes to explicit HTTP failures", () => {

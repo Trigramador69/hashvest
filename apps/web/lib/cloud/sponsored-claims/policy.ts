@@ -132,6 +132,42 @@ export function assertLiveAction(
   return snapshot.reviewer;
 }
 
+/**
+ * Refuses a policy edit that would drop a limit below what is already
+ * committed, and says by how much (HAS-49).
+ *
+ * Lowering `maxActions` under the actions already reserved, or the gas budget
+ * under the HSK already reserved and spent, would leave the workspace owing
+ * more than it allows. The refusal carries the floor as structured detail
+ * because the browser renders the sentence in the user's own language: an
+ * English message cannot hand them the number they need.
+ */
+export function assertPolicyLimitsAboveCommitted(
+  input: { maxActions: number; maxGasBudgetWei: bigint },
+  committed: {
+    usedActions: number;
+    reservedGasWei: bigint;
+    spentGasWei: bigint;
+  },
+): void {
+  if (input.maxActions < committed.usedActions)
+    throw new ApiError(
+      409,
+      "The action limit cannot be lower than actions already reserved.",
+      { reason: "actionsBelowReserved", minActions: committed.usedActions },
+    );
+  const committedGasWei = committed.reservedGasWei + committed.spentGasWei;
+  if (input.maxGasBudgetWei < committedGasWei)
+    throw new ApiError(
+      409,
+      "The gas budget cannot be lower than reserved and spent HSK.",
+      {
+        reason: "gasBudgetBelowCommitted",
+        minGasBudgetWei: committedGasWei.toString(),
+      },
+    );
+}
+
 export function policyErrorFromReserve(message: string) {
   const known: [string, number, string][] = [
     ["SPONSORSHIP_DISABLED", 409, "Sponsorship is disabled."],

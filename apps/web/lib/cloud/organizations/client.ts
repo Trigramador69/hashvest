@@ -19,12 +19,44 @@ import type { OrganizationTemplateContent } from "../../shared/grant-presets/org
 
 export class OrganizationApiError extends Error {
   readonly status: number;
+  /**
+   * Machine-readable context the route chose to expose, such as the floor a
+   * rejected limit refused to go under. Plain values only, so a caller can
+   * format them in the user's own language rather than showing the English
+   * `message` (HAS-49).
+   */
+  readonly details?: Record<string, string | number | boolean>;
 
-  constructor(status: number, message: string) {
+  constructor(
+    status: number,
+    message: string,
+    details?: Record<string, string | number | boolean>,
+  ) {
     super(message);
     this.name = "OrganizationApiError";
     this.status = status;
+    this.details = details;
   }
+}
+
+/** Reads the optional `details` object off a JSON error body. */
+function errorDetails(
+  body: unknown,
+): Record<string, string | number | boolean> | undefined {
+  if (!body || typeof body !== "object" || !("details" in body))
+    return undefined;
+  const details = (body as { details: unknown }).details;
+  if (!details || typeof details !== "object" || Array.isArray(details))
+    return undefined;
+  const entries = Object.entries(details).filter(
+    ([, value]) =>
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean",
+  );
+  return entries.length
+    ? (Object.fromEntries(entries) as Record<string, string | number | boolean>)
+    : undefined;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -51,7 +83,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       typeof body.error === "string"
         ? body.error
         : "The request failed. Please try again.";
-    throw new OrganizationApiError(response.status, message);
+    throw new OrganizationApiError(
+      response.status,
+      message,
+      errorDetails(body),
+    );
   }
   return body as T;
 }

@@ -29,6 +29,7 @@ import {
 } from "@/lib/protocol/sponsored-claims-server";
 import {
   assertLiveAction,
+  assertPolicyLimitsAboveCommitted,
   canAutoRecoverSponsoredRequest,
   classifyRelayerFailure,
   isFreshProcessingLease,
@@ -210,19 +211,13 @@ export async function updateOrganizationSponsorshipPolicy(
   const access = await requireOrganizationOwner(organizationId);
   await expireReservations(access.supabase, organizationId);
   const existing = await ensurePolicy(access.supabase, organizationId);
-  if (input.maxActions < existing.used_actions)
-    throw new ApiError(
-      409,
-      "The action limit cannot be lower than actions already reserved.",
-    );
-  if (
-    input.maxGasBudgetWei <
-    BigInt(existing.reserved_gas_wei) + BigInt(existing.spent_gas_wei)
-  )
-    throw new ApiError(
-      409,
-      "The gas budget cannot be lower than reserved and spent HSK.",
-    );
+  // The rule, and the floors it reports, live in policy.ts where a test can
+  // reach them (HAS-49).
+  assertPolicyLimitsAboveCommitted(input, {
+    usedActions: existing.used_actions,
+    reservedGasWei: BigInt(existing.reserved_gas_wei),
+    spentGasWei: BigInt(existing.spent_gas_wei),
+  });
   await assertAllowedVaultsAssociated(
     access.supabase,
     organizationId,

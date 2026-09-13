@@ -31,7 +31,14 @@ export function assertSameOrigin(request: Request) {
 export function apiErrorResponse(error: unknown) {
   if (error instanceof ApiError || error instanceof InputValidationError)
     return Response.json(
-      { error: error.message },
+      {
+        error: error.message,
+        // Only ever plain values the client formats itself; the English
+        // message stays the fallback when a caller ignores them.
+        ...(error instanceof ApiError && error.details
+          ? { details: error.details }
+          : {}),
+      },
       { status: error instanceof ApiError ? error.status : 400 },
     );
   if (

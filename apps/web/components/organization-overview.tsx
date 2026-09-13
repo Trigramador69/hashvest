@@ -20,6 +20,7 @@ import { useSession } from "@/hooks/use-session";
 import { useGrant } from "@/hooks/use-grant";
 import { errorMessage, tokenAmount } from "@/lib/protocol/grants";
 import { findMemberByWallet } from "@/lib/cloud/members";
+import { OrganizationApiError } from "@/lib/cloud/organizations/client";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
 import { useTranslations } from "@/lib/shared/i18n/provider";
 import { appRoutes } from "@/lib/shared/routes";
@@ -395,6 +396,19 @@ function SponsorshipPolicyForm({
   );
   const [validationError, setValidationError] = useState("");
 
+  /**
+   * The floors the server will refuse to go under (HAS-49).
+   *
+   * Derived from the policy the page already holds, so the owner sees the
+   * minimum before pressing Save rather than after. The server still checks —
+   * two owners editing at once is exactly the race these hints cannot see —
+   * and its rejection carries the authoritative numbers.
+   */
+  const minActions = policy.usedActions;
+  const minGasBudget = formatEther(
+    BigInt(policy.reservedGasWei) + BigInt(policy.spentGasWei),
+  );
+
   function toggleAction(action: SponsoredActionType, checked: boolean) {
     setAllowedActions((current) =>
       checked
@@ -418,9 +432,31 @@ function SponsorshipPolicyForm({
         maxActionsPerWalletPerDay: Number(dailyLimit),
         maxGasBudgetWei: parseEther(gasBudget || "0").toString(),
       });
-    } catch {
-      setValidationError(t("overview.sponsorship.updateError"));
+    } catch (error) {
+      setValidationError(policyUpdateError(error));
     }
+  }
+
+  /**
+   * Turns a rejection into something the owner can act on.
+   *
+   * A 409 from the limit checks carries the floor it refused to go under, and
+   * that floor is what the message was missing. Anything else — a network
+   * failure, an unexpected status — keeps the generic localized sentence
+   * rather than surfacing an English server string.
+   */
+  function policyUpdateError(error: unknown): string {
+    const details =
+      error instanceof OrganizationApiError ? error.details : undefined;
+    if (details?.reason === "actionsBelowReserved")
+      return t("overview.sponsorship.error.actionsBelowReserved", {
+        min: String(details.minActions ?? minActions),
+      });
+    if (details?.reason === "gasBudgetBelowCommitted")
+      return t("overview.sponsorship.error.gasBudgetBelowCommitted", {
+        min: formatEther(BigInt(String(details.minGasBudgetWei ?? "0"))),
+      });
+    return t("overview.sponsorship.updateError");
   }
 
   if (!canEdit) {
@@ -503,6 +539,14 @@ function SponsorshipPolicyForm({
           {t("overview.sponsorship.maxActionsHint", {
             max: MAX_ORGANIZATION_SPONSORED_ACTIONS,
           })}
+          {minActions > 0 && (
+            <>
+              {" "}
+              {t("overview.sponsorship.maxActionsFloor", {
+                min: minActions,
+              })}
+            </>
+          )}
         </span>
       </label>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -533,6 +577,11 @@ function SponsorshipPolicyForm({
             value={gasBudget}
             onChange={(event) => setGasBudget(event.target.value)}
           />
+          {minGasBudget !== "0" && (
+            <span className="block text-xs leading-5 text-muted-foreground">
+              {t("overview.sponsorship.gasBudgetFloor", { min: minGasBudget })}
+            </span>
+          )}
         </label>
       </div>
       <SponsorshipUsage policy={policy} />
@@ -546,14 +595,11 @@ function SponsorshipPolicyForm({
           ? t("overview.sponsorship.saving")
           : t("overview.sponsorship.save")}
       </Button>
-      {update.isError && (
+      {(validationError || update.isError) && (
         <p className="text-xs text-destructive" role="alert">
-          {t("overview.sponsorship.updateError")}
-        </p>
-      )}
-      {validationError && !update.isError && (
-        <p className="text-xs text-destructive" role="alert">
-          {validationError}
+          {/* The specific message wins: a generic one alongside it would bury
+              the floor the server just named. */}
+          {validationError || t("overview.sponsorship.updateError")}
         </p>
       )}
       {update.isSuccess && (
