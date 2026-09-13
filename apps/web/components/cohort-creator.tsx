@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import {
   erc20Abi,
@@ -54,6 +55,18 @@ import {
   filterPendingCohortItems,
 } from "@/lib/cloud/cohorts/validation";
 import { useTranslations } from "@/lib/shared/i18n/provider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
@@ -90,6 +103,7 @@ export function CohortCreator({
   const [reviewerExternal, setReviewerExternal] = useState(!organizationId);
   const [revocable, setRevocable] = useState(false);
   const [provider, setProvider] = useState("");
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   // Cohort members input
   const [members, setMembers] = useState<CohortMemberInput[]>([
@@ -556,15 +570,22 @@ export function CohortCreator({
                 <div className="grid gap-4 sm:grid-cols-3">
                   <label className="block space-y-1">
                     <span className="text-xs font-medium">Time Unit</span>
-                    <select
-                      className="field"
-                      value={unit}
-                      onChange={(e) => setUnit(e.target.value)}
-                    >
-                      <option value="60">Minutes</option>
-                      <option value="3600">Hours</option>
-                      <option value="86400">Days</option>
-                    </select>
+                    <Select value={unit} onValueChange={setUnit}>
+                      <SelectTrigger className="w-full font-sans text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent align="start">
+                        <SelectItem value="60" className="font-sans text-sm">
+                          {t("wizard.unit.minutes")}
+                        </SelectItem>
+                        <SelectItem value="3600" className="font-sans text-sm">
+                          {t("wizard.unit.hours")}
+                        </SelectItem>
+                        <SelectItem value="86400" className="font-sans text-sm">
+                          {t("wizard.unit.days")}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </label>
                   <label className="block space-y-1">
                     <span className="text-xs font-medium">
@@ -625,25 +646,41 @@ export function CohortCreator({
               </div>
             )}
 
-            <details className="rounded-card border border-border p-4">
-              <summary className="cursor-pointer text-sm font-medium">
-                Advanced Options
-              </summary>
-              <div className="mt-4">
-                <label className="block space-y-1">
-                  <span className="text-xs font-medium">
-                    Eligibility Provider Address (optional)
-                  </span>
-                  <input
-                    className="field font-mono"
-                    value={provider}
-                    onChange={(e) => setProvider(e.target.value.trim())}
-                    placeholder="0x…"
-                    spellCheck={false}
+            <Collapsible
+              open={advancedOpen}
+              onOpenChange={setAdvancedOpen}
+              className="rounded-card border border-border p-4"
+            >
+              <CollapsibleTrigger asChild>
+                <button
+                  type="button"
+                  className="flex min-h-11 w-full items-center justify-between gap-4 text-left text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  Advanced Options
+                  <ChevronDown
+                    aria-hidden
+                    className={`size-4 shrink-0 text-muted-foreground transition-transform duration-180 ${advancedOpen ? "rotate-180" : ""}`}
+                    strokeWidth={1.25}
                   />
-                </label>
-              </div>
-            </details>
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="mt-4">
+                  <label className="block space-y-1">
+                    <span className="text-xs font-medium">
+                      Eligibility Provider Address (optional)
+                    </span>
+                    <input
+                      className="field font-mono"
+                      value={provider}
+                      onChange={(e) => setProvider(e.target.value.trim())}
+                      placeholder="0x…"
+                      spellCheck={false}
+                    />
+                  </label>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
 
             <div className="rounded-card border border-border p-4">
               <label className="flex items-start gap-3 cursor-pointer">

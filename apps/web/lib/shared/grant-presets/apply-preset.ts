@@ -27,7 +27,7 @@ export const MAX_PRESET_MILESTONES = 20;
 /** A preset key is stored in `organization_grants.template_key`, so it shares that column's limit. */
 export const MAX_PRESET_KEY_LENGTH = TEMPLATE_KEY_MAX_LENGTH;
 
-/** The wizard's schedule <select> values, in seconds. */
+/** The wizard's schedule choice values, in seconds. */
 const SCHEDULE_UNITS = ["60", "3600", "86400"];
 
 export class InvalidPresetError extends Error {
@@ -142,7 +142,7 @@ export function assertValidPreset(preset: GrantDraftDefinition): void {
   }
 
   if (timing) {
-    // The wizard's unit <select> is controlled: an unlisted value renders blank.
+    // The wizard's unit choice is controlled: an unlisted value renders blank.
     if (!SCHEDULE_UNITS.includes(timing.unit))
       throw new InvalidPresetError(
         `${key}: unit must be one of ${SCHEDULE_UNITS.join(", ")} seconds.`,

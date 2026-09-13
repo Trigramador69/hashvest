@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
+import { ChevronDown } from "lucide-react";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import {
   erc20Abi,
@@ -20,6 +21,18 @@ import {
 } from "@hashvest/web3";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   AddressDisplay,
   NetworkNotice,
@@ -319,6 +332,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   ]);
   const [provider, setProvider] = useState("");
   const [revocable, setRevocable] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [applied, setApplied] = useState<AppliedPreset>();
   const [validationError, setValidationError] = useState("");
   const [prepared, setPrepared] = useState<PreparedGrant>();
@@ -1384,23 +1398,31 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                           </Field>
                           <div className="grid gap-4 sm:grid-cols-3">
                             <Field label={t("wizard.field.unit.label")}>
-                              <select
-                                className="field"
-                                value={unit}
-                                onChange={(event) =>
-                                  setUnit(event.target.value)
-                                }
-                              >
-                                <option value="60">
-                                  {t("wizard.unit.minutes")}
-                                </option>
-                                <option value="3600">
-                                  {t("wizard.unit.hours")}
-                                </option>
-                                <option value="86400">
-                                  {t("wizard.unit.days")}
-                                </option>
-                              </select>
+                              <Select value={unit} onValueChange={setUnit}>
+                                <SelectTrigger className="w-full font-sans text-sm">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent align="start">
+                                  <SelectItem
+                                    value="60"
+                                    className="font-sans text-sm"
+                                  >
+                                    {t("wizard.unit.minutes")}
+                                  </SelectItem>
+                                  <SelectItem
+                                    value="3600"
+                                    className="font-sans text-sm"
+                                  >
+                                    {t("wizard.unit.hours")}
+                                  </SelectItem>
+                                  <SelectItem
+                                    value="86400"
+                                    className="font-sans text-sm"
+                                  >
+                                    {t("wizard.unit.days")}
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
                             </Field>
                             <Field label={t("wizard.field.cliff.label")}>
                               <input
@@ -1565,29 +1587,45 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                           </Button>
                         </div>
                       )}
-                      <details className="rounded-card border border-border p-4">
-                        <summary className="cursor-pointer text-sm font-medium">
-                          {t("wizard.advanced.summary")}
-                        </summary>
-                        <div className="mt-4">
-                          <Field
-                            label={t("wizard.field.eligibility.label")}
-                            hint={t("wizard.field.eligibility.hint")}
+                      <Collapsible
+                        open={advancedOpen}
+                        onOpenChange={setAdvancedOpen}
+                        className="rounded-card border border-border p-4"
+                      >
+                        <CollapsibleTrigger asChild>
+                          <button
+                            type="button"
+                            className="flex min-h-11 w-full items-center justify-between gap-4 text-left text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                           >
-                            <input
-                              className="field font-mono"
-                              value={provider}
-                              onChange={(event) =>
-                                setProvider(event.target.value.trim())
-                              }
-                              placeholder={t(
-                                "wizard.field.eligibility.placeholder",
-                              )}
-                              spellCheck={false}
+                            {t("wizard.advanced.summary")}
+                            <ChevronDown
+                              aria-hidden
+                              className={`size-4 shrink-0 text-muted-foreground transition-transform duration-180 ${advancedOpen ? "rotate-180" : ""}`}
+                              strokeWidth={1.25}
                             />
-                          </Field>
-                        </div>
-                      </details>
+                          </button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <div className="mt-4">
+                            <Field
+                              label={t("wizard.field.eligibility.label")}
+                              hint={t("wizard.field.eligibility.hint")}
+                            >
+                              <input
+                                className="field font-mono"
+                                value={provider}
+                                onChange={(event) =>
+                                  setProvider(event.target.value.trim())
+                                }
+                                placeholder={t(
+                                  "wizard.field.eligibility.placeholder",
+                                )}
+                                spellCheck={false}
+                              />
+                            </Field>
+                          </div>
+                        </CollapsibleContent>
+                      </Collapsible>
                       <div className="rounded-card border border-border p-4">
                         <label className="flex items-start gap-3 cursor-pointer">
                           <input

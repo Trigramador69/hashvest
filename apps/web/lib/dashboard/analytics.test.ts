@@ -104,4 +104,26 @@ describe("dashboard analytics", () => {
     expect(result.activeGrants).toBe(0);
     expect(result.grants[0]?.lifecycle).toBe("REVOKED");
   });
+
+  it("formats activity months for the reader locale", () => {
+    const now = new Date("2026-09-13T00:00:00.000Z");
+    const spanish = aggregateDashboardAnalytics({
+      snapshots: [],
+      events: [],
+      now,
+      locale: "es",
+    });
+    const chinese = aggregateDashboardAnalytics({
+      snapshots: [],
+      events: [],
+      now,
+      locale: "zh-CN",
+    });
+
+    expect(spanish.activity.map((bucket) => bucket.label)).not.toEqual(
+      chinese.activity.map((bucket) => bucket.label),
+    );
+    expect(spanish.activity.at(-1)?.label).toBe("sept");
+    expect(chinese.activity.at(-1)?.label).toBe("9月");
+  });
 });

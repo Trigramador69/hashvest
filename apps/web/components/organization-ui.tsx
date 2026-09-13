@@ -17,6 +17,15 @@ import type { OrganizationMember } from "@/lib/cloud/organizations/types";
 import { Notice, PageHeading } from "./grant-ui";
 import { Button, buttonVariants } from "./ui/button";
 import { WorkspaceAccessNotice } from "./workspace-access";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+
+const EMPTY_MEMBER_VALUE = "__empty_member__";
 
 const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
@@ -80,28 +89,46 @@ export function MemberPicker({
       <label className="block space-y-2">
         <span className="text-sm font-medium">{label}</span>
         {!external ? (
-          <select
-            className="field"
-            value={memberId}
-            onChange={(event) => {
-              const selectedId = event.target.value;
-              onMemberChange(selectedId);
-              const member = members?.find((item) => item.id === selectedId);
+          <Select
+            value={memberId || EMPTY_MEMBER_VALUE}
+            onValueChange={(selectedId) => {
+              const nextMemberId =
+                selectedId === EMPTY_MEMBER_VALUE ? "" : selectedId;
+              onMemberChange(nextMemberId);
+              const member = members?.find((item) => item.id === nextMemberId);
               if (member) onAddressChange(member.walletAddress);
             }}
             disabled={!members?.length}
           >
-            <option value="">
-              {members?.length ? choosePlaceholder : t("picker.noMembers")}
-            </option>
-            {members?.map((member) => (
-              <option key={member.id} value={member.id}>
-                {member.displayName}
-                {member.roleLabel ? ` — ${member.roleLabel}` : ""}
-                {` · ${shortAddress(member.walletAddress)}`}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger
+              className={`w-full font-sans text-sm ${memberId ? "" : "text-muted-foreground"}`}
+            >
+              <SelectValue
+                placeholder={
+                  members?.length ? choosePlaceholder : t("picker.noMembers")
+                }
+              />
+            </SelectTrigger>
+            <SelectContent align="start">
+              <SelectItem
+                value={EMPTY_MEMBER_VALUE}
+                className="font-sans text-sm"
+              >
+                {members?.length ? choosePlaceholder : t("picker.noMembers")}
+              </SelectItem>
+              {members?.map((member) => (
+                <SelectItem
+                  key={member.id}
+                  value={member.id}
+                  className="font-sans text-sm"
+                >
+                  {member.displayName}
+                  {member.roleLabel ? ` — ${member.roleLabel}` : ""}
+                  {` · ${shortAddress(member.walletAddress)}`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         ) : (
           <input
             className="field font-mono"

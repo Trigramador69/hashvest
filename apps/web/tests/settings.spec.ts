@@ -38,7 +38,8 @@ test.describe("workspace settings", () => {
     // The shell header carries one too; this is the one on the page itself.
     const language = page.getByRole("main").getByLabel("Choose language");
     await expect(language).toBeVisible();
-    await language.selectOption("es");
+    await language.click();
+    await page.getByRole("option", { name: "Español", exact: true }).click();
 
     await expect(
       page.getByRole("heading", { name: "Configuración." }),
@@ -47,7 +48,7 @@ test.describe("workspace settings", () => {
     // Both switchers report the same session choice.
     await expect(
       page.getByRole("banner").getByLabel(/idioma|language/i),
-    ).toHaveValue("es");
+    ).toHaveText("Español");
 
     // The choice is session state, not a one-render accident.
     await page.goto("/app/grants", { waitUntil: "domcontentloaded" });

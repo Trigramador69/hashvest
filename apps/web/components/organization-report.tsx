@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useAccount } from "wagmi";
+import { ChevronDown } from "lucide-react";
 
 import { useOrganizationGrantSnapshots } from "@/hooks/use-organization-grant-snapshots";
 import {
@@ -30,6 +32,11 @@ import { Notice, Progress } from "./grant-ui";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { MetricCard } from "./ui/metric-card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "./ui/collapsible";
 
 /**
  * Every figure on this page is a live GrantVault read, labeled with the vault
@@ -103,6 +110,7 @@ function PartialNotice({
 
 function TokenGroupCard({ group }: { group: OrganizationReportTokenGroup }) {
   const t = useTranslations();
+  const [reconcileOpen, setReconcileOpen] = useState(false);
   const amount = (value: bigint) =>
     `${tokenAmount(value, group.decimals)} ${group.symbol}`;
   const rows: Array<[string, bigint, string]> = [
@@ -168,26 +176,43 @@ function TokenGroupCard({ group }: { group: OrganizationReportTokenGroup }) {
             </div>
           ))}
         </dl>
-        <details className="rounded-card border border-border bg-surface-1 p-4">
-          <summary className="cursor-pointer font-mono text-xs font-medium">
-            {t("report.token.reconcile")}
-          </summary>
-          <p className="mt-2 text-xs leading-5 text-muted-foreground">
-            {t("report.token.reconcileHint")}
-          </p>
-          <ul className="mt-3 space-y-1">
-            {group.vaultAddresses.map((vaultAddress) => (
-              <li key={vaultAddress}>
-                <Link
-                  className="font-mono text-xs text-primary hover:underline"
-                  href={`/grants/${vaultAddress}`}
-                >
-                  {shortAddress(vaultAddress)}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </details>
+        <Collapsible
+          open={reconcileOpen}
+          onOpenChange={setReconcileOpen}
+          className="rounded-card border border-border bg-surface-1 p-4"
+        >
+          <CollapsibleTrigger asChild>
+            <button
+              type="button"
+              className="flex min-h-11 w-full items-center justify-between gap-4 text-left font-mono text-xs font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              aria-label={t("report.token.reconcile")}
+            >
+              {t("report.token.reconcile")}
+              <ChevronDown
+                aria-hidden
+                className={`size-4 shrink-0 text-muted-foreground transition-transform duration-180 ${reconcileOpen ? "rotate-180" : ""}`}
+                strokeWidth={1.25}
+              />
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">
+              {t("report.token.reconcileHint")}
+            </p>
+            <ul className="mt-3 space-y-1">
+              {group.vaultAddresses.map((vaultAddress) => (
+                <li key={vaultAddress}>
+                  <Link
+                    className="font-mono text-xs text-primary hover:underline"
+                    href={`/grants/${vaultAddress}`}
+                  >
+                    {shortAddress(vaultAddress)}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </CollapsibleContent>
+        </Collapsible>
       </CardContent>
     </Card>
   );

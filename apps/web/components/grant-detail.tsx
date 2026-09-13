@@ -72,6 +72,15 @@ import { SPONSORED_CLAIM_SIGNING_WINDOW_SECONDS } from "@/lib/shared/sponsored-c
 import { MilestoneEvidenceList } from "./milestone-evidence";
 import { AiEvidenceReview } from "./ai-evidence-review";
 import { reviewStateKey } from "@/lib/shared/ai-tools/review";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
 
 /** Protocol literals: never translated, only interpolated into messages. */
 const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
@@ -380,7 +389,6 @@ function SponsoredActionPanel({
   }
 
   const compact = actionType === "review";
-  const confirmationId = `sponsored-${actionType}-${milestoneIndex ?? "claim"}-confirm-title`;
   return (
     <section
       className={
@@ -445,36 +453,47 @@ function SponsoredActionPanel({
               })}
             </p>
           )}
-          {confirming ? (
-            <div
-              aria-labelledby={confirmationId}
-              className="space-y-3 rounded-card border border-primary/30 bg-surface-1 p-3"
-              role="dialog"
+          <Dialog
+            open={confirming}
+            onOpenChange={(open) => {
+              if (!open && !submitting) setConfirming(false);
+            }}
+          >
+            <DialogContent
+              closeLabel={t("ui.close")}
+              className="border-primary/30"
             >
-              <h4 className="font-medium" id={confirmationId}>
-                {t(
-                  actionType === "claim"
-                    ? "detail.sponsor.confirmTitle"
-                    : "detail.sponsor.reviewConfirmTitle",
-                )}
-              </h4>
-              <p className="text-xs leading-5 text-muted-foreground">
-                {actionType === "claim"
-                  ? t("detail.sponsor.confirmBody", {
-                      amount: `${tokenAmount(grant.claimableAmount, grant.decimals)} ${grant.symbol}`,
-                    })
-                  : t("detail.sponsor.reviewConfirmBody", {
-                      milestone:
-                        grant.milestones[milestoneIndex as number].title,
-                    })}
-              </p>
-              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+              <DialogHeader>
+                <DialogTitle>
+                  {t(
+                    actionType === "claim"
+                      ? "detail.sponsor.confirmTitle"
+                      : "detail.sponsor.reviewConfirmTitle",
+                  )}
+                </DialogTitle>
+                <DialogDescription>
+                  {actionType === "claim"
+                    ? t("detail.sponsor.confirmBody", {
+                        amount: `${tokenAmount(grant.claimableAmount, grant.decimals)} ${grant.symbol}`,
+                      })
+                    : t("detail.sponsor.reviewConfirmBody", {
+                        milestone:
+                          grant.milestones[milestoneIndex as number].title,
+                      })}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-card border border-border bg-surface-1 p-3 text-xs">
                 <span className="text-muted-foreground">
                   {t("detail.sponsor.gasPayer")}
                 </span>
                 <AddressDisplay address={relayerAddress as Address} />
               </div>
-              <div className="flex flex-wrap gap-2">
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline" disabled={submitting}>
+                    {t("detail.sponsor.cancel")}
+                  </Button>
+                </DialogClose>
                 <Button
                   className="h-auto min-h-10 whitespace-normal py-2"
                   disabled={!sponsorshipReady || submitting}
@@ -484,16 +503,10 @@ function SponsoredActionPanel({
                     ? t("detail.sponsor.signing")
                     : t("detail.sponsor.confirm")}
                 </Button>
-                <Button
-                  variant="outline"
-                  disabled={submitting}
-                  onClick={() => setConfirming(false)}
-                >
-                  {t("detail.sponsor.cancel")}
-                </Button>
-              </div>
-            </div>
-          ) : (
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          {!confirming && (
             <Button
               className="h-auto min-h-10 w-full whitespace-normal py-2"
               disabled={!sponsorshipReady}

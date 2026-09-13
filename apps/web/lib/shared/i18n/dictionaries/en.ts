@@ -119,6 +119,12 @@ export const en = {
   "locale.label": "Language",
   "locale.choose": "Choose language",
 
+  // Wallet triggers. RainbowKit still owns the connection/account modals.
+  "wallet.connect": "Connect wallet",
+  "wallet.wrongNetwork": "Wrong network",
+  "wallet.changeNetwork": "Change network",
+  "wallet.account": "Open wallet account",
+
   // Workspace session (SIWE). Wallet-facing, never fund-facing.
   "session.enabled": "Workspace access enabled",
   "session.signOut": "Sign out of workspace",
@@ -265,6 +271,7 @@ export const en = {
     "Connect eligible compliance or attestation providers without moving authority offchain. Roadmap only.",
 
   // Revocation (HAS-26), transaction stages, and validation raised from lib/protocol.
+  "ui.close": "Close",
   "ui.lifecycle.revoked": "Revoked",
   "party.terms": "Terms",
   "tx.stage.confirm": "{label}: confirm in your wallet",
@@ -623,7 +630,8 @@ export const en = {
     "Onchain events across your grants, last six months.",
   "dashboard.chart.activity.aria": "Grant activity over the last six months",
   "dashboard.chart.activity.sr":
-    "Each dot represents one onchain dashboard event.",
+    "Monthly counts of created, approved, claimed and revoked onchain events across the last six months.",
+  "dashboard.chart.activity.period": "Month",
   "dashboard.chart.series.created": "Created",
   "dashboard.chart.series.approved": "Approved",
   "dashboard.chart.series.claimed": "Claimed",

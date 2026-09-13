@@ -36,7 +36,10 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
   const [roleLabel, setRoleLabel] = useState("");
   const [editingId, setEditingId] = useState<string>();
   /** The member awaiting confirmation, or undefined when no dialog is open. */
-  const [pendingRemoval, setPendingRemoval] = useState<string>();
+  const [pendingRemoval, setPendingRemoval] = useState<{
+    id: string;
+    displayName: string;
+  }>();
   const [editingName, setEditingName] = useState("");
   const [editingRole, setEditingRole] = useState("");
 
@@ -301,7 +304,12 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => setPendingRemoval(member.id)}
+                                onClick={() =>
+                                  setPendingRemoval({
+                                    id: member.id,
+                                    displayName: member.displayName,
+                                  })
+                                }
                                 disabled={removeMember.isPending}
                               >
                                 {t("members.remove")}
@@ -335,9 +343,15 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
         pending={removeMember.isPending}
         onCancel={() => setPendingRemoval(undefined)}
         onConfirm={() => {
-          if (pendingRemoval) void remove(pendingRemoval);
+          if (pendingRemoval) void remove(pendingRemoval.id);
         }}
-      />
+      >
+        {pendingRemoval && (
+          <p className="-mt-1 font-medium text-foreground">
+            {pendingRemoval.displayName}
+          </p>
+        )}
+      </ConfirmDialog>
     </div>
   );
 }
