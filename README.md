@@ -20,7 +20,7 @@ This is a hackathon MVP deployed on **HSK Chain Testnet**. It is unaudited, uses
 
 ### Protocol
 
-- Time vesting with a start timestamp, cliff, and linear duration.
+- Time vesting with a start timestamp, optional initial unlock, cliff, and linear duration.
 - Milestone grants with fixed amounts approved by a designated reviewer.
 - Hybrid grants where both conditions constrain the claim: `unlocked = min(time vested, approved milestone amount)`.
 - Optional `IEligibilityProvider` adapter, including a clearly labeled administrator-controlled demo allowlist.
@@ -58,7 +58,7 @@ GrantVault #1, #2, #3 ...
 SponsoredGrantVault #organization grants
 ```
 
-Each vault stores the issuer, beneficiary, reviewer, token, allocation, strategy, vesting schedule, milestone titles and amounts, eligibility provider, and revocable mode as immutable terms. Milestone approvals, claims, and the optional one-way revocation state are the only lifecycle changes after creation. Revocation freezes earned value and returns only unearned allocation to the issuer; non-revocable grants and previously deployed vaults remain permanent. Organization metadata is an optional off-chain product layer and never replaces contract state.
+Each vault stores the issuer, beneficiary, reviewer, token, allocation, strategy, vesting schedule, optional initial unlock, milestone titles and amounts, eligibility provider, and revocable mode as immutable terms. Milestone approvals, claims, and the optional one-way revocation state are the only lifecycle changes after creation. Revocation freezes earned value and returns only unearned allocation to the issuer; non-revocable grants and previously deployed vaults remain permanent. Organization metadata is an optional off-chain product layer and never replaces contract state.
 
 ### Design refactor and live dashboard analytics
 
@@ -91,6 +91,8 @@ Organizations are workspaces around existing GrantVaults. Supabase stores organi
 
 The canonical identities are lowercase EVM addresses for wallets, `(chain_id, vault_address)` for grants, and UUIDs for organizations. The current organization schema accepts HSK Testnet only (`chain_id = 133`). Product role labels such as `Treasury Reviewer` are presentation metadata; they do not grant permission to approve or claim.
 
+An organization owner manages its templates on the workspace Templates tab; every other member can read them and apply one in either wizard, but cannot change them, and deleting a template archives it so grants already created from it keep their name. Applying a template only fills editable wizard fields — it never submits a transaction, sets a beneficiary, or grants permission.
+
 Organization writes go through authenticated Next.js Route Handlers. The browser never uses the Supabase service-role key or writes organization tables directly. Workspace grant cards and queues join organization metadata with fresh GrantVault reads; they do not aggregate token balances or invent USD values.
 
 Organization sponsorship is an opt-in Cloud policy around a protocol operation. The beneficiary wallet signs an EIP-712 intent binding the exact vault, beneficiary, amount, nonce, deadline, and relayer; `SponsoredGrantVault` enforces those fields and the one-time first-claim rule on HSK. Supabase tracks policy reservations and request/receipt status only. If the relayer is unavailable, the policy is disabled, the grant is legacy, or the request fails, the beneficiary-paid claim remains available. See [`docs/sponsored-claims.md`](docs/sponsored-claims.md) for the decision, threat model, and deployment gate.
@@ -105,11 +107,22 @@ Full contract, limits, failure matrix, and privacy boundary: [`docs/ai-grant-bui
 
 ### Unlock semantics
 
+`initialUnlock` is an explicit token amount, included once in `totalAllocation`. It is optional and defaults to `0`. Pure `MILESTONE` grants reject `initialUnlock > 0`.
+
 - `TIME`: `unlockedAmount = vestedByTime`.
 - `MILESTONE`: `unlockedAmount = sum(approved milestone amounts)`.
-- `HYBRID`: `unlockedAmount = min(vestedByTime, milestoneUnlockedAmount)`.
+- `HYBRID`: `unlockedAmount = initialUnlock + min(vestedByTime - initialUnlock, milestoneUnlockedAmount)` after `start`; `0` before `start`.
 
-The cliff delays access but does not restart the vesting curve: before `start + cliff`, vesting is zero; at `start + duration`, the full allocation is vested; between those points, vesting is linear from `start`. Milestone amounts must sum exactly to the allocation, and no more than 20 milestones are accepted.
+Time vesting (`vestedByTime`) for `TIME` and `HYBRID`:
+
+- before `start`: `0`
+- from `start` until `start + cliff`: exactly `initialUnlock`
+- at or after `start + duration`: `totalAllocation`
+- otherwise: `initialUnlock + floor((totalAllocation - initialUnlock) * (t - start) / duration)`
+
+The cliff holds the remaining allocation without restarting the curve. Rounding uses Solidity `mulDiv` (floor). Repeated claims subtract `claimedAmount` from `unlockedAmount` and never re-count `initialUnlock`.
+
+`HYBRID` and `MILESTONE` milestone amounts must sum exactly to the remaining allocation (`totalAllocation - initialUnlock` on `HYBRID`, `totalAllocation` on `MILESTONE`), and no more than 20 milestones are accepted. The grant wizard preview uses the same helpers as the contract (`calculateVestedByTime` / `calculateUnlockedAmount` in `apps/web/lib/protocol/grants.ts`).
 
 ## Installation
 
@@ -206,7 +219,7 @@ landing, disconnected mobile navigation, and deterministic connected dashboard
 fixture; the fixture route returns 404 in production and never reads or writes
 HSK state.
 
-The application is available at `http://localhost:3000`. Routes are `/` (landing), `/app` (live overview), `/app/grants` (Issued / Received / Review), `/app/settings` (organizations), `/app/settings/organizations/new`, `/app/settings/organizations/<uuid>`, `/app/settings/organizations/<uuid>/members`, `/app/settings/organizations/<uuid>/grants`, and `/app/settings/organizations/<uuid>/grants/new`, plus `/grants/new` (the shared five-step template-aware creation wizard: Template, Grant, Strategy, Conditions, Review) and `/grants/<GrantVault address>` (public role-aware detail page). The previous `/app/organizations/...` paths remain compatibility redirects. `/visual/dashboard` is a local-only deterministic fixture for the Playwright visual contract and is unavailable in production.
+The application is available at `http://localhost:3000`. Routes are `/` (landing), `/app` (live overview), `/app/grants` (Issued / Received / Review), `/app/settings` (organizations), `/app/settings/organizations/new`, `/app/settings/organizations/<uuid>`, `/app/settings/organizations/<uuid>/members`, `/app/settings/organizations/<uuid>/templates`, `/app/settings/organizations/<uuid>/grants`, and `/app/settings/organizations/<uuid>/grants/new`, plus `/grants/new` (the shared five-step template-aware creation wizard: Template, Grant, Strategy, Conditions, Review) and `/grants/<GrantVault address>` (public role-aware detail page). The previous `/app/organizations/...` paths remain compatibility redirects. `/visual/dashboard` and `/visual/templates` are local-only deterministic fixtures for the Playwright visual contract and are unavailable in production.
 
 Wallet connection and workspace authentication are separate. After connecting an HSK Testnet wallet, click **Sign in to workspace** and approve one SIWE/EIP-4361 message. The server stores a five-minute, one-time nonce and issues a 24-hour HttpOnly, SameSite session cookie signed with `AUTH_SECRET`. If the connected wallet changes, organization reads and writes are disabled until the new wallet explicitly signs in; the application never silently signs or writes as the previous wallet.
 
@@ -347,4 +360,4 @@ supabase/verification    Cloud     Constraint checks for migrations, disposable 
 
 Imports run one way: Cloud may depend on Protocol, never the reverse. `pnpm boundary:check` enforces this, along with service-role secret containment, protocol export drift, and documentation links. See [`docs/architecture.md`](docs/architecture.md).
 
-Important organization implementation files include `apps/web/lib/auth` (SIWE challenge verification and signed sessions), `apps/web/lib/organizations` (validation, server authorization, HSK GrantVault verification, types, and browser API client), `apps/web/hooks/use-organizations.ts` (TanStack Query data layer), and `apps/web/components/organization-*` / `members-manager.tsx` (workspace UI). Organization lifecycle state remains derived from live protocol reads; it is not stored in Supabase.
+Important organization implementation files include `apps/web/lib/auth` (SIWE challenge verification and signed sessions), `apps/web/lib/organizations` (validation, server authorization, HSK GrantVault verification, types, and browser API client), `apps/web/hooks/use-organizations.ts` (TanStack Query data layer), and `apps/web/components/organization-*` / `members-manager.tsx` / `templates-manager.tsx` / `template-editor.tsx` (workspace UI). Organization lifecycle state remains derived from live protocol reads; it is not stored in Supabase.

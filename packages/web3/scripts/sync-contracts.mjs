@@ -126,7 +126,7 @@ async function main() {
 
 if (
   process.argv[1] &&
-  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+  resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))
 ) {
   main().catch((error) => {
     console.error(error.message);

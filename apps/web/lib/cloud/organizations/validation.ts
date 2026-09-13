@@ -271,6 +271,23 @@ export function parseOrganizationTemplateInput(
   return content;
 }
 
+/**
+ * The body of a template update: the new content and the version it was based
+ * on, so a stale editor gets a conflict instead of overwriting a newer revision.
+ */
+export function parseOrganizationTemplateUpdateInput(value: unknown): {
+  content: OrganizationTemplateContent;
+  expectedVersion: number;
+} {
+  if (!value || typeof value !== "object" || Array.isArray(value))
+    throw new InputValidationError("Template data is invalid.");
+  const input = value as Record<string, unknown>;
+  return {
+    content: parseOrganizationTemplateInput(input.template),
+    expectedVersion: parseTemplateVersion(input.expectedVersion),
+  };
+}
+
 /** The version an update was based on, for optimistic concurrency. */
 export function parseTemplateVersion(value: unknown): number {
   if (

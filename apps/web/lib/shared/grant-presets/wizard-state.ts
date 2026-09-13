@@ -28,6 +28,7 @@ import {
   type GrantPreset,
   type GrantPresetKey,
 } from "./presets";
+import { isOrganizationTemplateKey } from "./template-key";
 
 export type PresetMilestoneFields = AppliedPresetDraft["milestones"][number];
 
@@ -147,11 +148,14 @@ function userOwnedFields(
   ).filter((field) => isUserOwned(field, current, applied));
 }
 
-/** Resolves a catalog key. A generated draft has no entry and must be passed in. */
+/**
+ * Resolves a catalog key. A generated draft and an organization template have
+ * no entry and must be passed in.
+ */
 function resolveCatalogPreset(key: AppliedPresetKey): GrantPreset {
-  if (key === GENERATED_PRESET_KEY)
+  if (key === GENERATED_PRESET_KEY || isOrganizationTemplateKey(key))
     throw new Error(
-      "A generated draft must be supplied as options.preset; it has no catalog entry.",
+      "A generated draft or organization template must be supplied as options.preset; it has no catalog entry.",
     );
   return getGrantPreset(key as GrantPresetKey);
 }
@@ -173,7 +177,8 @@ export function selectPreset(
     applyDescription?: boolean;
     /**
      * A locale-resolved copy for user-facing title and milestone suggestions.
-     * Required for `GENERATED_PRESET_KEY`, which the catalog cannot resolve.
+     * Required for `GENERATED_PRESET_KEY` and for an organization template
+     * (`organizationTemplatePreset`), which the catalog cannot resolve.
      */
     preset?: GrantPreset;
   } = {},
@@ -311,5 +316,64 @@ export function resyncMilestoneAmounts(
         amount: amounts[index] ?? "",
       })),
     },
+  };
+}
+
+/**
+ * The wizard's reviewer inputs. The organization-aware wizard picks a member
+ * or, as a fallback, types an external address; the direct wizard only types.
+ */
+export type ReviewerSelection = {
+  /** The member chosen in the organization picker, or "". */
+  memberId: string;
+  address: string;
+  /** Typing an address rather than picking a member. Always true when direct. */
+  external: boolean;
+};
+
+/**
+ * Pre-fills the reviewer from an applied organization template (HAS-13).
+ *
+ * A template's default is a member reference, so it becomes a concrete choice
+ * only here, against the organization's current members:
+ *
+ * - `organization` preselects the member in the picker.
+ * - `direct` has no picker, so it fills in that member's current wallet as
+ *   plain, editable text.
+ *
+ * It only ever fills an empty choice. A picked member, a typed address, or an
+ * explicit switch to an external reviewer stays exactly as the user left it,
+ * which is also why clearing or switching a template never touches the
+ * reviewer. Nothing is filled for time vesting, which has no reviewer, or for
+ * a member who has since left. The result is a suggestion: `prepare()` still
+ * validates whatever reviewer is submitted.
+ */
+export function applyReviewerDefault({
+  path,
+  strategy,
+  defaultReviewerMemberId,
+  members,
+  current,
+}: {
+  path: "organization" | "direct";
+  /** The strategy the wizard holds once the template has been applied. */
+  strategy: 0 | 1 | 2;
+  defaultReviewerMemberId: string | null;
+  /** The template's organization's members, or undefined while loading. */
+  members: readonly { id: string; walletAddress: string }[] | undefined;
+  current: ReviewerSelection;
+}): ReviewerSelection {
+  if (strategy === 0 || !defaultReviewerMemberId) return current;
+  const member = members?.find((item) => item.id === defaultReviewerMemberId);
+  if (!member) return current;
+  if (path === "direct")
+    return current.address.trim()
+      ? current
+      : { ...current, address: member.walletAddress };
+  if (current.external || current.memberId) return current;
+  return {
+    memberId: member.id,
+    address: member.walletAddress,
+    external: false,
   };
 }

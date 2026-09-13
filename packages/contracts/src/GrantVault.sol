@@ -22,6 +22,7 @@ contract GrantVault is ReentrancyGuard {
     error InvalidSchedule();
     error InvalidAllocation();
     error InvalidMilestones();
+    error InvalidInitialUnlock();
     error GrantNotRevocable();
     error AlreadyRevoked();
     error UnauthorizedIssuer();
@@ -33,6 +34,7 @@ contract GrantVault is ReentrancyGuard {
     address public immutable reviewer;
     address public immutable token;
     uint256 public immutable totalAllocation;
+    uint256 public immutable initialUnlock;
     UnlockStrategy public immutable strategy;
     uint256 public immutable start;
     uint256 public immutable cliff;
@@ -57,6 +59,10 @@ contract GrantVault is ReentrancyGuard {
             revert InvalidAddress();
         }
         if (config.totalAllocation == 0) revert InvalidAllocation();
+        if (config.initialUnlock > config.totalAllocation) revert InvalidInitialUnlock();
+        if (config.strategy == UnlockStrategy.MILESTONE && config.initialUnlock > 0) {
+            revert InvalidInitialUnlock();
+        }
         if (
             config.strategy != UnlockStrategy.MILESTONE
                 && (config.duration == 0
@@ -68,14 +74,18 @@ contract GrantVault is ReentrancyGuard {
         } else {
             if (config.reviewer == address(0)) revert InvalidAddress();
             if (inputs.length == 0 || inputs.length > MAX_MILESTONES) revert InvalidMilestones();
+            uint256 expectedMilestoneSum = config.strategy == UnlockStrategy.HYBRID
+                ? config.totalAllocation - config.initialUnlock
+                : config.totalAllocation;
+            if (expectedMilestoneSum == 0) revert InvalidInitialUnlock();
             uint256 sum;
             for (uint256 i; i < inputs.length; ++i) {
                 uint256 amount = inputs[i].amount;
                 // Subtraction also prevents an overflowing sum from creating malformed economics.
-                if (amount == 0 || amount > config.totalAllocation - sum) revert InvalidMilestones();
+                if (amount == 0 || amount > expectedMilestoneSum - sum) revert InvalidMilestones();
                 sum += amount;
             }
-            if (sum != config.totalAllocation) revert InvalidMilestones();
+            if (sum != expectedMilestoneSum) revert InvalidMilestones();
         }
         title = config.title;
         issuer = issuer_;
@@ -83,6 +93,7 @@ contract GrantVault is ReentrancyGuard {
         reviewer = config.reviewer;
         token = config.token;
         totalAllocation = config.totalAllocation;
+        initialUnlock = config.initialUnlock;
         strategy = config.strategy;
         start = config.start;
         cliff = config.cliff;
@@ -109,20 +120,26 @@ contract GrantVault is ReentrancyGuard {
         emit MilestoneApproved(msg.sender, index, milestone.amount);
     }
 
-    /// @notice The cliff delays access but the linear curve always begins at start.
+    /// @notice The cliff delays access to the vesting allocation, while initialUnlock is accessible at start.
     /// @dev Milestone-only grants have no time condition and return zero here.
     function vestedByTime() public view returns (uint256) {
         if (strategy == UnlockStrategy.MILESTONE) return 0;
         uint256 effectiveTime = revoked ? revokedAt : block.timestamp;
-        if (effectiveTime < start + cliff) return 0;
+        if (effectiveTime < start) return 0;
+        if (effectiveTime < start + cliff) return initialUnlock;
         if (effectiveTime >= start + duration) return totalAllocation;
-        return Math.mulDiv(totalAllocation, effectiveTime - start, duration);
+        uint256 vestingAllocation = totalAllocation - initialUnlock;
+        return initialUnlock + Math.mulDiv(vestingAllocation, effectiveTime - start, duration);
     }
 
     function unlockedAmount() public view returns (uint256) {
         if (revoked) return revocationEarnedAmount;
         if (strategy == UnlockStrategy.MILESTONE) return milestoneUnlockedAmount;
-        if (strategy == UnlockStrategy.HYBRID) return Math.min(vestedByTime(), milestoneUnlockedAmount);
+        if (strategy == UnlockStrategy.HYBRID) {
+            if (block.timestamp < start) return 0;
+            uint256 vestingTimeUnlocked = vestedByTime() - initialUnlock;
+            return initialUnlock + Math.min(vestingTimeUnlocked, milestoneUnlockedAmount);
+        }
         return vestedByTime();
     }
 

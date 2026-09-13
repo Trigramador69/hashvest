@@ -386,6 +386,65 @@ export const zhCN: TranslationDictionary = {
   "workspace.tab.overview": "概览",
   "workspace.tab.grants": "资助",
   "workspace.tab.members": "成员",
+  "workspace.tab.templates": "模板",
+
+  // 组织模板管理（HAS-13）。
+  "templates.title": "模板",
+  "templates.lede.owner":
+    "资助向导可复用的起点。模板只填充可编辑字段，绝不签名、注资或授予权限。",
+  "templates.lede.member":
+    "资助向导可复用的起点，由组织所有者保存。你可以在创建资助时套用，但只有所有者可以修改。",
+  "templates.loading.title": "正在加载模板",
+  "templates.loading.body": "正在读取该组织的模板。",
+  "templates.error.title": "模板不可用",
+  "templates.error.body": "无法加载该组织的模板。不使用模板创建资助仍然可用。",
+  "templates.retry": "重试",
+  "templates.empty": "还没有模板。",
+  "templates.new": "新建模板",
+  "templates.edit": "编辑",
+  "templates.delete": "删除",
+  "templates.deleteConfirm":
+    "删除模板「{name}」？已根据它创建的资助条款不变，并仍会显示该名称。",
+  "templates.save": "保存模板",
+  "templates.saving": "正在保存…",
+  "templates.cancel": "取消",
+  "templates.form.lede":
+    "这里的一切都只是向导填入的建议值。创建资助的人会逐项编辑，并自行选择受益人。",
+  "templates.field.name": "名称",
+  "templates.field.name.placeholder": "开发者资助",
+  "templates.field.description": "说明",
+  "templates.field.description.placeholder": "团队在什么情况下应使用该模板。",
+  "templates.field.strategy": "解锁策略",
+  "templates.field.milestones": "里程碑",
+  "templates.field.milestones.hint":
+    "按整数百分比划分分配总额，合计须为 100。金额由向导根据其中填写的分配总额计算。",
+  "templates.field.milestone.title": "里程碑 {index}",
+  "templates.field.milestone.percent": "占比（%）",
+  "templates.field.reviewer": "默认审核人",
+  "templates.field.reviewer.none": "不设默认",
+  "templates.field.reviewer.hint":
+    "在向导中预选该成员。这只是建议而非权限：链上记录的审核人以创建资助时提交的为准。",
+  "templates.field.allocation": "建议分配额",
+  "templates.field.allocation.hint":
+    "可选。向导填入的初始金额；绝不会从金库读取或与之对账。",
+  "templates.milestone.add": "添加里程碑",
+  "templates.milestone.remove": "移除",
+  "templates.milestone.total": "合计：{total}%",
+  "templates.meta.milestones": "{count} 个里程碑",
+  "templates.meta.reviewer": "审核人：{member}",
+  "templates.meta.formerMember": "已退出的成员",
+  "templates.meta.version": "v{version}",
+  "templates.error.name": "请为模板取一个不超过 {max} 个字符的名称。",
+  "templates.error.description": "说明不得超过 {max} 个字符。",
+  "templates.error.duration": "时长必须是正整数。",
+  "templates.error.cliff": "锁定期必须是不小于零的整数。",
+  "templates.error.cliffTooLong": "锁定期不能长于总时长。",
+  "templates.error.milestoneCount": "该策略需要 1 至 {max} 个里程碑。",
+  "templates.error.milestoneTitle":
+    "里程碑 {index} 需要一个不超过 {max} 个字符的标题。",
+  "templates.error.percent": "里程碑 {index} 的占比必须是正整数。",
+  "templates.error.percentSum": "各里程碑占比合计须为 100%，目前为 {total}%。",
+  "templates.error.allocation": "建议分配额必须是正数。",
   "workspace.loading.title": "正在加载工作区",
   "workspace.loading.body": "正在读取组织上下文…",
   "workspace.error.title": "无法加载工作区",
@@ -500,13 +559,19 @@ export const zhCN: TranslationDictionary = {
   "detail.stat.claimed": "已领取",
   "detail.schedule.title": "归属计划",
   "detail.schedule.lede":
-    "自起始时间线性归属。悬崖期会延迟领取，但不会重启曲线。",
+    "可选的初始解锁在起始时即可领取。剩余部分按线性归属；悬崖期会延迟该剩余部分，但不会重启曲线。",
   "detail.schedule.vestedByTime": "按时间已归属 {amount}",
   "detail.schedule.progressLabel": "按时间归属进度",
   "detail.schedule.start": "起始",
   "detail.schedule.cliffReached": "悬崖期结束",
   "detail.schedule.fullyVested": "完全归属",
+  "detail.schedule.initialUnlock": "初始解锁（TGE）：{amount}（{percent}%）",
+  "detail.schedule.initialUnlockHint":
+    "起始时即可领取。剩余的 {remaining} 按下方计划归属。",
   "detail.hybrid.formula": "混合 = min(按时间归属, 已批准里程碑)",
+  "detail.hybrid.formulaWithInitial":
+    "混合 = 初始解锁 + min(剩余时间归属, 已批准里程碑)",
+  "detail.hybrid.initialUnlock": "初始解锁：{amount}",
   "detail.hybrid.timeVested": "按时间归属：{amount}",
   "detail.hybrid.milestonesApproved": "已批准里程碑：{amount}",
   "detail.hybrid.unlocked": "已解锁：{amount}",
@@ -645,7 +710,7 @@ export const zhCN: TranslationDictionary = {
     "请输入代币单位，而非最小单位。全额将被转入金库。",
   "wizard.schedule.title": "归属计划",
   "wizard.schedule.lede":
-    "归属自起始时间线性进行。到达悬崖期时，已过去的部分即可使用。",
+    "可选的初始解锁在起始时即可领取。剩余部分自起始时间线性归属；悬崖期会锁定该剩余部分，直到悬崖期结束。",
   "wizard.schedule.demoTip": "演示建议：将时长设为 5 分钟，悬崖期设为 0 分钟。",
   "wizard.field.start.label": "起始日期（可选）",
   "wizard.field.start.hint":
@@ -656,6 +721,9 @@ export const zhCN: TranslationDictionary = {
   "wizard.unit.days": "天",
   "wizard.field.cliff.label": "悬崖期",
   "wizard.field.duration.label": "总时长",
+  "wizard.field.initialUnlock.label": "初始解锁 / TGE（可选）",
+  "wizard.field.initialUnlock.hint":
+    "在起始时、悬崖期之前立即解锁的代币数量。剩余部分按线性归属。留空或填 0 即为标准悬崖期归属。",
   "wizard.field.reviewer.label": "审核人",
   "wizard.field.reviewer.hint":
     "所选成员的确切钱包将成为链上审核人，用于批准里程碑。",
@@ -687,6 +755,14 @@ export const zhCN: TranslationDictionary = {
   "wizard.review.start": "起始",
   "wizard.review.startCreation": "创建时间戳",
   "wizard.review.cliffDuration": "悬崖期 / 总时长",
+  "wizard.review.initialUnlock": "初始解锁（TGE）",
+  "wizard.review.initialUnlockValue": "{amount} {symbol}（{percent}%）",
+  "wizard.review.initialUnlockNone": "无（0%）",
+  "wizard.review.schedulePreview": "计划预览：",
+  "wizard.review.scheduleAtStart": "起始时：立即解锁 {amount} {symbol}",
+  "wizard.review.scheduleAtCliff":
+    "悬崖期结束：累计按时间归属 {amount} {symbol}",
+  "wizard.review.scheduleAtCompletion": "完成时：{amount} {symbol}（100%）",
   "wizard.review.eligibility": "资格校验合约",
   "wizard.review.eligibilityNone": "无 — 未启用",
   "wizard.review.permanent.title": "这些条款是永久的",
@@ -717,6 +793,13 @@ export const zhCN: TranslationDictionary = {
   "wizard.error.reviewerRequired": "里程碑型和混合型资助需要一个审核人地址。",
   "wizard.error.milestoneCount": "请添加 1 到 {max} 个里程碑。",
   "wizard.error.milestoneSum": "各里程碑金额之和必须正好等于分配总额。",
+  "wizard.error.milestoneSumRemaining":
+    "各里程碑金额之和必须正好等于剩余分配（总分配减去初始解锁）。",
+  "wizard.error.initialUnlockExceeds": "初始解锁不能超过资助的总分配。",
+  "wizard.error.initialUnlockMilestone":
+    "纯里程碑资助不能设置初始解锁。请使用时间或混合策略。",
+  "wizard.error.hybridInitialUnlockFull":
+    "在混合资助中，初始解锁不能等于全部配额，因为里程碑必须覆盖剩余部分。",
   "wizard.error.reviewFirst": "请先复核资助并检查测试网部署，然后再继续。",
   "wizard.error.eligibilityNoCode":
     "该资格校验合约在 {network} 上没有合约代码。",
@@ -732,7 +815,7 @@ export const zhCN: TranslationDictionary = {
     "随时间线性解锁。悬崖期会延迟解锁，但不会重启计划。",
   "strategy.1.description": "在审核人批准每个里程碑时解锁固定额度。",
   "strategy.2.description":
-    "解锁按时间归属与已批准里程碑两者中较小的数量。两个条件同时生效。",
+    "起始时先解锁初始额度，之后按剩余时间归属与已批准里程碑两者中较小的数量解锁。两个条件同时作用于剩余部分。",
 
   // 资助向导中的预设选择器。
   "wizard.preset.title": "从预设开始",
@@ -743,6 +826,20 @@ export const zhCN: TranslationDictionary = {
   "wizard.preset.custom.meta": "清除预设填入的字段",
   "wizard.preset.needsReviewer": "需要审核人",
   "wizard.preset.allocationShare": "占分配总额的 {percent}%",
+
+  // 资助向导「模板」步骤中的组织模板（HAS-13）。
+  "wizard.orgTemplates.title": "你所在组织的模板",
+  "wizard.orgTemplates.lede":
+    "可选。组织所有者保存的模板会填入与内置预设相同的可编辑字段。受益人仍由你选择，签名前也请逐项确认。",
+  "wizard.orgTemplates.organization": "组织",
+  "wizard.orgTemplates.chooseOrganization": "选择一个组织",
+  "wizard.orgTemplates.loading": "正在加载模板…",
+  "wizard.orgTemplates.error": "模板暂时不可用。下方的内置预设仍可使用。",
+  "wizard.orgTemplates.empty": "该组织还没有模板。",
+  "wizard.orgTemplates.noDescription": "暂无说明。",
+  "wizard.orgTemplates.suggestsReviewer": "建议了审核人",
+  "wizard.orgTemplates.manage": "管理模板",
+  "wizard.orgTemplates.invalid": "该模板已无法应用。请让组织所有者更新它。",
 
   // 资助预设（HAS-8）。百分比、额度、时间单位和策略索引属于数据而非文案，不做翻译。
   "preset.builder-grant.name": "建设者资助",

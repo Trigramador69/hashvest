@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
+import { parseUnits } from "viem";
 
 import { InvalidPresetError } from "./apply-preset";
 import {
   applyOrganizationTemplateToDraft,
   assertValidOrganizationTemplate,
+  organizationTemplatePreset,
   type OrganizationTemplateContent,
   type OrganizationTemplateDefinition,
 } from "./organization-template";
-import { parseTemplateKey } from "./template-key";
+import { isOrganizationTemplateKey, parseTemplateKey } from "./template-key";
+import { BLANK_PRESET_FIELDS, clearPreset, selectPreset } from "./wizard-state";
 
 const MEMBER_ID = "3b7c2d1e-8f4a-4c5b-9d6e-1a2b3c4d5e6f";
 
@@ -282,5 +285,103 @@ describe("applyOrganizationTemplateToDraft", () => {
         stored({ ...HYBRID, allocationSuggestion: "0" }),
       ),
     ).toThrow(InvalidPresetError);
+  });
+});
+
+describe("organizationTemplatePreset (HAS-13)", () => {
+  /** What the wizard does: apply through `selectPreset`, never directly. */
+  function applyInWizard(
+    template: OrganizationTemplateDefinition,
+    decimals = 18,
+  ) {
+    const preset = organizationTemplatePreset(template);
+    return selectPreset(preset.key, BLANK_PRESET_FIELDS, undefined, {
+      decimals,
+      preset,
+    });
+  }
+
+  it("fills the wizard exactly as the template mapping does, for every strategy", () => {
+    for (const content of [TIME, MILESTONE, HYBRID]) {
+      const template = stored(content, 3);
+      const applied = applyInWizard(template, 6);
+      const { draft, templateKey } = applyOrganizationTemplateToDraft(
+        template,
+        { decimals: 6 },
+      );
+      expect(applied.key).toBe(templateKey);
+      expect(isOrganizationTemplateKey(applied.key)).toBe(true);
+      expect(applied.fields).toEqual({
+        ...draft,
+        // The wizard always renders one milestone row, even for time vesting.
+        milestones: draft.milestones.length
+          ? draft.milestones
+          : BLANK_PRESET_FIELDS.milestones,
+      });
+    }
+  });
+
+  it("never yields a configuration the protocol would reject", () => {
+    const time = applyInWizard(stored(TIME));
+    expect(time.fields.strategy).toBe(0);
+    expect(time.fields.reviewerRequired).toBe(false);
+
+    for (const content of [MILESTONE, HYBRID]) {
+      const applied = applyInWizard(
+        stored({ ...content, allocationSuggestion: "999.99" }),
+      );
+      expect(applied.fields.reviewerRequired).toBe(true);
+      // The exact-sum rule prepare() enforces, in base units.
+      const total = applied.fields.milestones.reduce(
+        (sum, milestone) => sum + parseUnits(milestone.amount, 18),
+        0n,
+      );
+      expect(total).toBe(parseUnits("999.99", 18));
+    }
+  });
+
+  it("fills only wizard fields: no beneficiary, reviewer, or address", () => {
+    for (const content of [TIME, MILESTONE, HYBRID]) {
+      const { fields } = applyInWizard(stored(content));
+      expect(Object.keys(fields).sort()).toEqual(
+        Object.keys(BLANK_PRESET_FIELDS).sort(),
+      );
+      expect(JSON.stringify(fields)).not.toMatch(/0x[0-9a-fA-F]{40}/);
+      expect(JSON.stringify(fields)).not.toContain(MEMBER_ID);
+    }
+  });
+
+  it("refuses an invalid stored template before the form sees it", () => {
+    expect(() =>
+      organizationTemplatePreset(
+        stored({ ...TIME, defaultReviewerMemberId: MEMBER_ID }),
+      ),
+    ).toThrow(InvalidPresetError);
+    expect(() =>
+      organizationTemplatePreset(
+        stored({ ...HYBRID, allocationSuggestion: "0" }),
+      ),
+    ).toThrow(InvalidPresetError);
+  });
+
+  it("invents no display copy for user content", () => {
+    const preset = organizationTemplatePreset(stored(HYBRID));
+    expect(preset.name).toBe(HYBRID.name);
+    expect(preset.description).toBe("");
+    expect(preset.bestFor).toEqual([]);
+    expect(preset.assumptions).toEqual([]);
+    expect(preset.timing?.realWorldNote).toBe("");
+  });
+
+  it("does not share milestone objects with the cached template", () => {
+    const template = stored(MILESTONE);
+    const preset = organizationTemplatePreset(template);
+    preset.milestones![0].title = "Changed";
+    expect(template.milestones![0].title).toBe("Design");
+  });
+
+  it("stays fully editable: clearing returns the blank form", () => {
+    const applied = applyInWizard(stored(HYBRID));
+    expect(clearPreset(applied.fields, applied)).toEqual(BLANK_PRESET_FIELDS);
   });
 });

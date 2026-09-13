@@ -28,6 +28,8 @@ import {
   TransactionStatus,
 } from "@/components/grant-ui";
 import { AiGrantBuilder } from "@/components/ai-grant-builder";
+import { OrganizationTemplatePicker } from "@/components/organization-template-picker";
+import { PresetOption } from "@/components/preset-option";
 import { DemoFaucet } from "@/components/demo-faucet";
 import { CohortCreator } from "@/components/cohort-creator";
 import { MemberPicker } from "@/components/organization-ui";
@@ -38,6 +40,7 @@ import {
   useOrganization,
   useOrganizationMembers,
 } from "@/hooks/use-organizations";
+import type { OrganizationTemplate } from "@/lib/cloud/organizations/types";
 import { useSession } from "@/hooks/use-session";
 import {
   assertTestnetWallet,
@@ -46,10 +49,12 @@ import {
 } from "@/hooks/use-transaction";
 import { readRevocationState } from "@/lib/protocol/revocation";
 import {
+  calculateVestedByTime,
   dateLabel,
   errorMessage,
   normalizeAddress,
   parseAllocation,
+  percent,
   validParty,
 } from "@/lib/protocol/grants";
 import {
@@ -58,7 +63,10 @@ import {
   type GrantPreset,
   type GrantPresetKey,
 } from "@/lib/shared/grant-presets/presets";
+import { organizationTemplatePreset } from "@/lib/shared/grant-presets/organization-template";
+import { parseTemplateKey } from "@/lib/shared/grant-presets/template-key";
 import {
+  applyReviewerDefault,
   BLANK_PRESET_FIELDS,
   clearPreset,
   resyncMilestoneAmounts,
@@ -96,6 +104,7 @@ type GrantConfiguration = {
   cliff: bigint;
   duration: bigint;
   eligibilityProvider: Address;
+  initialUnlock: bigint;
   revocable: boolean;
 };
 type PreparedGrant = {
@@ -128,41 +137,6 @@ function Field({
   );
 }
 
-function PresetOption({
-  name,
-  tagline,
-  meta,
-  selected,
-  onSelect,
-}: {
-  name: string;
-  tagline: string;
-  meta: string;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <label
-      className={`flex cursor-pointer items-start gap-3 rounded-card border p-4 ${selected ? "border-primary bg-[rgba(87,217,139,.06)]" : "bg-card"}`}
-    >
-      <input
-        className="mt-1 accent-primary"
-        type="radio"
-        name="preset"
-        checked={selected}
-        onChange={onSelect}
-      />
-      <span className="min-w-0">
-        <span className="block font-semibold">{name}</span>
-        <span className="mt-1 block text-sm leading-6 text-muted-foreground">
-          {tagline}
-        </span>
-        <span className="mt-2 block text-xs text-muted-foreground">{meta}</span>
-      </span>
-    </label>
-  );
-}
-
 /**
  * Optional starting points for the same wizard. A preset only fills fields the
  * user can still edit or clear; the vault stores what is submitted, and the
@@ -170,22 +144,20 @@ function PresetOption({
  */
 function PresetPicker({
   selected,
-  draft,
+  appliedPreset,
   onSelect,
 }: {
   selected: AppliedPresetKey | null;
-  /** The applied AI draft (HAS-18), which has no catalog entry to look up. */
-  draft?: GrantPreset;
+  /**
+   * The applied preset when it has no catalog entry to look up: an AI draft
+   * (HAS-18) or an organization template (HAS-13).
+   */
+  appliedPreset?: GrantPreset;
   onSelect: (key: GrantPresetKey | null) => void;
 }) {
   const t = useTranslations();
-  const { presets, preset: localizedPreset } = useGrantPresets();
-  const active =
-    selected === GENERATED_PRESET_KEY
-      ? draft
-      : selected
-        ? localizedPreset(selected as GrantPresetKey)
-        : undefined;
+  const { presets, findPreset } = useGrantPresets();
+  const active = selected ? (findPreset(selected) ?? appliedPreset) : undefined;
   return (
     <div className="space-y-3">
       <div>
@@ -194,13 +166,13 @@ function PresetPicker({
           {t("wizard.preset.lede")}
         </p>
       </div>
-      {selected === GENERATED_PRESET_KEY && draft && (
+      {selected === GENERATED_PRESET_KEY && appliedPreset && (
         <p className="flex flex-wrap items-baseline gap-x-2 rounded-control border border-[rgba(77,106,217,.3)] bg-[rgba(77,106,217,.08)] px-3 py-2 text-xs text-muted-foreground">
           <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#4d6ad9]">
             {t("ai.preset.applied")}
           </span>
           <span className="min-w-0 text-foreground">
-            {draft.titleSuggestion}
+            {appliedPreset.titleSuggestion}
           </span>
         </p>
       )}
@@ -231,7 +203,9 @@ function PresetPicker({
       </div>
       {active && (
         <div className="rounded-card border border-primary/20 bg-[rgba(87,217,139,.05)] p-5">
-          <p className="text-sm leading-6">{active.description}</p>
+          {active.description && (
+            <p className="text-sm leading-6">{active.description}</p>
+          )}
           <div className="mt-3 flex flex-wrap gap-2">
             {active.bestFor.map((audience) => (
               <span
@@ -260,16 +234,18 @@ function PresetPicker({
               ))}
             </dl>
           )}
-          {active.timing && (
+          {active.timing?.realWorldNote && (
             <p className="mt-4 border-t border-primary/20 pt-4 text-xs leading-5 text-muted-foreground">
               {active.timing.realWorldNote}
             </p>
           )}
-          <ul className="mt-4 space-y-1 border-t border-primary/20 pt-4 text-xs leading-5 text-muted-foreground">
-            {active.assumptions.map((assumption) => (
-              <li key={assumption}>· {assumption}</li>
-            ))}
-          </ul>
+          {active.assumptions.length > 0 && (
+            <ul className="mt-4 space-y-1 border-t border-primary/20 pt-4 text-xs leading-5 text-muted-foreground">
+              {active.assumptions.map((assumption) => (
+                <li key={assumption}>· {assumption}</li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
     </div>
@@ -297,6 +273,13 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   const session = useSession();
   const organization = useOrganization(organizationId);
   const organizationMembers = useOrganizationMembers(organizationId);
+  /**
+   * The organization whose templates the Template step lists. Fixed in the
+   * organization-aware wizard; chosen by the reader in the direct one.
+   */
+  const [templateOrganizationId, setTemplateOrganizationId] = useState("");
+  const templateSource = organizationId ?? templateOrganizationId;
+  const templateMembers = useOrganizationMembers(templateSource || undefined);
   const linkGrant = useLinkOrganizationGrant(organizationId ?? "direct");
   const [creationMode, setCreationMode] = useState<"single" | "cohort">(
     "single",
@@ -315,6 +298,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   const [cliff, setCliff] = useState("0");
   const [duration, setDuration] = useState("5");
   const [unit, setUnit] = useState("60");
+  const [initialUnlock, setInitialUnlock] = useState("");
   const [reviewer, setReviewer] = useState("");
   const [reviewerMemberId, setReviewerMemberId] = useState("");
   const [reviewerExternal, setReviewerExternal] = useState(!organizationId);
@@ -349,6 +333,11 @@ export function NewGrant({ organizationId }: NewGrantProps) {
    * its user-facing chrome is rendered from the `ai.*` dictionary rather than
    * from the preset itself.
    */
+  const appliedKey = parseTemplateKey(applied?.key);
+  /** The applied organization template, so the picker can mark it. */
+  const appliedTemplateId =
+    appliedKey?.kind === "organization" ? appliedKey.templateId : null;
+
   const appliedPresetName = !applied
     ? ""
     : applied.key === GENERATED_PRESET_KEY
@@ -414,6 +403,47 @@ export function NewGrant({ organizationId }: NewGrantProps) {
     if (step === STEP.template) setStep(STEP.grant);
   }
 
+  /**
+   * Applies an organization template (HAS-13) through the same preset path.
+   *
+   * Mapping the template to a preset re-validates it, so a stored template the
+   * protocol could not accept is reported rather than filling the form. Its
+   * reviewer default is a member reference and becomes a suggestion only here:
+   * never a permission, never the beneficiary, and never over a choice the
+   * user already made.
+   */
+  function chooseOrganizationTemplate(template: OrganizationTemplate) {
+    setValidationError("");
+    let preset;
+    try {
+      preset = organizationTemplatePreset(template);
+    } catch {
+      setValidationError(t("wizard.orgTemplates.invalid"));
+      return;
+    }
+    const next = selectPreset(preset.key, presetFields(), applied, {
+      decimals: tokenMetadata.data?.decimals,
+      applyDescription: Boolean(organizationId),
+      preset,
+    });
+    writePresetFields(next.fields);
+    setApplied(next);
+    const reviewerChoice = applyReviewerDefault({
+      path: organizationId ? "organization" : "direct",
+      strategy: next.fields.strategy,
+      defaultReviewerMemberId: template.defaultReviewerMemberId,
+      members: templateMembers.data,
+      current: {
+        memberId: reviewerMemberId,
+        address: reviewer,
+        external: reviewerExternal,
+      },
+    });
+    setReviewerMemberId(reviewerChoice.memberId);
+    setReviewer(reviewerChoice.address);
+    setReviewerExternal(reviewerChoice.external);
+  }
+
   function writePresetFields(fields: typeof BLANK_PRESET_FIELDS) {
     setTitle(fields.title);
     setDescription(fields.description);
@@ -423,6 +453,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
     setCliff(fields.cliff);
     setDuration(fields.duration);
     setMilestones(fields.milestones);
+    if (fields.strategy === 1) setInitialUnlock("");
   }
 
   /**
@@ -490,6 +521,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
     let startTimestamp = 0n;
     let cliffSeconds = 0n;
     let durationSeconds = 0n;
+    let initialUnlockAmount = 0n;
     if (strategy !== 1) {
       if (!/^\d+$/.test(duration) || BigInt(duration) === 0n)
         throw new Error(t("wizard.error.duration"));
@@ -505,6 +537,26 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         if (!Number.isFinite(parsed) || parsed < 0)
           throw new Error(t("wizard.error.startDate"));
         startTimestamp = BigInt(Math.floor(parsed / 1000));
+      }
+      if (initialUnlock.trim()) {
+        initialUnlockAmount = parseAllocation(
+          initialUnlock,
+          tokenMetadata.data.decimals,
+          allocationErrors(tokenMetadata.data.decimals),
+        );
+        if (initialUnlockAmount > totalAllocation)
+          throw new Error(t("wizard.error.initialUnlockExceeds"));
+      }
+    } else {
+      if (
+        initialUnlock.trim() &&
+        parseAllocation(
+          initialUnlock,
+          tokenMetadata.data.decimals,
+          allocationErrors(tokenMetadata.data.decimals),
+        ) > 0n
+      ) {
+        throw new Error(t("wizard.error.initialUnlockMilestone"));
       }
     }
     if (provider && !validParty(provider))
@@ -539,10 +591,23 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         throw new Error(t("wizard.error.reviewerRequired"));
       if (!items.length || items.length > 20)
         throw new Error(t("wizard.error.milestoneCount", { max: 20 }));
+      if (strategy === 2 && initialUnlockAmount === totalAllocation) {
+        throw new Error(t("wizard.error.hybridInitialUnlockFull"));
+      }
+      const expectedMilestoneSum =
+        strategy === 2
+          ? totalAllocation - initialUnlockAmount
+          : totalAllocation;
       if (
-        items.reduce((sum, item) => sum + item.amount, 0n) !== totalAllocation
-      )
-        throw new Error(t("wizard.error.milestoneSum"));
+        items.reduce((sum, item) => sum + item.amount, 0n) !==
+        expectedMilestoneSum
+      ) {
+        throw new Error(
+          strategy === 2 && initialUnlockAmount > 0n
+            ? t("wizard.error.milestoneSumRemaining")
+            : t("wizard.error.milestoneSum"),
+        );
+      }
     }
     return {
       config: {
@@ -556,6 +621,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         cliff: cliffSeconds,
         duration: durationSeconds,
         eligibilityProvider: provider ? getAddress(provider) : zeroAddress,
+        initialUnlock: initialUnlockAmount,
         revocable,
       },
       milestones: items,
@@ -685,6 +751,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             candidateDuration,
             candidateProvider,
             candidateMilestones,
+            candidateInitialUnlock,
             candidateRevocation,
           ] = await Promise.all([
             client.readContract({
@@ -747,6 +814,13 @@ export function NewGrant({ organizationId }: NewGrantProps) {
               abi: grantVaultAbi,
               functionName: "getMilestones",
             }),
+            client
+              .readContract({
+                address: candidate,
+                abi: grantVaultAbi,
+                functionName: "initialUnlock",
+              })
+              .catch(() => 0n),
             readRevocationState({
               revocable: () =>
                 client.readContract({
@@ -788,6 +862,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             candidateDuration === config.duration &&
             candidateProvider.toLowerCase() ===
               config.eligibilityProvider.toLowerCase() &&
+            candidateInitialUnlock === config.initialUnlock &&
             candidateRevocation.revocable === config.revocable &&
             candidateMilestones.length === items.length &&
             candidateMilestones.every(
@@ -1044,15 +1119,20 @@ export function NewGrant({ organizationId }: NewGrantProps) {
               >
                 <fieldset className="min-w-0 space-y-6" disabled={tx.pending}>
                   {step === STEP.template && (
-                    <PresetPicker
-                      selected={applied?.key ?? null}
-                      draft={
-                        applied?.key === GENERATED_PRESET_KEY
-                          ? applied.preset
-                          : undefined
-                      }
-                      onSelect={choosePreset}
-                    />
+                    <div className="space-y-7">
+                      <OrganizationTemplatePicker
+                        organizationId={templateSource || undefined}
+                        fixedOrganization={Boolean(organizationId)}
+                        onOrganizationChange={setTemplateOrganizationId}
+                        selectedTemplateId={appliedTemplateId}
+                        onSelect={chooseOrganizationTemplate}
+                      />
+                      <PresetPicker
+                        selected={applied?.key ?? null}
+                        appliedPreset={applied?.preset}
+                        onSelect={choosePreset}
+                      />
+                    </div>
                   )}
                   {step === STEP.grant && (
                     <>
@@ -1190,9 +1270,12 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             type="radio"
                             name="strategy"
                             checked={strategy === index}
-                            onChange={() =>
-                              setStrategy(index === 0 ? 0 : index === 1 ? 1 : 2)
-                            }
+                            onChange={() => {
+                              const next =
+                                index === 0 ? 0 : index === 1 ? 1 : 2;
+                              setStrategy(next);
+                              if (next === 1) setInitialUnlock("");
+                            }}
                           />
                           <span>
                             <span className="block font-semibold">
@@ -1228,6 +1311,26 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                               value={start}
                               onChange={(event) => setStart(event.target.value)}
                             />
+                          </Field>
+                          <Field
+                            label={t("wizard.field.initialUnlock.label")}
+                            hint={t("wizard.field.initialUnlock.hint")}
+                          >
+                            <div className="relative">
+                              <input
+                                className="field pr-16"
+                                placeholder="0.0"
+                                value={initialUnlock}
+                                onChange={(event) =>
+                                  setInitialUnlock(event.target.value)
+                                }
+                              />
+                              {tokenMetadata.data && (
+                                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground">
+                                  {tokenMetadata.data.symbol}
+                                </span>
+                              )}
+                            </div>
                           </Field>
                           <div className="grid gap-4 sm:grid-cols-3">
                             <Field label={t("wizard.field.unit.label")}>
@@ -1271,9 +1374,8 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             </Field>
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {applied?.preset.timing
-                              ? applied.preset.timing.realWorldNote
-                              : t("wizard.schedule.demoTip")}
+                            {applied?.preset.timing?.realWorldNote ||
+                              t("wizard.schedule.demoTip")}
                           </p>
                         </div>
                       )}
@@ -1537,6 +1639,26 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             </div>
                             <div className="flex justify-between gap-4">
                               <dt className="text-muted-foreground">
+                                {t("wizard.review.initialUnlock")}
+                              </dt>
+                              <dd>
+                                {prepared.config.initialUnlock > 0n
+                                  ? t("wizard.review.initialUnlockValue", {
+                                      amount: formatUnits(
+                                        prepared.config.initialUnlock,
+                                        prepared.decimals,
+                                      ),
+                                      symbol: prepared.symbol,
+                                      percent: percent(
+                                        prepared.config.initialUnlock,
+                                        prepared.config.totalAllocation,
+                                      ),
+                                    })
+                                  : t("wizard.review.initialUnlockNone")}
+                              </dd>
+                            </div>
+                            <div className="flex justify-between gap-4">
+                              <dt className="text-muted-foreground">
                                 {t("wizard.review.cliffDuration")}
                               </dt>
                               <dd>
@@ -1544,6 +1666,49 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                                 {prepared.config.duration.toString()}s
                               </dd>
                             </div>
+                            {prepared.config.initialUnlock > 0n && (
+                              <div className="rounded-lg bg-secondary/50 p-3 text-xs leading-5">
+                                <p className="font-semibold text-foreground">
+                                  {t("wizard.review.schedulePreview")}
+                                </p>
+                                <p className="mt-1 text-muted-foreground">
+                                  {t("wizard.review.scheduleAtStart", {
+                                    amount: formatUnits(
+                                      prepared.config.initialUnlock,
+                                      prepared.decimals,
+                                    ),
+                                    symbol: prepared.symbol,
+                                  })}
+                                  <br />
+                                  {t("wizard.review.scheduleAtCliff", {
+                                    amount: formatUnits(
+                                      calculateVestedByTime({
+                                        start: prepared.config.start,
+                                        cliff: prepared.config.cliff,
+                                        duration: prepared.config.duration,
+                                        totalAllocation:
+                                          prepared.config.totalAllocation,
+                                        initialUnlock:
+                                          prepared.config.initialUnlock,
+                                        timestamp:
+                                          prepared.config.start +
+                                          prepared.config.cliff,
+                                      }),
+                                      prepared.decimals,
+                                    ),
+                                    symbol: prepared.symbol,
+                                  })}
+                                  <br />
+                                  {t("wizard.review.scheduleAtCompletion", {
+                                    amount: formatUnits(
+                                      prepared.config.totalAllocation,
+                                      prepared.decimals,
+                                    ),
+                                    symbol: prepared.symbol,
+                                  })}
+                                </p>
+                              </div>
+                            )}
                           </>
                         )}
                         <div className="flex flex-wrap justify-between gap-2">

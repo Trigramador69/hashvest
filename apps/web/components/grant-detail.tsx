@@ -40,6 +40,7 @@ import {
   useGrantContext,
   useOrganizationMembers,
   useOrganizationSponsorshipPolicy,
+  useTemplateLabel,
 } from "@/hooks/use-organizations";
 import {
   assertTestnetWallet,
@@ -59,7 +60,6 @@ import { deriveGrantState } from "@/lib/protocol/grant-state";
 import { deriveRevocationPreview } from "@/lib/protocol/revocation";
 import { ParticipantIdentity } from "./grant-card";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
-import { useGrantPresets } from "@/lib/shared/grant-presets/use-grant-presets";
 import { organizationApi } from "@/lib/cloud/organizations/client";
 import type { SponsoredClaimRequest } from "@/lib/cloud/organizations/types";
 import { SPONSORED_CLAIM_SIGNING_WINDOW_SECONDS } from "@/lib/shared/sponsored-claims";
@@ -421,12 +421,18 @@ function SponsoredClaimPanel({
 export function GrantDetail({ address }: { address: Address }) {
   const t = useTranslations();
   const walletMessages = getWalletGuardMessages(t);
-  const { templateLabel } = useGrantPresets();
   const [showRevokeModal, setShowRevokeModal] = useState(false);
   const grant = useGrant(address);
   const grantContext = useGrantContext(address);
   const organizationMembers = useOrganizationMembers(
     grantContext.data?.organization.id,
+  );
+  // Workspace metadata: which preset or organization template this grant
+  // started from. An unknown or unreadable key simply shows nothing; the
+  // vault's own terms are authoritative.
+  const template = useTemplateLabel(
+    grantContext.data?.organization.id,
+    grantContext.data?.grant.templateKey,
   );
   const wallet = useAccount();
   const client = usePublicClient({ chainId: 133 });
@@ -506,9 +512,6 @@ export function GrantDetail({ address }: { address: Address }) {
     revoked: g.revoked,
   });
   const roles = resolveProtocolRoles(wallet.address, g);
-  // Workspace metadata: which preset this grant started from. An unknown or
-  // retired key simply shows nothing; the vault's own terms are authoritative.
-  const template = templateLabel(grantContext.data?.grant.templateKey);
   const isBeneficiary = roles.isBeneficiary;
   const isReviewer = roles.isReviewer;
   const isIssuer = roles.isIssuer;
@@ -791,10 +794,37 @@ export function GrantDetail({ address }: { address: Address }) {
                     </div>
                   ))}
                 </dl>
+                {g.initialUnlock > 0n && (
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm leading-6">
+                    <p className="font-medium text-primary">
+                      {t("detail.schedule.initialUnlock", {
+                        amount: amount(g.initialUnlock),
+                        percent: percent(g.initialUnlock, g.totalAllocation),
+                      })}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {t("detail.schedule.initialUnlockHint", {
+                        remaining: amount(g.totalAllocation - g.initialUnlock),
+                      })}
+                    </p>
+                  </div>
+                )}
                 {g.strategy === 2 && (
                   <div className="rounded-card border border-border-soft bg-secondary/70 p-4 text-sm leading-6">
-                    <p className="font-medium">{t("detail.hybrid.formula")}</p>
+                    <p className="font-medium">
+                      {g.initialUnlock > 0n
+                        ? t("detail.hybrid.formulaWithInitial")
+                        : t("detail.hybrid.formula")}
+                    </p>
                     <p className="mt-2 text-muted-foreground">
+                      {g.initialUnlock > 0n && (
+                        <>
+                          {t("detail.hybrid.initialUnlock", {
+                            amount: amount(g.initialUnlock),
+                          })}
+                          <br />
+                        </>
+                      )}
                       {t("detail.hybrid.timeVested", {
                         amount: amount(g.vestedByTime),
                       })}

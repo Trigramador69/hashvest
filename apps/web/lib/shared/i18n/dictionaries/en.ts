@@ -415,6 +415,75 @@ export const en = {
   "workspace.tab.overview": "Overview",
   "workspace.tab.grants": "Grants",
   "workspace.tab.members": "Members",
+  "workspace.tab.templates": "Templates",
+
+  // Organization template management (HAS-13). Owner-only writes; every
+  // member reads the same list.
+  "templates.title": "Templates",
+  "templates.lede.owner":
+    "Reusable starting points for the grant wizard. A template only fills editable fields — it never signs, funds, or grants permission.",
+  "templates.lede.member":
+    "Reusable starting points for the grant wizard, saved by the organization owner. You can apply one when creating a grant; only the owner can change them.",
+  "templates.loading.title": "Loading templates",
+  "templates.loading.body": "Reading this organization's templates.",
+  "templates.error.title": "Templates unavailable",
+  "templates.error.body":
+    "This organization's templates could not be loaded. Creating a grant without one still works.",
+  "templates.retry": "Try again",
+  "templates.empty": "No templates yet.",
+  "templates.new": "New template",
+  "templates.edit": "Edit",
+  "templates.delete": "Delete",
+  "templates.deleteConfirm":
+    "Delete the template “{name}”? Grants already created from it keep their terms and still show its name.",
+  "templates.save": "Save template",
+  "templates.saving": "Saving…",
+  "templates.cancel": "Cancel",
+  "templates.form.lede":
+    "Everything here is a suggestion the wizard fills in. The person creating the grant edits every value and chooses the beneficiary.",
+  "templates.field.name": "Name",
+  "templates.field.name.placeholder": "Builder grant",
+  "templates.field.description": "Description",
+  "templates.field.description.placeholder":
+    "When your team should reach for this template.",
+  "templates.field.strategy": "Unlock strategy",
+  "templates.field.milestones": "Milestones",
+  "templates.field.milestones.hint":
+    "Shares of the allocation, as whole percentages that add up to 100. Amounts are calculated in the wizard from the allocation entered there.",
+  "templates.field.milestone.title": "Milestone {index}",
+  "templates.field.milestone.percent": "Share (%)",
+  "templates.field.reviewer": "Default reviewer",
+  "templates.field.reviewer.none": "No default",
+  "templates.field.reviewer.hint":
+    "Preselects this member in the wizard. It is a suggestion, not permission: the reviewer recorded onchain is whoever the grant is created with.",
+  "templates.field.allocation": "Suggested allocation",
+  "templates.field.allocation.hint":
+    "Optional. A starting amount the wizard fills in; it is never read from or reconciled with a vault.",
+  "templates.milestone.add": "Add milestone",
+  "templates.milestone.remove": "Remove",
+  "templates.milestone.total": "Total: {total}%",
+  "templates.meta.milestones": "{count} milestones",
+  "templates.meta.reviewer": "reviewer: {member}",
+  "templates.meta.formerMember": "former member",
+  "templates.meta.version": "v{version}",
+  "templates.error.name":
+    "Give the template a name of at most {max} characters.",
+  "templates.error.description":
+    "The description must be at most {max} characters.",
+  "templates.error.duration": "Duration must be a positive whole number.",
+  "templates.error.cliff": "Cliff must be a whole number, zero or more.",
+  "templates.error.cliffTooLong":
+    "The cliff cannot be longer than the total duration.",
+  "templates.error.milestoneCount":
+    "This strategy needs between 1 and {max} milestones.",
+  "templates.error.milestoneTitle":
+    "Milestone {index} needs a title of at most {max} characters.",
+  "templates.error.percent":
+    "Milestone {index} needs a positive whole-number share.",
+  "templates.error.percentSum":
+    "Milestone shares must add up to 100%. They currently add up to {total}%.",
+  "templates.error.allocation":
+    "The suggested allocation must be a positive amount.",
   "workspace.loading.title": "Loading workspace",
   "workspace.loading.body": "Reading organization context…",
   "workspace.error.title": "Workspace could not be loaded",
@@ -535,13 +604,20 @@ export const en = {
   "detail.stat.claimed": "Claimed",
   "detail.schedule.title": "Vesting schedule",
   "detail.schedule.lede":
-    "Linear from the start. The cliff delays claiming without restarting the curve.",
+    "An optional initial unlock is claimable at start. The remainder vests linearly; the cliff delays that remainder without restarting the curve.",
   "detail.schedule.vestedByTime": "{amount} vested by time",
   "detail.schedule.progressLabel": "Time vested",
   "detail.schedule.start": "Start",
   "detail.schedule.cliffReached": "Cliff reached",
   "detail.schedule.fullyVested": "Fully vested",
+  "detail.schedule.initialUnlock":
+    "Initial unlock (TGE): {amount} ({percent}%)",
+  "detail.schedule.initialUnlockHint":
+    "Available immediately at start. The remaining {remaining} follows the schedule below.",
   "detail.hybrid.formula": "Hybrid = min(time vested, approved milestones)",
+  "detail.hybrid.formulaWithInitial":
+    "Hybrid = initial unlock + min(time vesting remaining, approved milestones)",
+  "detail.hybrid.initialUnlock": "Initial unlock: {amount}",
   "detail.hybrid.timeVested": "Time vested: {amount}",
   "detail.hybrid.milestonesApproved": "Milestones approved: {amount}",
   "detail.hybrid.unlocked": "Unlocked: {amount}",
@@ -701,7 +777,7 @@ export const en = {
     "Enter token units, not base units. The full amount is transferred into the vault.",
   "wizard.schedule.title": "Vesting schedule",
   "wizard.schedule.lede":
-    "Vesting is linear from the start. At the cliff, the elapsed portion becomes available.",
+    "An optional initial unlock is claimable at start. The remainder vests linearly from the start; the cliff holds that remainder until it is reached.",
   "wizard.schedule.demoTip":
     "Demo tip: use a 5-minute duration and a 0-minute cliff.",
   "wizard.field.start.label": "Start date (optional)",
@@ -713,6 +789,9 @@ export const en = {
   "wizard.unit.days": "Days",
   "wizard.field.cliff.label": "Cliff",
   "wizard.field.duration.label": "Total duration",
+  "wizard.field.initialUnlock.label": "Initial unlock / TGE (optional)",
+  "wizard.field.initialUnlock.hint":
+    "Token amount unlocked immediately at start, before the cliff. The remainder vests linearly. Leave empty or 0 for standard cliff vesting.",
   "wizard.field.reviewer.label": "Reviewer",
   "wizard.field.reviewer.hint":
     "The selected member's exact wallet becomes the onchain reviewer for milestone approvals.",
@@ -744,6 +823,16 @@ export const en = {
   "wizard.review.start": "Start",
   "wizard.review.startCreation": "Creation timestamp",
   "wizard.review.cliffDuration": "Cliff / total duration",
+  "wizard.review.initialUnlock": "Initial unlock (TGE)",
+  "wizard.review.initialUnlockValue": "{amount} {symbol} ({percent}%)",
+  "wizard.review.initialUnlockNone": "None (0%)",
+  "wizard.review.schedulePreview": "Schedule preview:",
+  "wizard.review.scheduleAtStart":
+    "At start: {amount} {symbol} unlocked immediately",
+  "wizard.review.scheduleAtCliff":
+    "At cliff end: {amount} {symbol} cumulative time vested",
+  "wizard.review.scheduleAtCompletion":
+    "At completion: {amount} {symbol} (100%)",
   "wizard.review.eligibility": "Eligibility provider",
   "wizard.review.eligibilityNone": "None — disabled",
   "wizard.review.permanent.title": "These terms are permanent",
@@ -783,6 +872,14 @@ export const en = {
   "wizard.error.milestoneCount": "Add between 1 and {max} milestones.",
   "wizard.error.milestoneSum":
     "Milestone amounts must add up exactly to the total allocation.",
+  "wizard.error.milestoneSumRemaining":
+    "Milestone amounts must add up exactly to the remaining allocation (total allocation minus initial unlock).",
+  "wizard.error.initialUnlockExceeds":
+    "Initial unlock cannot exceed the total grant allocation.",
+  "wizard.error.initialUnlockMilestone":
+    "Milestone-only grants cannot have an initial unlock. Use Time or Hybrid strategy.",
+  "wizard.error.hybridInitialUnlockFull":
+    "In Hybrid grants, initial unlock cannot equal the entire allocation because milestones must cover the remainder.",
   "wizard.error.reviewFirst":
     "Review the grant and check the Testnet deployment before continuing.",
   "wizard.error.eligibilityNoCode":
@@ -803,7 +900,7 @@ export const en = {
   "strategy.1.description":
     "Unlock fixed allocations as your reviewer approves each milestone.",
   "strategy.2.description":
-    "Unlock the smaller of time vested and approved milestone amounts. Both conditions apply.",
+    "Unlock any initial amount at start, then the smaller of remaining time-vested and approved milestone amounts. Both conditions apply to the remainder.",
 
   // Preset picker in the grant wizard.
   "wizard.preset.title": "Start from a preset",
@@ -815,6 +912,23 @@ export const en = {
   "wizard.preset.custom.meta": "Clears the fields a preset filled in",
   "wizard.preset.needsReviewer": "needs a reviewer",
   "wizard.preset.allocationShare": "{percent}% of the allocation",
+
+  // Organization templates in the wizard's Template step (HAS-13). A template
+  // only fills editable fields; it never signs, funds, or sets a beneficiary.
+  "wizard.orgTemplates.title": "Your organization's templates",
+  "wizard.orgTemplates.lede":
+    "Optional. A template saved by an organization owner fills the same editable fields as a built-in preset. You still choose the beneficiary and review every value before signing.",
+  "wizard.orgTemplates.organization": "Organization",
+  "wizard.orgTemplates.chooseOrganization": "Choose an organization",
+  "wizard.orgTemplates.loading": "Loading templates…",
+  "wizard.orgTemplates.error":
+    "Templates are unavailable right now. The built-in presets below still work.",
+  "wizard.orgTemplates.empty": "This organization has no templates yet.",
+  "wizard.orgTemplates.noDescription": "No description.",
+  "wizard.orgTemplates.suggestsReviewer": "suggests a reviewer",
+  "wizard.orgTemplates.manage": "Manage templates",
+  "wizard.orgTemplates.invalid":
+    "This template can no longer be applied. Ask the organization owner to update it.",
 
   // Grant presets (HAS-8). Keys mirror the catalog in
   // lib/shared/grant-presets/presets.ts and are resolved through

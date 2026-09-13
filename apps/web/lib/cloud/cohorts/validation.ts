@@ -108,8 +108,18 @@ export function validateCohort(params: {
         "Initial unlock percent must be between 0 and 100.",
       );
     }
+    if (shared.strategy === 1 && initialUnlockPercent > 0) {
+      throw new CohortValidationError(
+        "Milestone-only cohort grants cannot have an initial unlock. Use Time or Hybrid strategy.",
+      );
+    }
     const initialUnlockAmount =
       (allocationBigInt * BigInt(initialUnlockPercent)) / 100n;
+    if (shared.strategy === 2 && initialUnlockAmount === allocationBigInt) {
+      throw new CohortValidationError(
+        `Row ${rowNum}: In Hybrid strategy, initial unlock cannot equal the entire allocation because milestones must cover the remainder.`,
+      );
+    }
 
     // Milestones partition
     const milestones: { title: string; amount: bigint }[] = [];
