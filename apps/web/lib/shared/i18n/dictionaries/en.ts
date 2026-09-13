@@ -17,6 +17,7 @@ export const en = {
   "shell.nav.overview": "Overview",
   "shell.nav.grants": "Grants",
   "shell.nav.settings": "Settings",
+  "shell.nav.plans": "Plans",
   "shell.navigation.open": "Open navigation",
   "shell.navigation.close": "Close navigation",
   "shell.appTagline": "HashVest · HSK Testnet",
@@ -74,6 +75,101 @@ export const en = {
   "home.strategies.hybrid.subtitle": "Keep time and delivery aligned.",
   "home.strategies.hybrid.body":
     "Unlocked = min(time vested, approved milestone amount). Both conditions constrain every claim.",
+
+  // Protocol / Cloud product model (HAS-36). Presentation only: no billing.
+  "productModel.eyebrow": "Product model",
+  "productModel.title": "Open protocol. Focused cloud.",
+  "productModel.lede":
+    "HashVest separates onchain guarantees from the organization workspace around them.",
+  "productModel.summaryLink": "See Free / Team / Enterprise",
+  "productModel.status.demo": "Available in demo",
+  "productModel.status.roadmap": "Roadmap",
+  "productModel.disclaimer":
+    "Presentation only. This demo has no billing, checkout, metering, plan assignment, or enforced limits.",
+  "productModel.protocol.title": "HashVest Protocol",
+  "productModel.protocol.tagline":
+    "Open infrastructure for programmable grants on HashKey Chain.",
+  "productModel.protocol.body":
+    "The Protocol holds funds and enforces unlock math, roles, claims, and earned-value protection onchain.",
+  "productModel.protocol.feature.0":
+    "TIME, MILESTONE, and HYBRID grant strategies",
+  "productModel.protocol.feature.1":
+    "Fully funded GrantVaults with immutable terms",
+  "productModel.protocol.feature.2":
+    "HSK-authoritative permissions and beneficiary claims",
+  "productModel.protocol.cta": "Create a protocol grant",
+  "productModel.cloud.title": "HashVest Cloud",
+  "productModel.cloud.tagline":
+    "The organization workspace that makes the Protocol usable.",
+  "productModel.cloud.body":
+    "Cloud adds context and coordination while remaining optional to every protocol operation.",
+  "productModel.cloud.feature.0": "Organizations and workspace management",
+  "productModel.cloud.feature.1": "Members, roles, and named participants",
+  "productModel.cloud.feature.2": "Standard grant templates and editable presets",
+  "productModel.cloud.feature.3": "Review queues and claim visibility",
+  "productModel.cloud.feature.4": "Live funding health and read-only reporting",
+  "productModel.cloud.feature.5": "Bounded batch grant creation for cohorts",
+  "productModel.cloud.feature.6": "Human-reviewed AI Grant Builder",
+  "productModel.cloud.feature.7":
+    "Custom template experience (schema exists; owner UI is roadmap)",
+  "productModel.cloud.feature.8": "Sponsored claims and gas coordination",
+  "productModel.cloud.feature.9":
+    "Enterprise permissions, compliance, support, and integrations",
+  "productModel.cloud.cta": "Open the workspace",
+  "productModel.detail.eyebrow": "Cloud packaging",
+  "productModel.detail.title": "Three paths for every grant team.",
+  "productModel.detail.lede":
+    "Free, Team, and Enterprise describe the intended value ladder around HashVest Cloud. They are product direction, not access controls.",
+  "productModel.surfaces.title": "Two layers, one clear boundary.",
+  "productModel.surfaces.lede":
+    "Use the open Protocol directly, or add Cloud for organization context and coordination. HSK remains authoritative for value and permission.",
+  "productModel.plans.eyebrow": "Cloud plans",
+  "productModel.plans.title": "Free / Team / Enterprise",
+  "productModel.plans.lede":
+    "The plan cards show how the workspace can grow from a simple organization to enterprise operations. Roadmap labels are intentional; no plan limit is enforced today.",
+  "productModel.plan.label": "Packaging",
+  "productModel.plan.team.recommended": "Core path",
+  "productModel.plan.free.title": "Free",
+  "productModel.plan.free.tagline":
+    "Start with one organization and the essentials.",
+  "productModel.plan.free.feature.0": "One organization (planned packaging)",
+  "productModel.plan.free.feature.1":
+    "Limited members and grants (planned packaging)",
+  "productModel.plan.free.feature.2": "Standard templates",
+  "productModel.plan.free.feature.3":
+    "Core workspace, review, and reporting surfaces",
+  "productModel.plan.team.title": "Team",
+  "productModel.plan.team.tagline":
+    "Coordinate grant programs with richer workflows.",
+  "productModel.plan.team.feature.0":
+    "More members and grants (planned packaging)",
+  "productModel.plan.team.feature.1": "Custom templates",
+  "productModel.plan.team.feature.2": "Batch grants for cohorts",
+  "productModel.plan.team.feature.3": "Sponsored claims",
+  "productModel.plan.team.feature.4": "Advanced reports and AI features",
+  "productModel.plan.team.feature.5": "Human-reviewed AI Grant Builder",
+  "productModel.plan.enterprise.title": "Enterprise",
+  "productModel.plan.enterprise.tagline":
+    "Adapt governance and operations to your organization.",
+  "productModel.plan.enterprise.feature.0": "Custom limits",
+  "productModel.plan.enterprise.feature.1": "Advanced permissions",
+  "productModel.plan.enterprise.feature.2": "Compliance integrations",
+  "productModel.plan.enterprise.feature.3": "Dedicated support",
+  "productModel.plan.enterprise.feature.4":
+    "Enterprise integrations and reporting",
+  "productModel.addons.eyebrow": "Optional usage add-ons",
+  "productModel.addons.title": "Extend the workflow when needed.",
+  "productModel.addons.lede":
+    "Sponsored gas, AI credits, and compliance checks are roadmap concepts. They are not metered or charged in this demo.",
+  "productModel.addon.sponsoredGas.title": "Sponsored gas",
+  "productModel.addon.sponsoredGas.body":
+    "Let an organization coordinate claim gas for invited beneficiaries. Roadmap only.",
+  "productModel.addon.aiCredits.title": "AI credits",
+  "productModel.addon.aiCredits.body":
+    "Allocate optional AI assistance usage for drafting and future review tools. Roadmap only.",
+  "productModel.addon.complianceChecks.title": "Compliance checks",
+  "productModel.addon.complianceChecks.body":
+    "Connect eligible compliance or attestation providers without moving authority offchain. Roadmap only.",
 
   // Revocation (HAS-26), transaction stages, and validation raised from lib/protocol.
   "ui.lifecycle.revoked": "Revoked",
@@ -1108,6 +1204,9 @@ export const en = {
   "meta.title": "HashVest — Programmable grants",
   "meta.description":
     "Fully funded token grants with time, milestone, and hybrid unlocks on HashKey Chain.",
+  "plans.meta.title": "HashVest — Cloud plans",
+  "plans.meta.description":
+    "See how HashVest Protocol and HashVest Cloud fit together across Free, Team, and Enterprise packaging.",
 } as const;
 
 /**

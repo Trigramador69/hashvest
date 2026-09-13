@@ -17,6 +17,7 @@ export const es: TranslationDictionary = {
   "shell.nav.overview": "Resumen",
   "shell.nav.grants": "Subvenciones",
   "shell.nav.settings": "Configuración",
+  "shell.nav.plans": "Planes",
   "shell.navigation.open": "Abrir navegación",
   "shell.navigation.close": "Cerrar navegación",
   "shell.appTagline": "HashVest · HSK Testnet",
@@ -74,6 +75,101 @@ export const es: TranslationDictionary = {
   "home.strategies.hybrid.subtitle": "Mantén tiempo y entrega alineados.",
   "home.strategies.hybrid.body":
     "Desbloqueado = min(liberado por tiempo, monto de hitos aprobados). Ambas condiciones limitan cada reclamo.",
+
+  // Modelo de producto Protocol / Cloud (HAS-36). Solo presentación: sin billing.
+  "productModel.eyebrow": "Modelo de producto",
+  "productModel.title": "Protocolo abierto. Cloud enfocado.",
+  "productModel.lede":
+    "HashVest separa las garantías onchain del espacio de trabajo de la organización.",
+  "productModel.summaryLink": "Ver Free / Team / Enterprise",
+  "productModel.status.demo": "Disponible en la demo",
+  "productModel.status.roadmap": "Hoja de ruta",
+  "productModel.disclaimer":
+    "Solo presentación. Esta demo no tiene billing, checkout, medición de uso, asignación de planes ni límites aplicados.",
+  "productModel.protocol.title": "HashVest Protocol",
+  "productModel.protocol.tagline":
+    "Infraestructura abierta para subvenciones programables en HashKey Chain.",
+  "productModel.protocol.body":
+    "El Protocol custodia los fondos y aplica onchain la lógica de desbloqueo, los roles, los reclamos y la protección del valor ganado.",
+  "productModel.protocol.feature.0":
+    "Estrategias de subvención TIME, MILESTONE y HYBRID",
+  "productModel.protocol.feature.1":
+    "GrantVaults totalmente financiados con términos inmutables",
+  "productModel.protocol.feature.2":
+    "Permisos bajo autoridad de HSK y reclamos del beneficiario",
+  "productModel.protocol.cta": "Crear una subvención del Protocol",
+  "productModel.cloud.title": "HashVest Cloud",
+  "productModel.cloud.tagline":
+    "El espacio de trabajo organizativo que hace utilizable el Protocol.",
+  "productModel.cloud.body":
+    "Cloud añade contexto y coordinación, pero sigue siendo opcional para cada operación del Protocol.",
+  "productModel.cloud.feature.0": "Organizaciones y gestión del espacio",
+  "productModel.cloud.feature.1": "Miembros, roles y participantes identificados",
+  "productModel.cloud.feature.2": "Plantillas estándar y presets editables",
+  "productModel.cloud.feature.3": "Colas de revisión y visibilidad de reclamos",
+  "productModel.cloud.feature.4": "Salud de financiación y reporting de solo lectura",
+  "productModel.cloud.feature.5": "Creación acotada de subvenciones por cohortes",
+  "productModel.cloud.feature.6": "AI Grant Builder revisado por personas",
+  "productModel.cloud.feature.7":
+    "Experiencia de plantillas personalizadas (el esquema existe; la UI de propietario está en la hoja de ruta)",
+  "productModel.cloud.feature.8": "Reclamos patrocinados y coordinación de gas",
+  "productModel.cloud.feature.9":
+    "Permisos, compliance, soporte e integraciones empresariales",
+  "productModel.cloud.cta": "Abrir el espacio de trabajo",
+  "productModel.detail.eyebrow": "Paquetes de Cloud",
+  "productModel.detail.title": "Tres caminos para cada equipo de grants.",
+  "productModel.detail.lede":
+    "Free, Team y Enterprise describen la escalera de valor prevista para HashVest Cloud. Son dirección de producto, no controles de acceso.",
+  "productModel.surfaces.title": "Dos capas, un límite claro.",
+  "productModel.surfaces.lede":
+    "Usa el Protocol abierto directamente o añade Cloud para contexto y coordinación organizativa. HSK sigue siendo la autoridad de valor y permisos.",
+  "productModel.plans.eyebrow": "Planes de Cloud",
+  "productModel.plans.title": "Free / Team / Enterprise",
+  "productModel.plans.lede":
+    "Las tarjetas muestran cómo puede crecer el espacio de trabajo desde una organización sencilla hasta operaciones empresariales. Las etiquetas de hoja de ruta son intencionales; hoy no se aplica ningún límite de plan.",
+  "productModel.plan.label": "Paquete",
+  "productModel.plan.team.recommended": "Camino central",
+  "productModel.plan.free.title": "Free",
+  "productModel.plan.free.tagline":
+    "Empieza con una organización y lo esencial.",
+  "productModel.plan.free.feature.0": "Una organización (paquete previsto)",
+  "productModel.plan.free.feature.1":
+    "Miembros y subvenciones limitados (paquete previsto)",
+  "productModel.plan.free.feature.2": "Plantillas estándar",
+  "productModel.plan.free.feature.3":
+    "Superficies esenciales de espacio, revisión y reporting",
+  "productModel.plan.team.title": "Team",
+  "productModel.plan.team.tagline":
+    "Coordina programas de subvenciones con flujos más completos.",
+  "productModel.plan.team.feature.0":
+    "Más miembros y subvenciones (paquete previsto)",
+  "productModel.plan.team.feature.1": "Plantillas personalizadas",
+  "productModel.plan.team.feature.2": "Subvenciones por lotes para cohortes",
+  "productModel.plan.team.feature.3": "Reclamos patrocinados",
+  "productModel.plan.team.feature.4": "Reporting avanzado y funciones de IA",
+  "productModel.plan.team.feature.5": "AI Grant Builder revisado por personas",
+  "productModel.plan.enterprise.title": "Enterprise",
+  "productModel.plan.enterprise.tagline":
+    "Adapta la gobernanza y las operaciones a tu organización.",
+  "productModel.plan.enterprise.feature.0": "Límites personalizados",
+  "productModel.plan.enterprise.feature.1": "Permisos avanzados",
+  "productModel.plan.enterprise.feature.2": "Integraciones de compliance",
+  "productModel.plan.enterprise.feature.3": "Soporte dedicado",
+  "productModel.plan.enterprise.feature.4":
+    "Integraciones y reporting empresarial",
+  "productModel.addons.eyebrow": "Add-ons de uso opcionales",
+  "productModel.addons.title": "Amplía el flujo cuando lo necesites.",
+  "productModel.addons.lede":
+    "El gas patrocinado, los créditos de IA y las comprobaciones de compliance son conceptos de hoja de ruta. No se miden ni cobran en esta demo.",
+  "productModel.addon.sponsoredGas.title": "Gas patrocinado",
+  "productModel.addon.sponsoredGas.body":
+    "Permite que una organización coordine el gas de reclamo para beneficiarios invitados. Solo hoja de ruta.",
+  "productModel.addon.aiCredits.title": "Créditos de IA",
+  "productModel.addon.aiCredits.body":
+    "Asigna uso opcional de asistencia de IA para borradores y futuras herramientas de revisión. Solo hoja de ruta.",
+  "productModel.addon.complianceChecks.title": "Comprobaciones de compliance",
+  "productModel.addon.complianceChecks.body":
+    "Conecta proveedores de compliance o attestations sin mover la autoridad fuera de la cadena. Solo hoja de ruta.",
 
   // Revocación (HAS-26), estados de transacción y validación de lib/protocol.
   "ui.lifecycle.revoked": "Revocada",
@@ -1125,4 +1221,7 @@ export const es: TranslationDictionary = {
   "meta.title": "HashVest — Subvenciones programables",
   "meta.description":
     "Subvenciones de tokens totalmente financiadas con desbloqueos por tiempo, por hitos e híbridos en HashKey Chain.",
+  "plans.meta.title": "HashVest — Planes de Cloud",
+  "plans.meta.description":
+    "Descubre cómo encajan HashVest Protocol y HashVest Cloud en los paquetes Free, Team y Enterprise.",
 };
