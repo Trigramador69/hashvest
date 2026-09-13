@@ -1,20 +1,12 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { use } from "react";
+import { appRoutes } from "@/lib/shared/routes";
 
-import { MembersManager } from "@/components/members-manager";
-import { OrganizationHeader } from "@/components/organization-ui";
-
-export default function OrganizationMembersPage({
+export default async function LegacyOrganizationMembersPage({
   params,
 }: {
   params: Promise<{ organizationId: string }>;
 }) {
-  const { organizationId } = use(params);
-  return (
-    <div className="space-y-5">
-      <OrganizationHeader organizationId={organizationId} />
-      <MembersManager organizationId={organizationId} />
-    </div>
-  );
+  const { organizationId } = await params;
+  redirect(appRoutes.organizationMembers(organizationId));
 }

@@ -1,12 +1,20 @@
-import { redirect } from "next/navigation";
+"use client";
 
-import { appRoutes } from "@/lib/shared/routes";
+import { use } from "react";
 
-export default async function LegacyOrganizationOverviewPage({
+import { OrganizationOverview } from "@/components/organization-overview";
+import { OrganizationHeader } from "@/components/organization-ui";
+
+export default function OrganizationOverviewPage({
   params,
 }: {
   params: Promise<{ organizationId: string }>;
 }) {
-  const { organizationId } = await params;
-  redirect(appRoutes.organization(organizationId));
+  const { organizationId } = use(params);
+  return (
+    <div className="space-y-5">
+      <OrganizationHeader organizationId={organizationId} />
+      <OrganizationOverview organizationId={organizationId} />
+    </div>
+  );
 }

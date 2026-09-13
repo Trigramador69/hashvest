@@ -46,9 +46,9 @@ export function NewOrganizationPage() {
     <div className="mx-auto max-w-2xl space-y-5">
       <Link
         className="-mx-2 inline-flex min-h-11 items-center px-2 font-mono text-xs text-primary hover:underline"
-        href={appRoutes.settings}
+        href={appRoutes.organizations}
       >
-        <span aria-hidden>←</span> {t("shell.nav.settings")}
+        <span aria-hidden>←</span> {t("shell.nav.organizations")}
       </Link>
       <PageHeading eyebrow={t("neworg.eyebrow")} title={t("neworg.title")}>
         <p>{t("neworg.lede")}</p>

@@ -141,21 +141,29 @@ export function WorkspaceTabs({ organizationId }: { organizationId: string }) {
     ["reports", appRoutes.organizationReports(organizationId)],
     ["members", appRoutes.organizationMembers(organizationId)],
     ["templates", appRoutes.organizationTemplates(organizationId)],
+    ["settings", appRoutes.organizationSettings(organizationId)],
   ] as const;
   return (
     <nav
       aria-label={t("workspace.nav.label")}
       className="flex flex-wrap gap-1 border-b border-border-soft pb-3"
     >
-      {tabs.map(([id, href]) => (
-        <Link
-          key={id}
-          href={href}
-          className={`flex min-h-11 items-center rounded-control px-3 font-mono text-xs ${pathname === href ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
-        >
-          {t(`workspace.tab.${id}`)}
-        </Link>
-      ))}
+      {tabs.map(([id, href]) => {
+        const overview = href === appRoutes.organization(organizationId);
+        const active = overview
+          ? pathname === href
+          : pathname === href || pathname.startsWith(`${href}/`);
+        return (
+          <Link
+            key={id}
+            href={href}
+            className={`flex min-h-11 items-center rounded-control px-3 font-mono text-xs ${active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
+            aria-current={active ? "page" : undefined}
+          >
+            {t(`workspace.tab.${id}`)}
+          </Link>
+        );
+      })}
     </nav>
   );
 }
@@ -200,7 +208,7 @@ export function OrganizationHeader({
     <div className="space-y-5">
       <Link
         className="font-mono text-xs text-primary hover:underline"
-        href={appRoutes.settings}
+        href={appRoutes.organizations}
       >
         <span aria-hidden>←</span> {t("workspace.backToOrganizations")}
       </Link>

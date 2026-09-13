@@ -433,6 +433,14 @@ function SponsoredActionPanel({
               {availability}
             </p>
           )}
+          {policy.data && !compact && (
+            <p className="text-xs leading-5 text-muted-foreground">
+              {t("detail.sponsor.usage", {
+                remaining: policy.data.remainingActions,
+                max: policy.data.maxActions,
+              })}
+            </p>
+          )}
           {confirming ? (
             <div
               aria-labelledby={confirmationId}

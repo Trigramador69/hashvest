@@ -16,6 +16,7 @@ export const en = {
   "shell.footer.disclaimer": "Hackathon MVP · Unaudited · Testnet assets only",
   "shell.nav.overview": "Overview",
   "shell.nav.grants": "Grants",
+  "shell.nav.organizations": "Organizations",
   "shell.nav.settings": "Settings",
   "shell.nav.plans": "Plans",
   "shell.navigation.open": "Open navigation",
@@ -296,6 +297,7 @@ export const en = {
   "overview.sponsorship.title": "Sponsored protocol actions",
   "overview.sponsorship.lede":
     "Set an explicit HSK gas policy for beneficiary claims and reviewer milestone approvals.",
+  "overview.sponsorship.open": "Open policy",
   "overview.sponsorship.loading": "Reading sponsorship policy…",
   "overview.sponsorship.error":
     "The sponsorship policy is temporarily unavailable.",
@@ -430,21 +432,37 @@ export const en = {
   "dashboard.empty.2.title": "No milestones to review yet.",
   "dashboard.empty.2.body":
     "Grants that name this wallet as reviewer will appear here.",
-  "settings.eyebrow": "Workspace settings",
-  "settings.title": "Organizations.",
-  "settings.lede": "Manage the organizations that add context to your grants.",
-  "settings.create": "Create organization",
-  "settings.loading.title": "Loading organizations",
-  "settings.loading.body": "Reading your workspace memberships…",
-  "settings.error.title": "Organizations could not be loaded",
-  "settings.error.body": "Refresh after checking your workspace connection.",
-  "settings.retry": "Retry",
-  "settings.list.title": "Your organizations",
-  "settings.organization.open": "Open",
-  "settings.organization.counts": "{members} members · {grants} grants",
-  "settings.empty.title": "Create your first organization",
-  "settings.empty.body":
+  "organizations.eyebrow": "Organizations",
+  "organizations.title": "Organizations.",
+  "organizations.lede":
+    "Manage the organizations that add context to your grants.",
+  "organizations.create": "Create organization",
+  "organizations.loading.title": "Loading organizations",
+  "organizations.loading.body": "Reading your workspace memberships…",
+  "organizations.error.title": "Organizations could not be loaded",
+  "organizations.error.body":
+    "Refresh after checking your workspace connection.",
+  "organizations.retry": "Retry",
+  "organizations.list.title": "Your organizations",
+  "organizations.organization.open": "Open",
+  "organizations.organization.counts": "{members} members · {grants} grants",
+  "organizations.empty.title": "Create your first organization",
+  "organizations.empty.body":
     "Set up a workspace for your team, ecosystem, or treasury. You become the owner automatically.",
+  "settings.eyebrow": "Workspace",
+  "settings.title": "Settings.",
+  "settings.lede":
+    "Session, language, and network for this wallet. Plan packaging stays presentation-only.",
+  "settings.session.title": "Workspace session",
+  "settings.session.body":
+    "Sign in to read organization context. This never authorizes an onchain action.",
+  "settings.language.title": "Language",
+  "settings.language.body":
+    "Applies to this browser. Wallet and protocol values stay in their original form.",
+  "settings.plans.title": "Product model",
+  "settings.plans.body":
+    "Free, Team, and Enterprise are packaging, not enforced limits.",
+  "settings.plans.action": "View plans",
   // Analytics dashboard: read-only projections of live HSK grant state.
   "dashboard.connect.eyebrow": "Workspace overview",
   "dashboard.connect.title": "Connect to see your work.",
@@ -525,6 +543,7 @@ export const en = {
   "workspace.tab.members": "Members",
   "workspace.tab.templates": "Templates",
   "workspace.tab.reports": "Reports",
+  "workspace.tab.settings": "Settings",
 
   // Organization report (HAS-41). Every figure is a live GrantVault read;
   // Supabase supplies only which vaults belong to the organization.
@@ -915,6 +934,8 @@ export const en = {
     "This GrantVault is not in the organization sponsorship allowlist.",
   "detail.sponsor.limitReached":
     "The action limit or HSK gas budget has been reached. The wallet-paid action remains available.",
+  "detail.sponsor.usage":
+    "{remaining} of {max} organization-sponsored actions remaining.",
   "detail.sponsor.relayerMissing":
     "The organization relayer is not configured or funded yet. Use the wallet-paid action.",
   "detail.eligibility.title": "Eligibility",

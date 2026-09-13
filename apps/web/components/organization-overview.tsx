@@ -544,6 +544,35 @@ function SponsorshipPolicyForm({
   );
 }
 
+export function OrganizationSettings({
+  organizationId,
+}: {
+  organizationId: string;
+}) {
+  const t = useTranslations();
+  const session = useSession();
+  const organization = useOrganization(organizationId);
+  if (!session.walletMatches) return null;
+  if (organization.isPending)
+    return (
+      <Notice title={t("overview.loading.title")}>
+        <p>{t("overview.loading.body")}</p>
+      </Notice>
+    );
+  if (organization.isError || !organization.data)
+    return (
+      <Notice title={t("overview.error.title")} error>
+        <p>{t("overview.error.body")}</p>
+      </Notice>
+    );
+  return (
+    <SponsorshipPolicyCard
+      organizationId={organizationId}
+      canEdit={organization.data.membership.isOwner}
+    />
+  );
+}
+
 function SponsorshipPolicyCard({
   organizationId,
   canEdit,
@@ -766,10 +795,24 @@ export function OrganizationOverview({
               <MembersPreview organizationId={organizationId} />
             </CardContent>
           </Card>
-          <SponsorshipPolicyCard
-            organizationId={organizationId}
-            canEdit={organization.data.membership.isOwner}
-          />
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">
+                {t("overview.sponsorship.title")}
+              </CardTitle>
+              <p className="text-sm leading-6 text-muted-foreground">
+                {t("overview.sponsorship.lede")}
+              </p>
+            </CardHeader>
+            <CardContent>
+              <Link
+                className="font-mono text-xs text-primary hover:underline"
+                href={appRoutes.organizationSettings(organizationId)}
+              >
+                {t("overview.sponsorship.open")} →
+              </Link>
+            </CardContent>
+          </Card>
           {organization.data.membership.isOwner && (
             <LinkExistingGrant organizationId={organizationId} />
           )}

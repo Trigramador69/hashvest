@@ -464,6 +464,7 @@ export function DashboardOverview({
           art="rings"
         />
         <MetricCard
+          href={appRoutes.organizations}
           label={t("dashboard.metric.organizations")}
           value={organizationCount}
           trend={organizationCount ? t("dashboard.metric.synced") : "—"}

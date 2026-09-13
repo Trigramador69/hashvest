@@ -1,12 +1,23 @@
-import { redirect } from "next/navigation";
+"use client";
 
-import { appRoutes } from "@/lib/shared/routes";
+import { use } from "react";
 
-export default async function LegacyOrganizationNewGrantPage({
+import { NewGrant } from "@/app/grants/new/page";
+import { OrganizationHeader } from "@/components/organization-ui";
+
+export default function OrganizationNewGrantPage({
   params,
 }: {
   params: Promise<{ organizationId: string }>;
 }) {
-  const { organizationId } = await params;
-  redirect(appRoutes.organizationNewGrant(organizationId));
+  const { organizationId } = use(params);
+  return (
+    <div className="space-y-5">
+      <OrganizationHeader
+        organizationId={organizationId}
+        showCreateAction={false}
+      />
+      <NewGrant organizationId={organizationId} />
+    </div>
+  );
 }

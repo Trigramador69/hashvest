@@ -16,6 +16,7 @@ export const es: TranslationDictionary = {
     "MVP de hackathon · Sin auditar · Solo activos de testnet",
   "shell.nav.overview": "Resumen",
   "shell.nav.grants": "Subvenciones",
+  "shell.nav.organizations": "Organizaciones",
   "shell.nav.settings": "Configuración",
   "shell.nav.plans": "Planes",
   "shell.navigation.open": "Abrir navegación",
@@ -306,6 +307,7 @@ export const es: TranslationDictionary = {
   "overview.sponsorship.title": "Acciones de protocolo patrocinadas",
   "overview.sponsorship.lede":
     "Define una política explícita de gas HSK para reclamos de beneficiarios y aprobaciones de reviewers.",
+  "overview.sponsorship.open": "Abrir política",
   "overview.sponsorship.loading": "Leyendo la política de patrocinio…",
   "overview.sponsorship.error":
     "La política de patrocinio no está disponible temporalmente.",
@@ -447,23 +449,38 @@ export const es: TranslationDictionary = {
   "dashboard.empty.2.title": "Todavía no hay hitos que revisar.",
   "dashboard.empty.2.body":
     "Las subvenciones que nombren a esta wallet como revisora aparecerán aquí.",
-  "settings.eyebrow": "Configuración del espacio",
-  "settings.title": "Organizaciones.",
-  "settings.lede":
+  "organizations.eyebrow": "Organizaciones",
+  "organizations.title": "Organizaciones.",
+  "organizations.lede":
     "Gestiona las organizaciones que aportan contexto a tus subvenciones.",
-  "settings.create": "Crear organización",
-  "settings.loading.title": "Cargando organizaciones",
-  "settings.loading.body": "Leyendo tus membresías del espacio…",
-  "settings.error.title": "No se pudieron cargar las organizaciones",
-  "settings.error.body":
+  "organizations.create": "Crear organización",
+  "organizations.loading.title": "Cargando organizaciones",
+  "organizations.loading.body": "Leyendo tus membresías del espacio…",
+  "organizations.error.title": "No se pudieron cargar las organizaciones",
+  "organizations.error.body":
     "Actualiza la página y revisa la conexión del espacio.",
-  "settings.retry": "Reintentar",
-  "settings.list.title": "Tus organizaciones",
-  "settings.organization.open": "Abrir",
-  "settings.organization.counts": "{members} miembros · {grants} subvenciones",
-  "settings.empty.title": "Crea tu primera organización",
-  "settings.empty.body":
+  "organizations.retry": "Reintentar",
+  "organizations.list.title": "Tus organizaciones",
+  "organizations.organization.open": "Abrir",
+  "organizations.organization.counts":
+    "{members} miembros · {grants} subvenciones",
+  "organizations.empty.title": "Crea tu primera organización",
+  "organizations.empty.body":
     "Monta un espacio de trabajo para tu equipo, tu ecosistema o tu tesorería. Te conviertes en propietario automáticamente.",
+  "settings.eyebrow": "Espacio",
+  "settings.title": "Configuración.",
+  "settings.lede":
+    "Sesión, idioma y red de esta wallet. El empaquetado de planes sigue siendo solo presentación.",
+  "settings.session.title": "Sesión del espacio",
+  "settings.session.body":
+    "Inicia sesión para leer el contexto de la organización. Esto nunca autoriza una acción onchain.",
+  "settings.language.title": "Idioma",
+  "settings.language.body":
+    "Se aplica a este navegador. Los valores de wallet y de protocolo se mantienen en su forma original.",
+  "settings.plans.title": "Modelo de producto",
+  "settings.plans.body":
+    "Free, Team y Enterprise son empaquetado, no límites aplicados.",
+  "settings.plans.action": "Ver planes",
   "dashboard.connect.eyebrow": "Resumen del espacio",
   "dashboard.connect.title": "Conecta para ver tu trabajo.",
   "dashboard.connect.body":
@@ -544,6 +561,7 @@ export const es: TranslationDictionary = {
   "workspace.tab.members": "Miembros",
   "workspace.tab.templates": "Plantillas",
   "workspace.tab.reports": "Informes",
+  "workspace.tab.settings": "Configuración",
 
   "report.title": "Informe operativo",
   "report.lede":
@@ -940,6 +958,8 @@ export const es: TranslationDictionary = {
     "Este GrantVault no está en la allowlist de patrocinio de la organización.",
   "detail.sponsor.limitReached":
     "Se alcanzó el límite de acciones o el presupuesto de gas HSK. La acción normal continúa disponible.",
+  "detail.sponsor.usage":
+    "Quedan {remaining} de {max} acciones patrocinadas por la organización.",
   "detail.sponsor.relayerMissing":
     "El relayer de la organización aún no está configurado o financiado. Usa la acción pagada por tu wallet.",
   "detail.eligibility.title": "Elegibilidad",
