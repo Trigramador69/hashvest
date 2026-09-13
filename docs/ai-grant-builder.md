@@ -52,12 +52,12 @@ Any OpenAI-compatible `/chat/completions` endpoint. No SDK and no new dependency
 
 Groq is the default because it is what the demo is rehearsed against and what the team holds a key for. A default nobody can exercise is a default that rots.
 
-| Variable        | Default               | Notes                                                                        |
-| --------------- | --------------------- | ---------------------------------------------------------------------------- |
-| `AI_API_KEY`    | _(unset)_             | Server-only. Unset disables the provider; it does not disable the feature.   |
-| `AI_BASE_URL`   | `https://api.groq.com/openai/v1` | Trailing slashes are trimmed.                                     |
-| `AI_MODEL`      | `openai/gpt-oss-20b`  | Must honour `response_format: json_schema`.                                  |
-| `AI_MAX_TOKENS` | `2500`                | Output ceiling for one draft. Lower it only when a tier rejects the request. |
+| Variable        | Default                          | Notes                                                                        |
+| --------------- | -------------------------------- | ---------------------------------------------------------------------------- |
+| `AI_API_KEY`    | _(unset)_                        | Server-only. Unset disables the provider; it does not disable the feature.   |
+| `AI_BASE_URL`   | `https://api.groq.com/openai/v1` | Trailing slashes are trimmed.                                                |
+| `AI_MODEL`      | `openai/gpt-oss-20b`             | Must honour `response_format: json_schema`.                                  |
+| `AI_MAX_TOKENS` | `2500`                           | Output ceiling for one draft. Lower it only when a tier rejects the request. |
 
 `apps/web/lib/cloud/ai/config.ts` is the only module allowed to read `AI_API_KEY`; `scripts/check-boundary.mjs` fails CI otherwise, and fails outright on a `NEXT_PUBLIC_` prefix. Everything downstream receives an already-configured object, so no other file can put the key into a bundle, a log, or an error message.
 
