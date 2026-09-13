@@ -535,13 +535,20 @@ export const en = {
   "detail.stat.claimed": "Claimed",
   "detail.schedule.title": "Vesting schedule",
   "detail.schedule.lede":
-    "Linear from the start. The cliff delays claiming without restarting the curve.",
+    "An optional initial unlock is claimable at start. The remainder vests linearly; the cliff delays that remainder without restarting the curve.",
   "detail.schedule.vestedByTime": "{amount} vested by time",
   "detail.schedule.progressLabel": "Time vested",
   "detail.schedule.start": "Start",
   "detail.schedule.cliffReached": "Cliff reached",
   "detail.schedule.fullyVested": "Fully vested",
+  "detail.schedule.initialUnlock":
+    "Initial unlock (TGE): {amount} ({percent}%)",
+  "detail.schedule.initialUnlockHint":
+    "Available immediately at start. The remaining {remaining} follows the schedule below.",
   "detail.hybrid.formula": "Hybrid = min(time vested, approved milestones)",
+  "detail.hybrid.formulaWithInitial":
+    "Hybrid = initial unlock + min(time vesting remaining, approved milestones)",
+  "detail.hybrid.initialUnlock": "Initial unlock: {amount}",
   "detail.hybrid.timeVested": "Time vested: {amount}",
   "detail.hybrid.milestonesApproved": "Milestones approved: {amount}",
   "detail.hybrid.unlocked": "Unlocked: {amount}",
@@ -701,7 +708,7 @@ export const en = {
     "Enter token units, not base units. The full amount is transferred into the vault.",
   "wizard.schedule.title": "Vesting schedule",
   "wizard.schedule.lede":
-    "Vesting is linear from the start. At the cliff, the elapsed portion becomes available.",
+    "An optional initial unlock is claimable at start. The remainder vests linearly from the start; the cliff holds that remainder until it is reached.",
   "wizard.schedule.demoTip":
     "Demo tip: use a 5-minute duration and a 0-minute cliff.",
   "wizard.field.start.label": "Start date (optional)",
@@ -713,6 +720,9 @@ export const en = {
   "wizard.unit.days": "Days",
   "wizard.field.cliff.label": "Cliff",
   "wizard.field.duration.label": "Total duration",
+  "wizard.field.initialUnlock.label": "Initial unlock / TGE (optional)",
+  "wizard.field.initialUnlock.hint":
+    "Token amount unlocked immediately at start, before the cliff. The remainder vests linearly. Leave empty or 0 for standard cliff vesting.",
   "wizard.field.reviewer.label": "Reviewer",
   "wizard.field.reviewer.hint":
     "The selected member's exact wallet becomes the onchain reviewer for milestone approvals.",
@@ -744,6 +754,16 @@ export const en = {
   "wizard.review.start": "Start",
   "wizard.review.startCreation": "Creation timestamp",
   "wizard.review.cliffDuration": "Cliff / total duration",
+  "wizard.review.initialUnlock": "Initial unlock (TGE)",
+  "wizard.review.initialUnlockValue": "{amount} {symbol} ({percent}%)",
+  "wizard.review.initialUnlockNone": "None (0%)",
+  "wizard.review.schedulePreview": "Schedule preview:",
+  "wizard.review.scheduleAtStart":
+    "At start: {amount} {symbol} unlocked immediately",
+  "wizard.review.scheduleAtCliff":
+    "At cliff end: {amount} {symbol} cumulative time vested",
+  "wizard.review.scheduleAtCompletion":
+    "At completion: {amount} {symbol} (100%)",
   "wizard.review.eligibility": "Eligibility provider",
   "wizard.review.eligibilityNone": "None — disabled",
   "wizard.review.permanent.title": "These terms are permanent",
@@ -783,6 +803,14 @@ export const en = {
   "wizard.error.milestoneCount": "Add between 1 and {max} milestones.",
   "wizard.error.milestoneSum":
     "Milestone amounts must add up exactly to the total allocation.",
+  "wizard.error.milestoneSumRemaining":
+    "Milestone amounts must add up exactly to the remaining allocation (total allocation minus initial unlock).",
+  "wizard.error.initialUnlockExceeds":
+    "Initial unlock cannot exceed the total grant allocation.",
+  "wizard.error.initialUnlockMilestone":
+    "Milestone-only grants cannot have an initial unlock. Use Time or Hybrid strategy.",
+  "wizard.error.hybridInitialUnlockFull":
+    "In Hybrid grants, initial unlock cannot equal the entire allocation because milestones must cover the remainder.",
   "wizard.error.reviewFirst":
     "Review the grant and check the Testnet deployment before continuing.",
   "wizard.error.eligibilityNoCode":
@@ -803,7 +831,7 @@ export const en = {
   "strategy.1.description":
     "Unlock fixed allocations as your reviewer approves each milestone.",
   "strategy.2.description":
-    "Unlock the smaller of time vested and approved milestone amounts. Both conditions apply.",
+    "Unlock any initial amount at start, then the smaller of remaining time-vested and approved milestone amounts. Both conditions apply to the remainder.",
 
   // Preset picker in the grant wizard.
   "wizard.preset.title": "Start from a preset",

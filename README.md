@@ -20,7 +20,7 @@ This is a hackathon MVP deployed on **HSK Chain Testnet**. It is unaudited, uses
 
 ### Protocol
 
-- Time vesting with a start timestamp, cliff, and linear duration.
+- Time vesting with a start timestamp, optional initial unlock, cliff, and linear duration.
 - Milestone grants with fixed amounts approved by a designated reviewer.
 - Hybrid grants where both conditions constrain the claim: `unlocked = min(time vested, approved milestone amount)`.
 - Optional `IEligibilityProvider` adapter, including a clearly labeled administrator-controlled demo allowlist.
@@ -58,7 +58,7 @@ GrantVault #1, #2, #3 ...
 SponsoredGrantVault #organization grants
 ```
 
-Each vault stores the issuer, beneficiary, reviewer, token, allocation, strategy, vesting schedule, milestone titles and amounts, eligibility provider, and revocable mode as immutable terms. Milestone approvals, claims, and the optional one-way revocation state are the only lifecycle changes after creation. Revocation freezes earned value and returns only unearned allocation to the issuer; non-revocable grants and previously deployed vaults remain permanent. Organization metadata is an optional off-chain product layer and never replaces contract state.
+Each vault stores the issuer, beneficiary, reviewer, token, allocation, strategy, vesting schedule, optional initial unlock, milestone titles and amounts, eligibility provider, and revocable mode as immutable terms. Milestone approvals, claims, and the optional one-way revocation state are the only lifecycle changes after creation. Revocation freezes earned value and returns only unearned allocation to the issuer; non-revocable grants and previously deployed vaults remain permanent. Organization metadata is an optional off-chain product layer and never replaces contract state.
 
 ### Design refactor and live dashboard analytics
 
@@ -105,11 +105,22 @@ Full contract, limits, failure matrix, and privacy boundary: [`docs/ai-grant-bui
 
 ### Unlock semantics
 
+`initialUnlock` is an explicit token amount, included once in `totalAllocation`. It is optional and defaults to `0`. Pure `MILESTONE` grants reject `initialUnlock > 0`.
+
 - `TIME`: `unlockedAmount = vestedByTime`.
 - `MILESTONE`: `unlockedAmount = sum(approved milestone amounts)`.
-- `HYBRID`: `unlockedAmount = min(vestedByTime, milestoneUnlockedAmount)`.
+- `HYBRID`: `unlockedAmount = initialUnlock + min(vestedByTime - initialUnlock, milestoneUnlockedAmount)` after `start`; `0` before `start`.
 
-The cliff delays access but does not restart the vesting curve: before `start + cliff`, vesting is zero; at `start + duration`, the full allocation is vested; between those points, vesting is linear from `start`. Milestone amounts must sum exactly to the allocation, and no more than 20 milestones are accepted.
+Time vesting (`vestedByTime`) for `TIME` and `HYBRID`:
+
+- before `start`: `0`
+- from `start` until `start + cliff`: exactly `initialUnlock`
+- at or after `start + duration`: `totalAllocation`
+- otherwise: `initialUnlock + floor((totalAllocation - initialUnlock) * (t - start) / duration)`
+
+The cliff holds the remaining allocation without restarting the curve. Rounding uses Solidity `mulDiv` (floor). Repeated claims subtract `claimedAmount` from `unlockedAmount` and never re-count `initialUnlock`.
+
+`HYBRID` and `MILESTONE` milestone amounts must sum exactly to the remaining allocation (`totalAllocation - initialUnlock` on `HYBRID`, `totalAllocation` on `MILESTONE`), and no more than 20 milestones are accepted. The grant wizard preview uses the same helpers as the contract (`calculateVestedByTime` / `calculateUnlockedAmount` in `apps/web/lib/protocol/grants.ts`).
 
 ## Installation
 

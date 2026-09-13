@@ -791,10 +791,37 @@ export function GrantDetail({ address }: { address: Address }) {
                     </div>
                   ))}
                 </dl>
+                {g.initialUnlock > 0n && (
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm leading-6">
+                    <p className="font-medium text-primary">
+                      {t("detail.schedule.initialUnlock", {
+                        amount: amount(g.initialUnlock),
+                        percent: percent(g.initialUnlock, g.totalAllocation),
+                      })}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {t("detail.schedule.initialUnlockHint", {
+                        remaining: amount(g.totalAllocation - g.initialUnlock),
+                      })}
+                    </p>
+                  </div>
+                )}
                 {g.strategy === 2 && (
                   <div className="rounded-card border border-border-soft bg-secondary/70 p-4 text-sm leading-6">
-                    <p className="font-medium">{t("detail.hybrid.formula")}</p>
+                    <p className="font-medium">
+                      {g.initialUnlock > 0n
+                        ? t("detail.hybrid.formulaWithInitial")
+                        : t("detail.hybrid.formula")}
+                    </p>
                     <p className="mt-2 text-muted-foreground">
+                      {g.initialUnlock > 0n && (
+                        <>
+                          {t("detail.hybrid.initialUnlock", {
+                            amount: amount(g.initialUnlock),
+                          })}
+                          <br />
+                        </>
+                      )}
                       {t("detail.hybrid.timeVested", {
                         amount: amount(g.vestedByTime),
                       })}

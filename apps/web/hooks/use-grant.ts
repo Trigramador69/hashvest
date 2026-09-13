@@ -68,6 +68,7 @@ export function useGrant(address: Address) {
         unlockedAmount,
         claimableAmount,
         milestones,
+        initialUnlock,
         revocationState,
       ] = await Promise.all([
         client.readContract({ ...contract, functionName: "title" }),
@@ -93,6 +94,9 @@ export function useGrant(address: Address) {
         client.readContract({ ...contract, functionName: "unlockedAmount" }),
         client.readContract({ ...contract, functionName: "claimableAmount" }),
         client.readContract({ ...contract, functionName: "getMilestones" }),
+        client
+          .readContract({ ...contract, functionName: "initialUnlock" })
+          .catch(() => 0n),
         readRevocationState({
           revocable: () =>
             client.readContract({ ...contract, functionName: "revocable" }),
@@ -185,6 +189,7 @@ export function useGrant(address: Address) {
         unlockedAmount,
         claimableAmount,
         milestones,
+        initialUnlock,
         revocable: revocationState.revocable,
         revoked: revocationState.revoked,
         revokedAt: revocationState.revokedAt,

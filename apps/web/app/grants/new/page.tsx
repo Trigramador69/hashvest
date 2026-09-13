@@ -46,10 +46,12 @@ import {
 } from "@/hooks/use-transaction";
 import { readRevocationState } from "@/lib/protocol/revocation";
 import {
+  calculateVestedByTime,
   dateLabel,
   errorMessage,
   normalizeAddress,
   parseAllocation,
+  percent,
   validParty,
 } from "@/lib/protocol/grants";
 import {
@@ -96,6 +98,7 @@ type GrantConfiguration = {
   cliff: bigint;
   duration: bigint;
   eligibilityProvider: Address;
+  initialUnlock: bigint;
   revocable: boolean;
 };
 type PreparedGrant = {
@@ -315,6 +318,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   const [cliff, setCliff] = useState("0");
   const [duration, setDuration] = useState("5");
   const [unit, setUnit] = useState("60");
+  const [initialUnlock, setInitialUnlock] = useState("");
   const [reviewer, setReviewer] = useState("");
   const [reviewerMemberId, setReviewerMemberId] = useState("");
   const [reviewerExternal, setReviewerExternal] = useState(!organizationId);
@@ -423,6 +427,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
     setCliff(fields.cliff);
     setDuration(fields.duration);
     setMilestones(fields.milestones);
+    if (fields.strategy === 1) setInitialUnlock("");
   }
 
   /**
@@ -490,6 +495,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
     let startTimestamp = 0n;
     let cliffSeconds = 0n;
     let durationSeconds = 0n;
+    let initialUnlockAmount = 0n;
     if (strategy !== 1) {
       if (!/^\d+$/.test(duration) || BigInt(duration) === 0n)
         throw new Error(t("wizard.error.duration"));
@@ -505,6 +511,26 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         if (!Number.isFinite(parsed) || parsed < 0)
           throw new Error(t("wizard.error.startDate"));
         startTimestamp = BigInt(Math.floor(parsed / 1000));
+      }
+      if (initialUnlock.trim()) {
+        initialUnlockAmount = parseAllocation(
+          initialUnlock,
+          tokenMetadata.data.decimals,
+          allocationErrors(tokenMetadata.data.decimals),
+        );
+        if (initialUnlockAmount > totalAllocation)
+          throw new Error(t("wizard.error.initialUnlockExceeds"));
+      }
+    } else {
+      if (
+        initialUnlock.trim() &&
+        parseAllocation(
+          initialUnlock,
+          tokenMetadata.data.decimals,
+          allocationErrors(tokenMetadata.data.decimals),
+        ) > 0n
+      ) {
+        throw new Error(t("wizard.error.initialUnlockMilestone"));
       }
     }
     if (provider && !validParty(provider))
@@ -539,10 +565,23 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         throw new Error(t("wizard.error.reviewerRequired"));
       if (!items.length || items.length > 20)
         throw new Error(t("wizard.error.milestoneCount", { max: 20 }));
+      if (strategy === 2 && initialUnlockAmount === totalAllocation) {
+        throw new Error(t("wizard.error.hybridInitialUnlockFull"));
+      }
+      const expectedMilestoneSum =
+        strategy === 2
+          ? totalAllocation - initialUnlockAmount
+          : totalAllocation;
       if (
-        items.reduce((sum, item) => sum + item.amount, 0n) !== totalAllocation
-      )
-        throw new Error(t("wizard.error.milestoneSum"));
+        items.reduce((sum, item) => sum + item.amount, 0n) !==
+        expectedMilestoneSum
+      ) {
+        throw new Error(
+          strategy === 2 && initialUnlockAmount > 0n
+            ? t("wizard.error.milestoneSumRemaining")
+            : t("wizard.error.milestoneSum"),
+        );
+      }
     }
     return {
       config: {
@@ -556,6 +595,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         cliff: cliffSeconds,
         duration: durationSeconds,
         eligibilityProvider: provider ? getAddress(provider) : zeroAddress,
+        initialUnlock: initialUnlockAmount,
         revocable,
       },
       milestones: items,
@@ -685,6 +725,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             candidateDuration,
             candidateProvider,
             candidateMilestones,
+            candidateInitialUnlock,
             candidateRevocation,
           ] = await Promise.all([
             client.readContract({
@@ -747,6 +788,13 @@ export function NewGrant({ organizationId }: NewGrantProps) {
               abi: grantVaultAbi,
               functionName: "getMilestones",
             }),
+            client
+              .readContract({
+                address: candidate,
+                abi: grantVaultAbi,
+                functionName: "initialUnlock",
+              })
+              .catch(() => 0n),
             readRevocationState({
               revocable: () =>
                 client.readContract({
@@ -788,6 +836,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             candidateDuration === config.duration &&
             candidateProvider.toLowerCase() ===
               config.eligibilityProvider.toLowerCase() &&
+            candidateInitialUnlock === config.initialUnlock &&
             candidateRevocation.revocable === config.revocable &&
             candidateMilestones.length === items.length &&
             candidateMilestones.every(
@@ -1190,9 +1239,12 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             type="radio"
                             name="strategy"
                             checked={strategy === index}
-                            onChange={() =>
-                              setStrategy(index === 0 ? 0 : index === 1 ? 1 : 2)
-                            }
+                            onChange={() => {
+                              const next =
+                                index === 0 ? 0 : index === 1 ? 1 : 2;
+                              setStrategy(next);
+                              if (next === 1) setInitialUnlock("");
+                            }}
                           />
                           <span>
                             <span className="block font-semibold">
@@ -1228,6 +1280,26 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                               value={start}
                               onChange={(event) => setStart(event.target.value)}
                             />
+                          </Field>
+                          <Field
+                            label={t("wizard.field.initialUnlock.label")}
+                            hint={t("wizard.field.initialUnlock.hint")}
+                          >
+                            <div className="relative">
+                              <input
+                                className="field pr-16"
+                                placeholder="0.0"
+                                value={initialUnlock}
+                                onChange={(event) =>
+                                  setInitialUnlock(event.target.value)
+                                }
+                              />
+                              {tokenMetadata.data && (
+                                <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground">
+                                  {tokenMetadata.data.symbol}
+                                </span>
+                              )}
+                            </div>
                           </Field>
                           <div className="grid gap-4 sm:grid-cols-3">
                             <Field label={t("wizard.field.unit.label")}>
@@ -1537,6 +1609,26 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             </div>
                             <div className="flex justify-between gap-4">
                               <dt className="text-muted-foreground">
+                                {t("wizard.review.initialUnlock")}
+                              </dt>
+                              <dd>
+                                {prepared.config.initialUnlock > 0n
+                                  ? t("wizard.review.initialUnlockValue", {
+                                      amount: formatUnits(
+                                        prepared.config.initialUnlock,
+                                        prepared.decimals,
+                                      ),
+                                      symbol: prepared.symbol,
+                                      percent: percent(
+                                        prepared.config.initialUnlock,
+                                        prepared.config.totalAllocation,
+                                      ),
+                                    })
+                                  : t("wizard.review.initialUnlockNone")}
+                              </dd>
+                            </div>
+                            <div className="flex justify-between gap-4">
+                              <dt className="text-muted-foreground">
                                 {t("wizard.review.cliffDuration")}
                               </dt>
                               <dd>
@@ -1544,6 +1636,49 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                                 {prepared.config.duration.toString()}s
                               </dd>
                             </div>
+                            {prepared.config.initialUnlock > 0n && (
+                              <div className="rounded-lg bg-secondary/50 p-3 text-xs leading-5">
+                                <p className="font-semibold text-foreground">
+                                  {t("wizard.review.schedulePreview")}
+                                </p>
+                                <p className="mt-1 text-muted-foreground">
+                                  {t("wizard.review.scheduleAtStart", {
+                                    amount: formatUnits(
+                                      prepared.config.initialUnlock,
+                                      prepared.decimals,
+                                    ),
+                                    symbol: prepared.symbol,
+                                  })}
+                                  <br />
+                                  {t("wizard.review.scheduleAtCliff", {
+                                    amount: formatUnits(
+                                      calculateVestedByTime({
+                                        start: prepared.config.start,
+                                        cliff: prepared.config.cliff,
+                                        duration: prepared.config.duration,
+                                        totalAllocation:
+                                          prepared.config.totalAllocation,
+                                        initialUnlock:
+                                          prepared.config.initialUnlock,
+                                        timestamp:
+                                          prepared.config.start +
+                                          prepared.config.cliff,
+                                      }),
+                                      prepared.decimals,
+                                    ),
+                                    symbol: prepared.symbol,
+                                  })}
+                                  <br />
+                                  {t("wizard.review.scheduleAtCompletion", {
+                                    amount: formatUnits(
+                                      prepared.config.totalAllocation,
+                                      prepared.decimals,
+                                    ),
+                                    symbol: prepared.symbol,
+                                  })}
+                                </p>
+                              </div>
+                            )}
                           </>
                         )}
                         <div className="flex flex-wrap justify-between gap-2">

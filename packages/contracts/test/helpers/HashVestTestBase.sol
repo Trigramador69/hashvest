@@ -58,6 +58,7 @@ abstract contract HashVestTestBase is Test {
             cliff: 90 days,
             duration: DURATION,
             eligibilityProvider: address(0),
+            initialUnlock: 0,
             revocable: false
         });
     }

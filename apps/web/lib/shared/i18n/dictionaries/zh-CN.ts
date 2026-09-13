@@ -500,13 +500,19 @@ export const zhCN: TranslationDictionary = {
   "detail.stat.claimed": "已领取",
   "detail.schedule.title": "归属计划",
   "detail.schedule.lede":
-    "自起始时间线性归属。悬崖期会延迟领取，但不会重启曲线。",
+    "可选的初始解锁在起始时即可领取。剩余部分按线性归属；悬崖期会延迟该剩余部分，但不会重启曲线。",
   "detail.schedule.vestedByTime": "按时间已归属 {amount}",
   "detail.schedule.progressLabel": "按时间归属进度",
   "detail.schedule.start": "起始",
   "detail.schedule.cliffReached": "悬崖期结束",
   "detail.schedule.fullyVested": "完全归属",
+  "detail.schedule.initialUnlock": "初始解锁（TGE）：{amount}（{percent}%）",
+  "detail.schedule.initialUnlockHint":
+    "起始时即可领取。剩余的 {remaining} 按下方计划归属。",
   "detail.hybrid.formula": "混合 = min(按时间归属, 已批准里程碑)",
+  "detail.hybrid.formulaWithInitial":
+    "混合 = 初始解锁 + min(剩余时间归属, 已批准里程碑)",
+  "detail.hybrid.initialUnlock": "初始解锁：{amount}",
   "detail.hybrid.timeVested": "按时间归属：{amount}",
   "detail.hybrid.milestonesApproved": "已批准里程碑：{amount}",
   "detail.hybrid.unlocked": "已解锁：{amount}",
@@ -645,7 +651,7 @@ export const zhCN: TranslationDictionary = {
     "请输入代币单位，而非最小单位。全额将被转入金库。",
   "wizard.schedule.title": "归属计划",
   "wizard.schedule.lede":
-    "归属自起始时间线性进行。到达悬崖期时，已过去的部分即可使用。",
+    "可选的初始解锁在起始时即可领取。剩余部分自起始时间线性归属；悬崖期会锁定该剩余部分，直到悬崖期结束。",
   "wizard.schedule.demoTip": "演示建议：将时长设为 5 分钟，悬崖期设为 0 分钟。",
   "wizard.field.start.label": "起始日期（可选）",
   "wizard.field.start.hint":
@@ -656,6 +662,9 @@ export const zhCN: TranslationDictionary = {
   "wizard.unit.days": "天",
   "wizard.field.cliff.label": "悬崖期",
   "wizard.field.duration.label": "总时长",
+  "wizard.field.initialUnlock.label": "初始解锁 / TGE（可选）",
+  "wizard.field.initialUnlock.hint":
+    "在起始时、悬崖期之前立即解锁的代币数量。剩余部分按线性归属。留空或填 0 即为标准悬崖期归属。",
   "wizard.field.reviewer.label": "审核人",
   "wizard.field.reviewer.hint":
     "所选成员的确切钱包将成为链上审核人，用于批准里程碑。",
@@ -687,6 +696,14 @@ export const zhCN: TranslationDictionary = {
   "wizard.review.start": "起始",
   "wizard.review.startCreation": "创建时间戳",
   "wizard.review.cliffDuration": "悬崖期 / 总时长",
+  "wizard.review.initialUnlock": "初始解锁（TGE）",
+  "wizard.review.initialUnlockValue": "{amount} {symbol}（{percent}%）",
+  "wizard.review.initialUnlockNone": "无（0%）",
+  "wizard.review.schedulePreview": "计划预览：",
+  "wizard.review.scheduleAtStart": "起始时：立即解锁 {amount} {symbol}",
+  "wizard.review.scheduleAtCliff":
+    "悬崖期结束：累计按时间归属 {amount} {symbol}",
+  "wizard.review.scheduleAtCompletion": "完成时：{amount} {symbol}（100%）",
   "wizard.review.eligibility": "资格校验合约",
   "wizard.review.eligibilityNone": "无 — 未启用",
   "wizard.review.permanent.title": "这些条款是永久的",
@@ -717,6 +734,13 @@ export const zhCN: TranslationDictionary = {
   "wizard.error.reviewerRequired": "里程碑型和混合型资助需要一个审核人地址。",
   "wizard.error.milestoneCount": "请添加 1 到 {max} 个里程碑。",
   "wizard.error.milestoneSum": "各里程碑金额之和必须正好等于分配总额。",
+  "wizard.error.milestoneSumRemaining":
+    "各里程碑金额之和必须正好等于剩余分配（总分配减去初始解锁）。",
+  "wizard.error.initialUnlockExceeds": "初始解锁不能超过资助的总分配。",
+  "wizard.error.initialUnlockMilestone":
+    "纯里程碑资助不能设置初始解锁。请使用时间或混合策略。",
+  "wizard.error.hybridInitialUnlockFull":
+    "在混合资助中，初始解锁不能等于全部配额，因为里程碑必须覆盖剩余部分。",
   "wizard.error.reviewFirst": "请先复核资助并检查测试网部署，然后再继续。",
   "wizard.error.eligibilityNoCode":
     "该资格校验合约在 {network} 上没有合约代码。",
@@ -732,7 +756,7 @@ export const zhCN: TranslationDictionary = {
     "随时间线性解锁。悬崖期会延迟解锁，但不会重启计划。",
   "strategy.1.description": "在审核人批准每个里程碑时解锁固定额度。",
   "strategy.2.description":
-    "解锁按时间归属与已批准里程碑两者中较小的数量。两个条件同时生效。",
+    "起始时先解锁初始额度，之后按剩余时间归属与已批准里程碑两者中较小的数量解锁。两个条件同时作用于剩余部分。",
 
   // 资助向导中的预设选择器。
   "wizard.preset.title": "从预设开始",

@@ -556,14 +556,21 @@ export const es: TranslationDictionary = {
   "detail.stat.claimed": "Reclamado",
   "detail.schedule.title": "Calendario de vesting",
   "detail.schedule.lede":
-    "Lineal desde el inicio. El cliff retrasa el reclamo sin reiniciar la curva.",
+    "Un desbloqueo inicial opcional se puede reclamar al inicio. El resto veste de forma lineal; el cliff retrasa ese resto sin reiniciar la curva.",
   "detail.schedule.vestedByTime": "{amount} liberado por tiempo",
   "detail.schedule.progressLabel": "Liberado por tiempo",
   "detail.schedule.start": "Inicio",
   "detail.schedule.cliffReached": "Cliff alcanzado",
   "detail.schedule.fullyVested": "Totalmente liberado",
+  "detail.schedule.initialUnlock":
+    "Desbloqueo inicial (TGE): {amount} ({percent}%)",
+  "detail.schedule.initialUnlockHint":
+    "Disponible de inmediato al inicio. Los {remaining} restantes siguen el calendario de abajo.",
   "detail.hybrid.formula":
     "Híbrida = min(liberado por tiempo, hitos aprobados)",
+  "detail.hybrid.formulaWithInitial":
+    "Híbrida = desbloqueo inicial + min(resto del vesting temporal, hitos aprobados)",
+  "detail.hybrid.initialUnlock": "Desbloqueo inicial: {amount}",
   "detail.hybrid.timeVested": "Liberado por tiempo: {amount}",
   "detail.hybrid.milestonesApproved": "Hitos aprobados: {amount}",
   "detail.hybrid.unlocked": "Desbloqueado: {amount}",
@@ -726,7 +733,7 @@ export const es: TranslationDictionary = {
     "Introduce unidades de token, no unidades base. El importe completo se transfiere al vault.",
   "wizard.schedule.title": "Calendario de vesting",
   "wizard.schedule.lede":
-    "El vesting es lineal desde el inicio. Al llegar al cliff, la parte transcurrida queda disponible.",
+    "Un desbloqueo inicial opcional se puede reclamar al inicio. El resto veste de forma lineal desde el inicio; el cliff retiene ese resto hasta que se alcanza.",
   "wizard.schedule.demoTip":
     "Consejo para la demo: usa una duración de 5 minutos y un cliff de 0 minutos.",
   "wizard.field.start.label": "Fecha de inicio (opcional)",
@@ -738,6 +745,9 @@ export const es: TranslationDictionary = {
   "wizard.unit.days": "Días",
   "wizard.field.cliff.label": "Cliff",
   "wizard.field.duration.label": "Duración total",
+  "wizard.field.initialUnlock.label": "Desbloqueo inicial / TGE (opcional)",
+  "wizard.field.initialUnlock.hint":
+    "Cantidad de tokens desbloqueada de inmediato al inicio, antes del cliff. El resto veste de forma lineal. Déjalo vacío o en 0 para un vesting clásico con cliff.",
   "wizard.field.reviewer.label": "Revisor",
   "wizard.field.reviewer.hint":
     "La wallet exacta del miembro seleccionado pasa a ser el revisor onchain para aprobar hitos.",
@@ -769,6 +779,16 @@ export const es: TranslationDictionary = {
   "wizard.review.start": "Inicio",
   "wizard.review.startCreation": "Timestamp de creación",
   "wizard.review.cliffDuration": "Cliff / duración total",
+  "wizard.review.initialUnlock": "Desbloqueo inicial (TGE)",
+  "wizard.review.initialUnlockValue": "{amount} {symbol} ({percent}%)",
+  "wizard.review.initialUnlockNone": "Ninguno (0%)",
+  "wizard.review.schedulePreview": "Vista previa del calendario:",
+  "wizard.review.scheduleAtStart":
+    "Al inicio: {amount} {symbol} desbloqueados de inmediato",
+  "wizard.review.scheduleAtCliff":
+    "Al final del cliff: {amount} {symbol} acumulados por tiempo",
+  "wizard.review.scheduleAtCompletion":
+    "Al completar: {amount} {symbol} (100%)",
   "wizard.review.eligibility": "Proveedor de elegibilidad",
   "wizard.review.eligibilityNone": "Ninguno — desactivado",
   "wizard.review.permanent.title": "Estos términos son permanentes",
@@ -808,6 +828,14 @@ export const es: TranslationDictionary = {
   "wizard.error.milestoneCount": "Añade entre 1 y {max} hitos.",
   "wizard.error.milestoneSum":
     "Los importes de los hitos deben sumar exactamente la asignación total.",
+  "wizard.error.milestoneSumRemaining":
+    "Los importes de los hitos deben sumar exactamente la asignación restante (asignación total menos el desbloqueo inicial).",
+  "wizard.error.initialUnlockExceeds":
+    "El desbloqueo inicial no puede superar la asignación total de la subvención.",
+  "wizard.error.initialUnlockMilestone":
+    "Las subvenciones solo por hitos no pueden tener un desbloqueo inicial. Usa la estrategia de tiempo o híbrida.",
+  "wizard.error.hybridInitialUnlockFull":
+    "En subvenciones híbridas, el desbloqueo inicial no puede ser la asignación completa porque los hitos deben cubrir el resto.",
   "wizard.error.reviewFirst":
     "Revisa la subvención y comprueba el despliegue de testnet antes de continuar.",
   "wizard.error.eligibilityNoCode":
@@ -827,7 +855,7 @@ export const es: TranslationDictionary = {
   "strategy.1.description":
     "Desbloquea asignaciones fijas a medida que tu revisor aprueba cada hito.",
   "strategy.2.description":
-    "Desbloquea la menor de las cantidades: la liberada por tiempo y la aprobada por hitos. Ambas condiciones se aplican.",
+    "Desbloquea cualquier importe inicial al inicio y, después, la menor entre el resto liberado por tiempo y los hitos aprobados. Ambas condiciones se aplican al resto.",
 
   // Selector de presets en el asistente de subvención.
   "wizard.preset.title": "Empieza desde un preset",

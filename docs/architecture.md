@@ -107,7 +107,7 @@ Localization is presentation state, so it lives in `lib/shared/i18n/**` and impo
 | ----------------------------------------------------- | ------------------------------------------------------------ |
 | Issuer, beneficiary, reviewer                         | Organization name and description                            |
 | Token, allocation, strategy                           | Membership and workspace ownership (`is_owner`)              |
-| Vesting start, cliff, duration                        | Display names and presentation role labels                   |
+| Vesting start, cliff, duration, initial unlock        | Display names and presentation role labels                   |
 | Milestone titles, amounts, approval state             | Organization ↔ GrantVault associations                       |
 | Revocable mode, revoked state, revocation time        | Grant descriptions and organization templates                |
 | Vested, unlocked, claimable, claimed amounts          | —                                                            |
