@@ -11,36 +11,14 @@ import type { TranslationDictionary } from "./en";
 export const es: TranslationDictionary = {
   "shell.home": "Inicio de HashVest",
   "shell.nav.label": "Navegación principal",
-  "shell.nav.organizations": "Organizaciones / subvenciones",
-  "shell.nav.createGrant": "Crear subvención",
-  "shell.workspace.label": "Espacio de trabajo",
-  "shell.workspace.choose": "Elegir espacio de trabajo",
-  "shell.workspace.yours": "Tus organizaciones",
-  "shell.workspace.create": "+ Crear organización",
   "shell.footer.tagline": "Subvenciones programables en HashKey Chain",
   "shell.footer.disclaimer":
     "MVP de hackathon · Sin auditar · Solo activos de testnet",
   "shell.nav.overview": "Resumen",
-  "shell.nav.projects": "Proyectos",
-  "shell.nav.data": "Datos",
-  "shell.nav.models": "Modelos",
-  "shell.nav.insights": "Insights",
-  "shell.nav.team": "Equipo",
+  "shell.nav.grants": "Subvenciones",
   "shell.nav.settings": "Configuración",
-  "shell.search.label": "Buscar proyectos, espacios y subvenciones",
-  "shell.search.placeholder": "Buscar proyectos, espacios, subvenciones…",
-  "shell.search.empty": "Pulsa Enter para buscar esta dirección de subvención.",
-  "shell.search.overview": "Resumen",
-  "shell.search.overviewDetail": "Panel",
-  "shell.search.createGrant": "Crear subvención",
-  "shell.search.createGrantDetail": "Nueva asignación",
-  "shell.search.newOrganization": "Nueva organización",
-  "shell.search.workspaceDetail": "{members} miembros · {grants} subvenciones",
   "shell.navigation.open": "Abrir navegación",
   "shell.navigation.close": "Cerrar navegación",
-  "shell.notifications": "Notificaciones",
-  "shell.brand": "HashVest Labs",
-  "shell.version": "v1.0.0 · HSK",
   "shell.appTagline": "HashVest · HSK Testnet",
   "shell.appDisclaimer": "Sin auditar · Solo activos de testnet",
 
@@ -60,11 +38,6 @@ export const es: TranslationDictionary = {
     "Cambia tu wallet a {network} (chain {chainId}) primero.",
   "session.notConfigured":
     "La autenticación del espacio aún no está configurada en este servidor.",
-
-  "wallet.notConnected": "Sin conectar",
-  "wallet.label": "Wallet",
-  "wallet.selectedChain": "Red seleccionada",
-  "wallet.unknownChain": "Red {chainId}",
 
   "home.eyebrow": "Subvenciones programables · HashKey Chain",
   "home.headline.line1": "Financia el trabajo.",
@@ -338,7 +311,11 @@ export const es: TranslationDictionary = {
   "dashboard.title": "Subvenciones con propósito.",
   "dashboard.lede":
     "Gestiona asignaciones, sigue los desbloqueos y haz avanzar el buen trabajo.",
-  "dashboard.createGrant": "Crear subvención",
+  "grants.eyebrow": "Operaciones de subvenciones",
+  "grants.title": "Tus subvenciones.",
+  "grants.lede":
+    "Consulta las subvenciones en vivo según el rol de esta wallet.",
+  "grants.create": "Crear subvención",
   "dashboard.noDeployment.title":
     "El despliegue de testnet no está configurado",
   "dashboard.noDeployment.body":
@@ -360,29 +337,23 @@ export const es: TranslationDictionary = {
   "dashboard.empty.2.title": "Todavía no hay hitos que revisar.",
   "dashboard.empty.2.body":
     "Las subvenciones que nombren a esta wallet como revisora aparecerán aquí.",
-  "dashboard.empty.createGrant": "Crear una subvención",
-  "orgs.notConfigured.title":
-    "El contexto de espacio de trabajo no está configurado",
-  "orgs.notConfigured.body":
-    "Las subvenciones onchain directas siguen disponibles. Configura las variables de auth y Supabase del servidor para habilitar las organizaciones.",
-  "orgs.signIn.title": "Inicia sesión para gestionar organizaciones",
-  "orgs.signIn.body":
-    "El contexto de organización es independiente de la conexión de la wallet y necesita una firma explícita.",
-  "orgs.loading.title": "Cargando tus organizaciones",
-  "orgs.loading.body": "Leyendo las membresías del espacio de trabajo…",
-  "orgs.error.title": "No se pudieron cargar las organizaciones",
-  "orgs.eyebrow": "Tus espacios de trabajo",
-  "orgs.heading": "Las organizaciones aportan contexto.",
-  "orgs.create": "+ Crear organización",
-  "orgs.empty.title": "Crea tu primera organización",
-  "orgs.empty.body":
+  "settings.eyebrow": "Configuración del espacio",
+  "settings.title": "Organizaciones.",
+  "settings.lede":
+    "Gestiona las organizaciones que aportan contexto a tus subvenciones.",
+  "settings.create": "Crear organización",
+  "settings.loading.title": "Cargando organizaciones",
+  "settings.loading.body": "Leyendo tus membresías del espacio…",
+  "settings.error.title": "No se pudieron cargar las organizaciones",
+  "settings.error.body":
+    "Actualiza la página y revisa la conexión del espacio.",
+  "settings.retry": "Reintentar",
+  "settings.list.title": "Tus organizaciones",
+  "settings.organization.open": "Abrir",
+  "settings.organization.counts": "{members} miembros · {grants} subvenciones",
+  "settings.empty.title": "Crea tu primera organización",
+  "settings.empty.body":
     "Monta un espacio de trabajo para tu equipo, tu ecosistema o tu tesorería. Te conviertes en propietario automáticamente.",
-  "orgs.empty.action": "Montar espacio de trabajo",
-  "orgs.counts": "{members} miembros · {grants} subvenciones",
-  "dashboard.direct.title": "Subvenciones directas",
-  "dashboard.direct.lede":
-    "Subvenciones onchain donde esta wallet es emisor, beneficiario o revisor.",
-  "dashboard.hero.rail": "IDEAS\nDATOS\nPERSONAS\nIMPACTO",
   "dashboard.connect.eyebrow": "Resumen del espacio",
   "dashboard.connect.title": "Conecta para ver tu trabajo.",
   "dashboard.connect.body":
@@ -393,7 +364,7 @@ export const es: TranslationDictionary = {
   "dashboard.analytics.partial":
     "No se pudo leer parte del historial. El estado actual sigue en vivo; reintenta para completar la línea de tiempo.",
   "dashboard.metric.active": "Subvenciones activas",
-  "dashboard.metric.workspaces": "Espacios",
+  "dashboard.metric.organizations": "Organizaciones",
   "dashboard.metric.pendingReviews": "Revisiones pendientes",
   "dashboard.metric.claimable": "Subvenciones reclamables",
   "dashboard.metric.live": "En vivo",
@@ -424,11 +395,6 @@ export const es: TranslationDictionary = {
   "dashboard.chart.strategy.lede": "Distribución por tipo de subvención.",
   "dashboard.chart.strategy.aria": "Distribución de estrategias de subvención",
   "dashboard.chart.strategy.grants": "subvenciones",
-  "dashboard.chart.next.eyebrow": "Qué sigue",
-  "dashboard.chart.next.title": "Impulsa el trabajo claro.",
-  "dashboard.chart.next.body":
-    "Crea una asignación totalmente financiada con condiciones que todos puedan entender.",
-  "dashboard.chart.next.cta": "Crear subvención",
   "dashboard.chart.top.title": "Subvenciones principales",
   "dashboard.chart.top.lede":
     "Tus asignaciones onchain más activas en este periodo.",

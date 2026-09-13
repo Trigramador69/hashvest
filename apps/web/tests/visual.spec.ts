@@ -44,6 +44,11 @@ test.describe("design refactor visual contract", () => {
     await expect(
       page.getByRole("heading", { name: "Grant activity" }),
     ).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
     await expect(page).toHaveScreenshot("dashboard-connected-mobile.png", {
       fullPage: true,
       animations: "disabled",

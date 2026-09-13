@@ -85,7 +85,12 @@ describe("interpolation", () => {
   const t = createTranslator(getMessages("en"));
 
   it("substitutes named placeholders", () => {
-    expect(t("wallet.unknownChain", { chainId: 133 })).toBe("Chain 133");
+    expect(
+      t("session.switchNetworkChain", {
+        network: "HSK Testnet",
+        chainId: 133,
+      }),
+    ).toBe("Switch your wallet to HSK Testnet (chain 133) first.");
   });
 
   it("keeps technical literals verbatim", () => {
@@ -114,7 +119,7 @@ describe("interpolation", () => {
   });
 
   it("does not substitute into messages that take no values", () => {
-    expect(t("wallet.label")).toBe(en["wallet.label"]);
+    expect(t("shell.home")).toBe(en["shell.home"]);
   });
 });
 
