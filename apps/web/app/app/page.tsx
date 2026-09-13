@@ -23,7 +23,7 @@ export default function Dashboard() {
           <p className="font-mono text-[10px] uppercase tracking-[.08em] text-primary">
             {t("dashboard.eyebrow")}
           </p>
-          <h1 className="mt-5 max-w-2xl font-mono text-[clamp(42px,4.1vw,60px)] font-normal leading-[.98] tracking-[-.045em] text-foreground">
+          <h1 className="font-display mt-5 max-w-2xl text-[clamp(42px,4.1vw,60px)] font-normal leading-[.98] tracking-[-.045em] text-foreground">
             {t("dashboard.title")}
           </h1>
           <p className="mt-4 max-w-xl text-sm leading-6 text-muted-foreground">

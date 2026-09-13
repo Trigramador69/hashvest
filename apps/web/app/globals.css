@@ -125,6 +125,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Doto is reserved for the brand and primary display headings. */
+.font-display {
+  font-family: var(--font-doto, var(--font-mono)), var(--font-mono);
+}
+
 a,
 button,
 input,

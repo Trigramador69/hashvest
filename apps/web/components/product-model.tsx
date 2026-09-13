@@ -267,7 +267,7 @@ export function ProductModelPresentation({
         <p className="mb-4 font-mono text-[10px] font-medium uppercase tracking-[.08em] text-primary">
           {t("productModel.detail.eyebrow")}
         </p>
-        <h1 className="font-mono text-[clamp(42px,6vw,68px)] font-normal leading-[.98] tracking-[-.06em]">
+        <h1 className="font-display text-[clamp(42px,6vw,68px)] font-normal leading-[.98] tracking-[-.06em]">
           {t("productModel.detail.title")}
         </h1>
         <p className="mt-6 max-w-2xl text-sm leading-7 text-muted-foreground">

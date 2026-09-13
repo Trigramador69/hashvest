@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
@@ -21,6 +22,30 @@ import { appRoutes } from "@/lib/shared/routes";
 import { cn } from "@/lib/shared/utils";
 
 type Icon = typeof LayoutDashboard;
+
+function BrandLockup() {
+  return (
+    <span className="inline-flex items-center gap-2">
+      <span
+        aria-hidden="true"
+        className="relative inline-flex size-8 shrink-0 overflow-hidden"
+      >
+        <Image
+          src="/brand/logo.png"
+          alt=""
+          width={108}
+          height={108}
+          priority
+          sizes="108px"
+          className="absolute left-1/2 top-1/2 size-[108px] max-w-none -translate-x-1/2 -translate-y-1/2 object-cover mix-blend-lighten"
+        />
+      </span>
+      <span className="font-display text-[22px] font-medium leading-none tracking-[-0.06em]">
+        HashVest
+      </span>
+    </span>
+  );
+}
 
 const NAV_ITEMS: Array<{
   href: string;
@@ -101,10 +126,10 @@ function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
         <div className="mb-10 flex items-center justify-between px-3">
           <Link
             href="/"
-            className="font-mono text-[25px] font-medium tracking-[-0.06em] text-foreground"
+            className="inline-flex items-center text-foreground"
             aria-label={t("shell.home")}
           >
-            HashVest
+            <BrandLockup />
           </Link>
           <button
             type="button"
@@ -175,9 +200,13 @@ function MarketingShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-canvas">
       <header className="border-b border-border-soft bg-[rgba(7,8,8,.96)]">
-        <div className="mx-auto flex min-h-16 max-w-[1440px] items-center justify-between gap-4 px-5 sm:px-8">
-          <Link href="/" className="font-mono text-xl tracking-[-0.05em]">
-            HashVest
+        <div className="mx-auto flex min-h-16 max-w-[1440px] flex-wrap items-center justify-between gap-3 px-3 py-3 sm:flex-nowrap sm:gap-4 sm:px-8 sm:py-0">
+          <Link
+            href="/"
+            className="inline-flex items-center text-foreground"
+            aria-label={t("shell.home")}
+          >
+            <BrandLockup />
           </Link>
           <div className="flex items-center gap-3">
             <LocaleSwitcher />

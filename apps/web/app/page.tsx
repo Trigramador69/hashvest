@@ -21,7 +21,7 @@ export default async function Home() {
           <p className="mb-5 font-mono text-[10px] font-medium uppercase tracking-[.08em] text-primary">
             {t("home.eyebrow")}
           </p>
-          <h1 className="max-w-3xl font-mono text-[clamp(42px,6vw,76px)] font-normal leading-[.98] tracking-[-.06em]">
+          <h1 className="font-display max-w-3xl text-[clamp(42px,6vw,76px)] font-normal leading-[.98] tracking-[-.06em]">
             {t("home.headline.line1")}
             <br />
             <span className="text-primary">{t("home.headline.line2")}</span>

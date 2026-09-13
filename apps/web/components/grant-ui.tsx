@@ -431,7 +431,7 @@ export function PageHeading({
         <p className="mb-3 font-mono text-[10px] font-medium uppercase tracking-[.08em] text-primary">
           {eyebrow}
         </p>
-        <h1 className="font-mono text-3xl font-normal tracking-tight sm:text-[42px] sm:leading-none">
+        <h1 className="font-display text-3xl font-normal tracking-tight sm:text-[42px] sm:leading-none">
           {title}
         </h1>
         {children && (
