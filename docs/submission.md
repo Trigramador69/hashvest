@@ -137,9 +137,9 @@ Every address and transaction below was checked against the HSK Testnet RPC: eac
 
 | Contract                | Address                                                                                                                                  |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| HashVestFactory         | [`0x7a1cB78CDE03f85a3d42A2D8a93014173Afc1461`](https://testnet-explorer.hskchain.net/address/0x7a1cB78CDE03f85a3d42A2D8a93014173Afc1461) |
-| DemoToken (`hvUSD`)     | [`0x61764AE7fa269CC77Aa9C4f905FD7421459687C9`](https://testnet-explorer.hskchain.net/address/0x61764AE7fa269CC77Aa9C4f905FD7421459687C9) |
-| DemoEligibilityProvider | [`0xCA3D0B1B19eda7a8Fa30B9aA2713D979Fb5d1db8`](https://testnet-explorer.hskchain.net/address/0xCA3D0B1B19eda7a8Fa30B9aA2713D979Fb5d1db8) |
+| HashVestFactory         | [`0x6fE671195Ac025220B074439362214c10821F93d`](https://testnet-explorer.hskchain.net/address/0x6fE671195Ac025220B074439362214c10821F93d) |
+| DemoToken (`hvUSD`)     | [`0x66bc0047085a716987FDfCad12a0caC78f67f713`](https://testnet-explorer.hskchain.net/address/0x66bc0047085a716987FDfCad12a0caC78f67f713) |
+| DemoEligibilityProvider | [`0xd162c2dcdDfEa28F1662412C24917966F3e9533a`](https://testnet-explorer.hskchain.net/address/0xd162c2dcdDfEa28F1662412C24917966F3e9533a) |
 
 ### Grant lifecycles
 
@@ -191,7 +191,7 @@ Planned in the team's issue tracker, in delivery order. Each step must preserve 
 - Organization-owned custom templates.
 - Precise TGE and initial-unlock semantics.
 - Private milestone evidence for organization members (HAS-15/HAS-14).
-- Organization-sponsored first claim implementation; the checked-in testnet factory predates `createSponsoredGrant`, so live use requires an authorized redeploy and artifact synchronization.
+- Organization-sponsored first claim, live against the factory redeployed on 2026-09-13.
 
 **Next — Cloud additions (P1/P2)**
 

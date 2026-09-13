@@ -29,8 +29,8 @@ extension interaction has been executed.
 | Canonical RPC    | `https://testnet.hsk.xyz`                                                                                                                           |
 | Native gas token | HSK                                                                                                                                                 |
 | Explorer         | [HSK Testnet Explorer](https://testnet-explorer.hskchain.net)                                                                                       |
-| HashVestFactory  | [`0x7a1cB78CDE03f85a3d42A2D8a93014173Afc1461`](https://testnet-explorer.hskchain.net/address/0x7a1cB78CDE03f85a3d42A2D8a93014173Afc1461)            |
-| Demo token       | [`hvUSD` at `0x61764AE7fa269CC77Aa9C4f905FD7421459687C9`](https://testnet-explorer.hskchain.net/address/0x61764AE7fa269CC77Aa9C4f905FD7421459687C9) |
+| HashVestFactory  | [`0x6fE671195Ac025220B074439362214c10821F93d`](https://testnet-explorer.hskchain.net/address/0x6fE671195Ac025220B074439362214c10821F93d)            |
+| Demo token       | [`hvUSD` at `0x66bc0047085a716987FDfCad12a0caC78f67f713`](https://testnet-explorer.hskchain.net/address/0x66bc0047085a716987FDfCad12a0caC78f67f713) |
 | Faucet           | **Get demo hvUSD** in the app; it calls `DemoToken.faucet()` and mints 1,000 hvUSD to the connected wallet                                          |
 
 Every transaction writer pays its own HSK gas: the issuer pays the token

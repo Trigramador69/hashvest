@@ -17,18 +17,9 @@ import { useTranslations } from "@/lib/shared/i18n/provider";
 
 import { AddressDisplay, Notice } from "./grant-ui";
 import { MemberIdentity } from "./organization-ui";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "./ui/alert-dialog";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { ConfirmDialog } from "./ui/confirm-dialog";
 
 const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
@@ -44,12 +35,13 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
   const [displayName, setDisplayName] = useState("");
   const [roleLabel, setRoleLabel] = useState("");
   const [editingId, setEditingId] = useState<string>();
-  const [editingName, setEditingName] = useState("");
-  const [editingRole, setEditingRole] = useState("");
-  const [memberToRemove, setMemberToRemove] = useState<{
+  /** The member awaiting confirmation, or undefined when no dialog is open. */
+  const [pendingRemoval, setPendingRemoval] = useState<{
     id: string;
     displayName: string;
   }>();
+  const [editingName, setEditingName] = useState("");
+  const [editingRole, setEditingRole] = useState("");
 
   if (!session.walletMatches) return null;
   if (organization.isPending || members.isPending)
@@ -104,15 +96,14 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
     }
   }
 
-  async function confirmRemove() {
-    const target = memberToRemove;
-    if (!target) return;
+  async function remove(memberId: string) {
     try {
-      await removeMember.mutateAsync(target.id);
-      setMemberToRemove(undefined);
+      await removeMember.mutateAsync(memberId);
+      setPendingRemoval(undefined);
     } catch {
-      // The server-safe mutation error is rendered below.
-      setMemberToRemove(undefined);
+      // The server-safe mutation error is rendered below. The dialog closes
+      // either way: the error belongs on the page, not behind a modal.
+      setPendingRemoval(undefined);
     }
   }
 
@@ -314,7 +305,7 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
                                 size="sm"
                                 variant="outline"
                                 onClick={() =>
-                                  setMemberToRemove({
+                                  setPendingRemoval({
                                     id: member.id,
                                     displayName: member.displayName,
                                   })
@@ -343,40 +334,24 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
           )}
         </CardContent>
       </Card>
-      <AlertDialog
-        open={Boolean(memberToRemove)}
-        onOpenChange={(open) => {
-          if (!open && !removeMember.isPending) setMemberToRemove(undefined);
+      <ConfirmDialog
+        open={Boolean(pendingRemoval)}
+        title={t("members.removeTitle")}
+        description={t("members.removeConfirm")}
+        confirmLabel={t("members.remove")}
+        cancelLabel={t("dialog.cancel")}
+        pending={removeMember.isPending}
+        onCancel={() => setPendingRemoval(undefined)}
+        onConfirm={() => {
+          if (pendingRemoval) void remove(pendingRemoval.id);
         }}
       >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("members.remove")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {memberToRemove && (
-                <span className="mb-1 block font-medium text-foreground">
-                  {memberToRemove.displayName}
-                </span>
-              )}
-              {t("members.removeConfirm")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={removeMember.isPending}>
-              {t("members.edit.cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={removeMember.isPending}
-              onClick={(event) => {
-                event.preventDefault();
-                void confirmRemove();
-              }}
-            >
-              {t("members.remove")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        {pendingRemoval && (
+          <p className="-mt-1 font-medium text-foreground">
+            {pendingRemoval.displayName}
+          </p>
+        )}
+      </ConfirmDialog>
     </div>
   );
 }

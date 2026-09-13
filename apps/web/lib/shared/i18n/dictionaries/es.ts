@@ -15,6 +15,8 @@ export const es: TranslationDictionary = {
     "El portapapeles no está disponible. Selecciona el texto y cópialo.",
   "ai.action.regenerate": "Generar de nuevo",
   "ai.action.cancel": "Cancelar",
+  // Shared by every confirmation dialog.
+  "dialog.cancel": "Cancelar",
   "ai.tools.replaceConfirm": "Reemplazar mis ediciones",
   "ai.templates.prompt.placeholder":
     "Por ejemplo: un grant reutilizable liberado contra dos milestones revisados.",
@@ -172,8 +174,11 @@ export const es: TranslationDictionary = {
     "Desbloqueado = min(liberado por tiempo, monto de hitos aprobados). Ambas condiciones limitan cada reclamo.",
 
   // Modelo de producto Protocol / Cloud (HAS-36). Solo presentación: sin billing.
+  // "Protocol" y "Cloud" son los nombres de las dos capas del producto, no
+  // sustantivos comunes: quedan sin traducir en toda la página, igual que
+  // "Free / Team / Enterprise".
   "productModel.eyebrow": "Modelo de producto",
-  "productModel.title": "Protocolo abierto. Cloud enfocado.",
+  "productModel.title": "Protocol abierto. Cloud enfocado.",
   "productModel.lede":
     "HashVest separa las garantías onchain del espacio de trabajo de la organización.",
   "productModel.summaryLink": "Ver Free / Team / Enterprise",
@@ -331,6 +336,10 @@ export const es: TranslationDictionary = {
   "wizard.review.vaultKind.sponsoredBody":
     "La factory desplegará un SponsoredGrantVault. El actor sigue firmando el reclamo o la aprobación exactos; la organización puede pagar el gas HSK. El camino pagado por la wallet sigue disponible.",
   "wizard.review.vaultKind.directTitle": "GrantVault directo",
+  "wizard.review.sponsoredUnsupported.title":
+    "La creación patrocinada no está disponible en esta factory",
+  "wizard.review.sponsoredUnsupported.body":
+    "La HashVestFactory desplegada en {network} no tiene punto de entrada para concesiones patrocinadas, así que esta concesión no se puede crear desde la organización. Una concesión directa, pagada por tu propia wallet, sí funciona y guarda los mismos términos onchain.",
   "wizard.review.vaultKind.directBody":
     "La factory desplegará un GrantVault. Los reclamos y las aprobaciones los paga la wallet del actor.",
   "detail.claimReason.revokedAllClaimed":
@@ -434,6 +443,15 @@ export const es: TranslationDictionary = {
   "overview.sponsorship.allowedVaultsHint":
     "Introduce una dirección de GrantVault asociado por línea. Máximo: {max}.",
   "overview.sponsorship.maxActions": "Límite de acciones de la organización",
+  // HAS-49: un límite rechazado no sirve sin el suelo que se negó a cruzar.
+  "overview.sponsorship.maxActionsFloor":
+    "Al menos {min}, las acciones ya reservadas.",
+  "overview.sponsorship.gasBudgetFloor":
+    "Al menos {min} HSK, ya reservados y gastados.",
+  "overview.sponsorship.error.actionsBelowReserved":
+    "El límite de acciones no puede bajar de {min}, las acciones ya reservadas. Súbelo al menos a ese valor y vuelve a guardar.",
+  "overview.sponsorship.error.gasBudgetBelowCommitted":
+    "El presupuesto de gas no puede bajar de {min} HSK, ya reservados y gastados. Súbelo al menos a ese valor y vuelve a guardar.",
   "overview.sponsorship.maxActionsHint":
     "Las acciones reservadas cuentan para este límite acumulado. Máximo: {max}.",
   "overview.sponsorship.dailyLimit": "Acciones diarias por wallet",
@@ -507,6 +525,7 @@ export const es: TranslationDictionary = {
   "members.owner": "Propietario",
   "members.edit": "Editar",
   "members.remove": "Eliminar",
+  "members.removeTitle": "Eliminar miembro",
   "members.removeConfirm": "¿Eliminar a este miembro de la organización?",
   "neworg.eyebrow": "Nueva organización",
   "neworg.title": "Crea un espacio de trabajo.",
@@ -809,6 +828,7 @@ export const es: TranslationDictionary = {
   "templates.new": "Nueva plantilla",
   "templates.edit": "Editar",
   "templates.delete": "Eliminar",
+  "templates.deleteTitle": "Eliminar plantilla",
   "templates.deleteConfirm":
     "¿Eliminar la plantilla «{name}»? Las concesiones ya creadas a partir de ella mantienen sus condiciones y siguen mostrando su nombre.",
   "templates.save": "Guardar plantilla",
@@ -1227,6 +1247,8 @@ export const es: TranslationDictionary = {
   "wizard.field.eligibility.hint":
     "Déjalo vacío para no comprobar elegibilidad. El proveedor debe implementar isEligible(address). Este adaptador de demo no es KYC ni cumplimiento normativo.",
   "wizard.field.eligibility.placeholder": "Ninguno",
+  "wizard.review.fromPresetEdited":
+    "Partiste del preset {preset} y lo editaste después. Eso son solo metadatos del espacio de trabajo — los términos de abajo son lo que va onchain.",
   "wizard.review.fromPreset":
     "Partiste del preset {preset}. Eso son solo metadatos del espacio de trabajo — los términos de abajo son lo que va onchain.",
   "wizard.review.issuer": "Emisor",
@@ -1295,6 +1317,9 @@ export const es: TranslationDictionary = {
     "En concesiones híbridas, el desbloqueo inicial no puede ser la asignación completa porque los hitos deben cubrir el resto.",
   "wizard.error.reviewFirst":
     "Revisa la concesión y comprueba el despliegue de testnet antes de continuar.",
+  // HAS-48: la factory desplegada es anterior a createSponsoredGrant.
+  "wizard.error.sponsoredUnsupported":
+    "La factory desplegada en {network} no puede crear concesiones patrocinadas. Crea una concesión directa o vuelve a desplegar la factory.",
   "wizard.error.eligibilityNoCode":
     "El proveedor de elegibilidad no tiene código de contrato en {network}.",
   "wizard.error.reviewAgain":
@@ -1318,6 +1343,9 @@ export const es: TranslationDictionary = {
   "wizard.preset.title": "Empieza desde un preset",
   "wizard.preset.lede":
     "Opcional. Un preset rellena una estrategia, un calendario y un reparto de hitos que puedes editar o borrar. Nunca cambia lo que guarda el vault.",
+  // HAS-47: el resumen de arriba es el punto de partida, no el formulario actual.
+  "wizard.preset.editedNotice":
+    "Has editado estos valores. Esto describe de dónde partió la concesión, no lo que es ahora — el paso de revisión muestra lo que se va a crear.",
   "wizard.preset.custom.name": "Personalizado / en blanco",
   "wizard.preset.custom.tagline":
     "Configura cada valor tú mismo, exactamente como antes.",

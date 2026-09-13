@@ -15,6 +15,8 @@ export const en = {
     "The clipboard is unavailable. Select the text and copy it.",
   "ai.action.regenerate": "Generate it again",
   "ai.action.cancel": "Cancel",
+  // Shared by every confirmation dialog.
+  "dialog.cancel": "Cancel",
   "ai.tools.replaceConfirm": "Replace my edits",
   "ai.templates.prompt.placeholder":
     "For example: a reusable grant released against two reviewed milestones.",
@@ -326,6 +328,10 @@ export const en = {
   "wizard.review.vaultKind.sponsoredBody":
     "The factory will deploy a SponsoredGrantVault. The actor still signs the exact claim or approval; the organization may pay HSK gas. The wallet-paid path stays available.",
   "wizard.review.vaultKind.directTitle": "Direct GrantVault",
+  "wizard.review.sponsoredUnsupported.title":
+    "Sponsored creation is unavailable on this factory",
+  "wizard.review.sponsoredUnsupported.body":
+    "The HashVestFactory deployed on {network} has no sponsored-grant entry point, so this grant cannot be created from the organization. A direct grant, paid by your own wallet, still works and holds the same terms onchain.",
   "wizard.review.vaultKind.directBody":
     "The factory will deploy a GrantVault. Claims and approvals are paid by the actor wallet.",
   "detail.claimReason.revokedAllClaimed":
@@ -424,6 +430,15 @@ export const en = {
   "overview.sponsorship.allowedVaultsHint":
     "Enter one associated GrantVault address per line. Maximum: {max}.",
   "overview.sponsorship.maxActions": "Organization action limit",
+  // HAS-49: a refused limit is useless without the floor it refused to cross.
+  "overview.sponsorship.maxActionsFloor":
+    "At least {min}, the actions already reserved.",
+  "overview.sponsorship.gasBudgetFloor":
+    "At least {min} HSK, already reserved and spent.",
+  "overview.sponsorship.error.actionsBelowReserved":
+    "The action limit cannot go below {min}, the actions already reserved. Raise it to at least that and save again.",
+  "overview.sponsorship.error.gasBudgetBelowCommitted":
+    "The gas budget cannot go below {min} HSK, already reserved and spent. Raise it to at least that and save again.",
   "overview.sponsorship.maxActionsHint":
     "Reserved actions count toward this lifetime limit. Maximum: {max}.",
   "overview.sponsorship.dailyLimit": "Daily actions per wallet",
@@ -493,6 +508,7 @@ export const en = {
   "members.owner": "Owner",
   "members.edit": "Edit",
   "members.remove": "Remove",
+  "members.removeTitle": "Remove member",
   "members.removeConfirm": "Remove this member from the organization?",
   "neworg.eyebrow": "New organization",
   "neworg.title": "Create a workspace.",
@@ -795,6 +811,7 @@ export const en = {
   "templates.new": "New template",
   "templates.edit": "Edit",
   "templates.delete": "Delete",
+  "templates.deleteTitle": "Delete template",
   "templates.deleteConfirm":
     "Delete the template “{name}”? Grants already created from it keep their terms and still show its name.",
   "templates.save": "Save template",
@@ -1202,6 +1219,8 @@ export const en = {
   "wizard.field.eligibility.hint":
     "Leave empty for no eligibility check. The provider must implement isEligible(address). This demo adapter is not KYC or compliance.",
   "wizard.field.eligibility.placeholder": "None",
+  "wizard.review.fromPresetEdited":
+    "Started from the {preset} preset and edited since. That is workspace metadata only — the terms below are what goes onchain.",
   "wizard.review.fromPreset":
     "Started from the {preset} preset. That is workspace metadata only — the terms below are what goes onchain.",
   "wizard.review.issuer": "Issuer",
@@ -1270,6 +1289,9 @@ export const en = {
     "In Hybrid grants, initial unlock cannot equal the entire allocation because milestones must cover the remainder.",
   "wizard.error.reviewFirst":
     "Review the grant and check the Testnet deployment before continuing.",
+  // HAS-48: the checked-in factory predates createSponsoredGrant.
+  "wizard.error.sponsoredUnsupported":
+    "The factory deployed on {network} cannot create sponsored grants. Create a direct grant instead, or redeploy the factory.",
   "wizard.error.eligibilityNoCode":
     "Eligibility provider has no contract code on {network}.",
   "wizard.error.reviewAgain":
@@ -1294,6 +1316,9 @@ export const en = {
   "wizard.preset.title": "Start from a preset",
   "wizard.preset.lede":
     "Optional. A preset fills in a strategy, schedule, and milestone split that you can edit or clear. It never changes what the vault stores.",
+  // HAS-47: the summary above is the starting point, not the current form.
+  "wizard.preset.editedNotice":
+    "You have edited these values. This describes where the grant started, not what it is now — the review step shows what will be created.",
   "wizard.preset.custom.name": "Custom / blank",
   "wizard.preset.custom.tagline":
     "Configure every value yourself, exactly as before.",

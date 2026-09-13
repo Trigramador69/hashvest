@@ -10,6 +10,10 @@ import {
   sponsoredGrantVaultAbi,
 } from "@hashvest/web3";
 
+import {
+  readFactorySponsorshipSupport,
+  type FactorySponsorshipSupport,
+} from "@/lib/protocol/factory-capabilities";
 import { readRevocationState } from "@/lib/protocol/revocation";
 import { useTranslations } from "@/lib/shared/i18n/provider";
 
@@ -34,6 +38,35 @@ export function useToken(address: Address | undefined) {
         client.readContract({ address, abi: erc20Abi, functionName: "symbol" }),
       ]);
       return { decimals, symbol };
+    },
+  });
+}
+
+/**
+ * Whether the deployed factory can create sponsored grants (HAS-48).
+ *
+ * Reads the factory's runtime bytecode once and classifies it. A failed read
+ * resolves to `"unknown"` rather than throwing, because the caller's job is to
+ * avoid promising a capability, not to block creation on an RPC hiccup.
+ */
+export function useFactorySponsorshipSupport(factory: Address | undefined) {
+  const client = usePublicClient({ chainId: 133 });
+  return useQuery<FactorySponsorshipSupport>({
+    queryKey: ["factory-sponsorship-support", 133, factory],
+    enabled: Boolean(factory && client),
+    // Bytecode at a fixed address does not change; only a redeployment does,
+    // and that arrives as a new address.
+    staleTime: Infinity,
+    retry: false,
+    queryFn: async () => {
+      if (!client || !factory) return "unknown";
+      try {
+        return readFactorySponsorshipSupport(
+          await client.getCode({ address: factory }),
+        );
+      } catch {
+        return "unknown";
+      }
     },
   });
 }

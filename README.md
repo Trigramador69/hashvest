@@ -11,7 +11,7 @@ This is a hackathon MVP deployed on **HSK Chain Testnet**. It is unaudited, uses
 | **Buildathon**     | Ethereum Bolivia Buildathon 2026 · EAG Global Buildathon                                                                                 |
 | **Tracks**         | Real World Applications powered by HSK Chain · Real-World Ethereum Applications · Road to ShanhaiWoo                                     |
 | **Network**        | HSK Chain Testnet (chain ID 133)                                                                                                         |
-| **Factory**        | [`0x7a1cB78CDE03f85a3d42A2D8a93014173Afc1461`](https://testnet-explorer.hskchain.net/address/0x7a1cB78CDE03f85a3d42A2D8a93014173Afc1461) |
+| **Factory**        | [`0x6fE671195Ac025220B074439362214c10821F93d`](https://testnet-explorer.hskchain.net/address/0x6fE671195Ac025220B074439362214c10821F93d) |
 | **Live proof**     | TIME, MILESTONE, HYBRID, and revocable grant lifecycles with 19 public transactions — [`docs/testnet-demo.json`](docs/testnet-demo.json) |
 | **Technical docs** | Problem, track, architecture, evidence, and roadmap — [`docs/submission.md`](docs/submission.md)                                         |
 | **Architecture**   | Protocol/Cloud boundary and per-field authority — [`docs/architecture.md`](docs/architecture.md)                                         |
@@ -114,11 +114,8 @@ coordination, and human-reviewed AI assistance around it.
 The page also explains optional sponsored gas, AI credits, and compliance
 checks. This is product communication only: it has no prices, checkout,
 invoicing, billing webhooks, metering, entitlements, or enforced plan limits.
-Each capability is marked **Available in demo** or **Roadmap**. The sponsored
-action implementation is present on the current branch, but the checked-in
-testnet deployment predates `createSponsoredGrant`, so the product page keeps
-that capability roadmap-labeled until an authorized redeploy. The demo path
-continues to work independently through `/grants/new` and `/app`.
+Each capability is marked **Available in demo** or **Roadmap**. The demo path
+works through `/grants/new` and `/app`.
 
 ### Organizations product layer
 
@@ -312,7 +309,21 @@ What a deterministic fixture cannot assert — wallet, SIWE, chain guard, and
 human judgement about language and visual intent — is covered by
 [`docs/e2e-manual-checklist.md`](docs/e2e-manual-checklist.md).
 
-The application is available at `http://localhost:3000`. Routes are `/` (landing), `/plans` (public Protocol / Cloud and Free / Team / Enterprise presentation), `/app` (live overview), `/app/grants` (Issued / Received / Review), `/app/organizations` (organization list), `/app/organizations/new`, `/app/organizations/<uuid>`, `/app/organizations/<uuid>/members`, `/app/organizations/<uuid>/templates`, `/app/organizations/<uuid>/reports`, `/app/organizations/<uuid>/settings`, `/app/organizations/<uuid>/grants`, and `/app/organizations/<uuid>/grants/new`, `/app/settings` (workspace session, language, network, and sponsored-claim policy links), plus `/grants/new` (the shared five-step template-aware creation wizard: Template, Grant, Strategy, Conditions, Review) and `/grants/<GrantVault address>` (public role-aware detail page). The previous `/app/settings/organizations/...` paths remain compatibility redirects. `/visual/dashboard`, `/visual/templates` and `/visual/ai-tools` are local-only deterministic fixtures for the Playwright visual contract and are unavailable in production.
+Destructive actions confirm through the shared in-app dialog in
+`apps/web/components/ui/confirm-dialog.tsx`, never `window.confirm()`: a
+browser dialog renders outside the design system and blocks the main thread.
+It is the only modal shell, and its keyboard contract — initial focus on
+Cancel, Tab kept inside, Escape to leave, focus returned to the opener — is
+covered by `apps/web/tests/confirm-dialog.spec.ts`.
+
+Organization grants are created through `HashVestFactory.createSponsoredGrant`.
+A factory deployed before that function exists cannot serve the call, so the
+wizard inspects the deployed bytecode for the selector
+(`apps/web/lib/protocol/factory-capabilities.ts`) and says so before asking for
+a signature rather than surfacing a bare revert. A factory that could not be
+read stays unknown and never blocks creation.
+
+The application is available at `http://localhost:3000`. Routes are `/` (landing), `/plans` (public Protocol / Cloud and Free / Team / Enterprise presentation), `/app` (live overview), `/app/grants` (Issued / Received / Review), `/app/organizations` (organization list), `/app/organizations/new`, `/app/organizations/<uuid>`, `/app/organizations/<uuid>/members`, `/app/organizations/<uuid>/templates`, `/app/organizations/<uuid>/reports`, `/app/organizations/<uuid>/settings`, `/app/organizations/<uuid>/grants`, and `/app/organizations/<uuid>/grants/new`, `/app/settings` (workspace session, language, network, and sponsored-claim policy links), plus `/grants/new` (the shared five-step template-aware creation wizard: Template, Grant, Strategy, Conditions, Review) and `/grants/<GrantVault address>` (public role-aware detail page). The previous `/app/settings/organizations/...` paths remain compatibility redirects. `/visual/dashboard`, `/visual/templates`, `/visual/ai-tools` and `/visual/confirm-dialog` are local-only deterministic fixtures for the Playwright visual contract and are unavailable in production.
 
 Wallet connection and workspace authentication are separate. After connecting an HSK Testnet wallet, click **Sign in to workspace** and approve one SIWE/EIP-4361 message. The server stores a five-minute, one-time nonce and issues a 24-hour HttpOnly, SameSite session cookie signed with `AUTH_SECRET`. If the connected wallet changes, organization reads and writes are disabled until the new wallet explicitly signs in; the application never silently signs or writes as the previous wallet.
 
@@ -350,15 +361,17 @@ pnpm contracts:deploy:testnet
 pnpm contracts:smoke:testnet
 ```
 
-The current deployment is written to `packages/web3/src/addresses/hsk-testnet.json` after a successful broadcast. The canonical explorer is [HSK Testnet Explorer](https://testnet-explorer.hskchain.net). The generated deployment artifact remains the source of truth; the current values are repeated below for demo convenience. The checked-in deployment predates `createSponsoredGrant`; organization-sponsored claims require an explicitly authorized factory redeployment and address synchronization before use. This change does not broadcast or redeploy.
+The current deployment is written to `packages/web3/src/addresses/hsk-testnet.json` after a successful broadcast. The canonical explorer is [HSK Testnet Explorer](https://testnet-explorer.hskchain.net). The generated deployment artifact remains the source of truth; the current values are repeated below for demo convenience.
+
+The factory was redeployed on 2026-09-13 (block 33054218). The previous one predated the `initialUnlock` field in `GrantConfig`, so the twelve-field struct the app encodes resolved to a selector its bytecode did not carry and _every_ creation reverted, direct as well as sponsored. Grants created against the previous factory are not in the current factory's role index, and `hvUSD` held in the previous `DemoToken` is not in the current one.
 
 Current HSK Testnet deployment (chain 133; bytecode and read-only smoke verified):
 
 | Contract                | Address                                                                                                                                  | Deployment transaction                                                                                                                                                              |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| HashVestFactory         | [`0x7a1cB78CDE03f85a3d42A2D8a93014173Afc1461`](https://testnet-explorer.hskchain.net/address/0x7a1cB78CDE03f85a3d42A2D8a93014173Afc1461) | [`0xebc1200b38502a999434cb99469ca33d40f58c45079753a1d54d85aed167b34b`](https://testnet-explorer.hskchain.net/tx/0xebc1200b38502a999434cb99469ca33d40f58c45079753a1d54d85aed167b34b) |
-| DemoToken (`hvUSD`)     | [`0x61764AE7fa269CC77Aa9C4f905FD7421459687C9`](https://testnet-explorer.hskchain.net/address/0x61764AE7fa269CC77Aa9C4f905FD7421459687C9) | [`0x7095a16f4b2db49fb55838c169eefafdb7c8ebb9c1d3e85a07c4c2bdb82dd3ec`](https://testnet-explorer.hskchain.net/tx/0x7095a16f4b2db49fb55838c169eefafdb7c8ebb9c1d3e85a07c4c2bdb82dd3ec) |
-| DemoEligibilityProvider | [`0xCA3D0B1B19eda7a8Fa30B9aA2713D979Fb5d1db8`](https://testnet-explorer.hskchain.net/address/0xCA3D0B1B19eda7a8Fa30B9aA2713D979Fb5d1db8) | [`0xab01f3350a34949602448fb460469349b6eab994853be64a2962735072af2df6`](https://testnet-explorer.hskchain.net/tx/0xab01f3350a34949602448fb460469349b6eab994853be64a2962735072af2df6) |
+| HashVestFactory         | [`0x6fE671195Ac025220B074439362214c10821F93d`](https://testnet-explorer.hskchain.net/address/0x6fE671195Ac025220B074439362214c10821F93d) | [`0x1ac5e818bb51233b41e4109f9b76a85f887b8fd4572712824791a156cea5c910`](https://testnet-explorer.hskchain.net/tx/0x1ac5e818bb51233b41e4109f9b76a85f887b8fd4572712824791a156cea5c910) |
+| DemoToken (`hvUSD`)     | [`0x66bc0047085a716987FDfCad12a0caC78f67f713`](https://testnet-explorer.hskchain.net/address/0x66bc0047085a716987FDfCad12a0caC78f67f713) | [`0xa4f5e262e3051be4ec6ce76869175b9e179a208fad6bcf2c9c6317ec81341866`](https://testnet-explorer.hskchain.net/tx/0xa4f5e262e3051be4ec6ce76869175b9e179a208fad6bcf2c9c6317ec81341866) |
+| DemoEligibilityProvider | [`0xd162c2dcdDfEa28F1662412C24917966F3e9533a`](https://testnet-explorer.hskchain.net/address/0xd162c2dcdDfEa28F1662412C24917966F3e9533a) | [`0x72961c7d7e525ae523d9f0c9562dcea11db8a9b1cc4a3be7b371c9e2e11be972`](https://testnet-explorer.hskchain.net/tx/0x72961c7d7e525ae523d9f0c9562dcea11db8a9b1cc4a3be7b371c9e2e11be972) |
 
 The latest clean live lifecycle evidence is recorded in [`docs/testnet-demo.json`](docs/testnet-demo.json), including the TIME, MILESTONE, HYBRID, and REVOCABLE TIME grant vaults and every public transaction hash.
 

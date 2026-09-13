@@ -27,18 +27,9 @@ import { useTranslations } from "@/lib/shared/i18n/provider";
 import { Notice } from "./grant-ui";
 import { TemplateEditor } from "./template-editor";
 import { AiTemplateBuilder } from "./ai-template-builder";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "./ui/alert-dialog";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { ConfirmDialog } from "./ui/confirm-dialog";
 
 /** Which template the editor is open for, if any. */
 type Editor =
@@ -70,11 +61,12 @@ export function TemplatesManager({
   const updateTemplate = useUpdateTemplate(organizationId);
   const archiveTemplate = useArchiveTemplate(organizationId);
   const [editor, setEditor] = useState<Editor>();
+  /** The template awaiting confirmation, or undefined when no dialog is open. */
+  const [pendingDeletion, setPendingDeletion] =
+    useState<OrganizationTemplate>();
   const [form, setForm] = useState<TemplateForm>(BLANK_TEMPLATE_FORM);
   const [showIssues, setShowIssues] = useState(false);
   const [formError, setFormError] = useState("");
-  const [templateToDelete, setTemplateToDelete] =
-    useState<OrganizationTemplate>();
 
   if (!session.walletMatches) return null;
   if (organization.isPending || templates.isPending)
@@ -148,17 +140,17 @@ export function TemplatesManager({
     }
   }
 
-  async function confirmDelete() {
-    const target = templateToDelete;
-    if (!target) return;
+  async function remove(template: OrganizationTemplate) {
     try {
-      await archiveTemplate.mutateAsync(target.id);
-      if (editor?.mode === "edit" && editor.id === target.id)
+      await archiveTemplate.mutateAsync(template.id);
+      if (editor?.mode === "edit" && editor.id === template.id)
         setEditor(undefined);
-      setTemplateToDelete(undefined);
     } catch {
       // The server-safe mutation error is rendered below.
-      setTemplateToDelete(undefined);
+    } finally {
+      // The dialog closes either way: the error belongs on the page, not
+      // behind a modal.
+      setPendingDeletion(undefined);
     }
   }
 
@@ -265,7 +257,7 @@ export function TemplatesManager({
                         size="sm"
                         variant="outline"
                         disabled={archiveTemplate.isPending}
-                        onClick={() => setTemplateToDelete(template)}
+                        onClick={() => setPendingDeletion(template)}
                       >
                         {t("templates.delete")}
                       </Button>
@@ -284,40 +276,22 @@ export function TemplatesManager({
           )}
         </CardContent>
       </Card>
-      <AlertDialog
-        open={Boolean(templateToDelete)}
-        onOpenChange={(open) => {
-          if (!open && !archiveTemplate.isPending)
-            setTemplateToDelete(undefined);
+      <ConfirmDialog
+        open={Boolean(pendingDeletion)}
+        title={t("templates.deleteTitle")}
+        description={
+          pendingDeletion
+            ? t("templates.deleteConfirm", { name: pendingDeletion.name })
+            : ""
+        }
+        confirmLabel={t("templates.delete")}
+        cancelLabel={t("dialog.cancel")}
+        pending={archiveTemplate.isPending}
+        onCancel={() => setPendingDeletion(undefined)}
+        onConfirm={() => {
+          if (pendingDeletion) void remove(pendingDeletion);
         }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("templates.delete")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {templateToDelete
-                ? t("templates.deleteConfirm", {
-                    name: templateToDelete.name,
-                  })
-                : null}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={archiveTemplate.isPending}>
-              {t("templates.cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={archiveTemplate.isPending}
-              onClick={(event) => {
-                event.preventDefault();
-                void confirmDelete();
-              }}
-            >
-              {t("templates.delete")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      />
     </div>
   );
 }
