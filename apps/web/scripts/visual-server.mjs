@@ -14,7 +14,14 @@ const nextBin = path.join(
 );
 const child = spawn(
   process.execPath,
-  [nextBin, "dev", "--hostname", "127.0.0.1", "--port", "3100"],
+  [
+    nextBin,
+    "dev",
+    "--hostname",
+    "127.0.0.1",
+    "--port",
+    process.env.HASHVEST_VISUAL_PORT || "3100",
+  ],
   {
     cwd: appDirectory,
     env: { ...process.env, VISUAL_TEST_MODE: "1" },

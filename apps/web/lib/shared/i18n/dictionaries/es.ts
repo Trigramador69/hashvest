@@ -9,6 +9,11 @@ import type { TranslationDictionary } from "./en";
  * `min(...)` formula stay untranslated — they are technical literals.
  */
 export const es: TranslationDictionary = {
+  "ai.tools.forbidden":
+    "No tienes acceso a esta herramienta en esta organización.",
+  "ai.tools.failed":
+    "No se pudo completar el análisis. Puedes continuar manualmente y reintentar.",
+  "ai.tools.working": "Preparando una sugerencia orientativa…",
   "shell.home": "Inicio de HashVest",
   "shell.nav.label": "Navegación principal",
   "shell.footer.tagline": "Concesiones programables en HashKey Chain",

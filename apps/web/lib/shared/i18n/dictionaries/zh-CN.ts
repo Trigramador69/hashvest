@@ -9,6 +9,9 @@ import type { TranslationDictionary } from "./en";
  * `min(...)` formula stay untranslated — they are technical literals.
  */
 export const zhCN: TranslationDictionary = {
+  "ai.tools.forbidden": "你无权在此组织中使用此工具。",
+  "ai.tools.failed": "无法完成分析。你可以继续手动操作并重试。",
+  "ai.tools.working": "正在生成参考建议…",
   "shell.home": "HashVest 首页",
   "shell.nav.label": "主导航",
   "shell.footer.tagline": "HashKey Chain 上的可编程资助",

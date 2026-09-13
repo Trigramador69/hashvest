@@ -1,5 +1,8 @@
 import { defineConfig } from "@playwright/test";
 
+const port = process.env.HASHVEST_VISUAL_PORT || "3100";
+const baseURL = `http://127.0.0.1:${port}`;
+
 /**
  * Visual contract for the public landing and the responsive dashboard shell.
  * The server is intentionally started in test mode so the guarded fixture
@@ -16,7 +19,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: "list",
   use: {
-    baseURL: "http://127.0.0.1:3100",
+    baseURL,
     colorScheme: "dark",
     locale: "en-US",
     screenshot: "only-on-failure",
@@ -24,9 +27,10 @@ export default defineConfig({
   },
   webServer: {
     command: "node scripts/visual-server.mjs",
-    env: { VISUAL_TEST_MODE: "1" },
-    url: "http://127.0.0.1:3100",
-    reuseExistingServer: !process.env.CI,
+    env: { VISUAL_TEST_MODE: "1", HASHVEST_VISUAL_PORT: port },
+    url: baseURL,
+    // Never test another worktree's server just because it owns the default port.
+    reuseExistingServer: false,
     timeout: 120_000,
   },
 });

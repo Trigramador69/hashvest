@@ -9,6 +9,11 @@
  * translation entirely. Never inline such a literal into a message string.
  */
 export const en = {
+  "ai.tools.forbidden":
+    "You do not have access to this tool in this organization.",
+  "ai.tools.failed":
+    "The analysis could not be completed. You can continue manually and try again.",
+  "ai.tools.working": "Preparing an advisory suggestion…",
   // Shell: header, navigation, footer.
   "shell.home": "HashVest home",
   "shell.nav.label": "Main navigation",

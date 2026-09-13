@@ -81,7 +81,7 @@ async function openPanel(page: Page) {
   await page
     .getByRole("button", { name: "Draft a grant from a description" })
     .click();
-  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.getByRole("region")).toBeVisible();
 }
 
 test.describe("AI grant draft panel", () => {
@@ -114,7 +114,7 @@ test.describe("AI grant draft panel", () => {
     ).toBeVisible();
 
     await page.getByRole("button", { name: "Apply to the wizard" }).click();
-    await expect(page.getByRole("dialog")).toBeHidden();
+    await expect(page.getByRole("region")).toBeHidden();
 
     // The wizard is on its own Grant step with the drafted values in place,
     // and every one of them is an ordinary editable input.
@@ -140,13 +140,13 @@ test.describe("AI grant draft panel", () => {
       .fill("A six-month grant for a developer, 500 tokens");
     await page.getByRole("button", { name: "Draft it" }).click();
 
-    await expect(page.getByRole("dialog").getByRole("alert")).toContainText(
-      "The wizard below still works.",
+    await expect(page.getByRole("region").getByRole("alert")).toContainText(
+      "continue manually",
     );
     await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
 
-    await page.keyboard.press("Escape");
-    await expect(page.getByRole("dialog")).toBeHidden();
+    await page.getByRole("button", { name: "Close the draft panel" }).click();
+    await expect(page.getByRole("region")).toBeHidden();
     // The hand-written presets are untouched and still one click away.
     await expect(page.getByText("Builder Grant")).toBeVisible();
     await expect(page.getByText("Custom / blank")).toBeVisible();
@@ -168,7 +168,7 @@ test.describe("AI grant draft panel", () => {
       .fill("Another draft, please");
     await page.getByRole("button", { name: "Draft it" }).click();
 
-    await expect(page.getByRole("dialog").getByRole("alert")).toContainText(
+    await expect(page.getByRole("region").getByRole("alert")).toContainText(
       "42 seconds",
     );
   });
@@ -221,7 +221,7 @@ test.describe("AI grant draft panel", () => {
     await prompt.press("Enter");
 
     // The panel closed because the draft was applied, not redrafted.
-    await expect(page.getByRole("dialog")).toBeHidden();
+    await expect(page.getByRole("region")).toBeHidden();
     expect(requests).toBe(1);
     await expect(page.getByLabel("Grant title")).toHaveValue(
       "Protocol integration grant",
@@ -251,7 +251,7 @@ test.describe("AI grant draft panel", () => {
 
     const panel = luminance(
       await page
-        .getByRole("dialog")
+        .getByRole("region")
         .evaluate((node) => getComputedStyle(node).backgroundColor),
     );
 
@@ -305,7 +305,7 @@ test.describe("AI grant draft panel", () => {
       .getByRole("button", { name: "根据一段描述起草一笔赠款" })
       .click();
     await page
-      .getByRole("dialog")
+      .getByRole("region")
       .locator("textarea")
       .fill("给一位开发者创建一笔赠款");
     await page.getByRole("button", { name: "生成草稿" }).click();
@@ -316,7 +316,7 @@ test.describe("AI grant draft panel", () => {
 
     await page.locator("select").first().selectOption({ label: "English" });
 
-    const panel = page.getByRole("dialog");
+    const panel = page.getByRole("region");
     await expect(
       panel.getByText("written in the language you were reading before", {
         exact: false,
@@ -341,7 +341,7 @@ test.describe("AI grant draft panel", () => {
     await page.getByRole("button", { name: "Draft it" }).click();
     await expect(page.getByText("Protocol integration grant")).toBeVisible();
 
-    await expect(page.getByRole("dialog")).toHaveScreenshot(
+    await expect(page.getByRole("region")).toHaveScreenshot(
       "ai-grant-builder-draft.png",
       { animations: "disabled" },
     );
