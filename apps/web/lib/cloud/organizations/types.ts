@@ -1,3 +1,5 @@
+import type { OrganizationTemplateDefinition } from "../../shared/grant-presets/organization-template";
+
 export type Organization = {
   id: string;
   name: string;
@@ -25,6 +27,18 @@ export type OrganizationGrant = {
   templateKey: string | null;
   createdByWallet: string;
   createdAt: string;
+};
+
+/**
+ * An organization-owned grant template: draft configuration metadata, never
+ * vault state or permission. See docs/organization-templates.md.
+ */
+export type OrganizationTemplate = OrganizationTemplateDefinition & {
+  organizationId: string;
+  createdByWallet: string;
+  updatedByWallet: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type OrganizationMembership = Pick<
@@ -98,6 +112,49 @@ export type OrganizationGrantRow = {
   created_at: string;
 };
 
+/**
+ * A milestone in a stored template: a title and a whole-number share of the
+ * allocation. Never a token amount (docs/organization-templates.md).
+ */
+export type OrganizationTemplateMilestoneRow = {
+  title: string;
+  percentOfAllocation: number;
+};
+
+export type OrganizationTemplateRow = {
+  id: string;
+  organization_id: string;
+  version: number;
+  name: string;
+  description: string | null;
+  strategy: 0 | 1 | 2;
+  schedule_unit_seconds: 60 | 3600 | 86400 | null;
+  cliff_units: number | null;
+  duration_units: number | null;
+  milestones: OrganizationTemplateMilestoneRow[] | null;
+  allocation_suggestion: string | null;
+  default_reviewer_member_id: string | null;
+  created_by_wallet: string;
+  updated_by_wallet: string;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+};
+
+/** Every column a template write may set; identity and audit columns are excluded. */
+export type OrganizationTemplateContentRow = Pick<
+  OrganizationTemplateRow,
+  | "name"
+  | "description"
+  | "strategy"
+  | "schedule_unit_seconds"
+  | "cliff_units"
+  | "duration_units"
+  | "milestones"
+  | "allocation_suggestion"
+  | "default_reviewer_member_id"
+>;
+
 type TableDefinition<Row, Insert, Update> = {
   Row: Row;
   Insert: Insert;
@@ -137,6 +194,27 @@ export type Database = {
         Omit<OrganizationGrantRow, "created_at"> &
           Partial<Pick<OrganizationGrantRow, "created_at">>,
         Partial<Pick<OrganizationGrantRow, "description" | "template_key">>
+      >;
+      organization_templates: TableDefinition<
+        OrganizationTemplateRow,
+        OrganizationTemplateContentRow &
+          Pick<
+            OrganizationTemplateRow,
+            "organization_id" | "created_by_wallet" | "updated_by_wallet"
+          > &
+          Partial<
+            Pick<
+              OrganizationTemplateRow,
+              "id" | "version" | "created_at" | "updated_at" | "archived_at"
+            >
+          >,
+        Partial<
+          OrganizationTemplateContentRow &
+            Pick<
+              OrganizationTemplateRow,
+              "version" | "updated_by_wallet" | "updated_at" | "archived_at"
+            >
+        >
       >;
     };
     Views: Record<string, never>;
