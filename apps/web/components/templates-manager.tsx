@@ -26,6 +26,7 @@ import { useTranslations } from "@/lib/shared/i18n/provider";
 
 import { Notice } from "./grant-ui";
 import { TemplateEditor } from "./template-editor";
+import { AiTemplateBuilder } from "./ai-template-builder";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
@@ -151,6 +152,19 @@ export function TemplatesManager({
     <div className="space-y-7">
       {isOwner && !editor && (
         <Button onClick={openNew}>{t("templates.new")}</Button>
+      )}
+      {isOwner && editor?.mode === "new" && (
+        <AiTemplateBuilder
+          key={`${organizationId}:${session.session?.walletAddress}:${session.session?.expiresAt}`}
+          organizationId={organizationId}
+          dirty={JSON.stringify(form) !== JSON.stringify(BLANK_TEMPLATE_FORM)}
+          disabled={saveMutation.isPending}
+          onApply={(content) => {
+            setForm(templateForm({ ...content, id: "draft", version: 1 }));
+            setShowIssues(false);
+            setFormError("");
+          }}
+        />
       )}
       {isOwner && editor && (
         <TemplateEditor

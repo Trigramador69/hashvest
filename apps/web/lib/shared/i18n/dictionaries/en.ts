@@ -9,6 +9,95 @@
  * translation entirely. Never inline such a literal into a message string.
  */
 export const en = {
+  "ai.action.copy": "Copy as a report",
+  "ai.action.copied": "Copied to the clipboard.",
+  "ai.action.copyFailed":
+    "The clipboard is unavailable. Select the text and copy it.",
+  "ai.action.regenerate": "Generate it again",
+  "ai.action.cancel": "Cancel",
+  "ai.tools.replaceConfirm": "Replace my edits",
+  "ai.templates.prompt.placeholder":
+    "For example: a reusable grant released against two reviewed milestones.",
+  "ai.templates.examples": "Start from:",
+  "ai.templates.example.milestones.label": "Milestones",
+  "ai.templates.example.milestones":
+    "A reusable grant released against two reviewed milestones: a prototype and a release.",
+  "ai.templates.example.vesting.label": "Vesting",
+  "ai.templates.example.vesting":
+    "A one-year contributor grant vesting daily after a three-month cliff.",
+  "ai.templates.example.hybrid.label": "Hybrid",
+  "ai.templates.example.hybrid":
+    "A six-month grant that vests over time and also unlocks on two reviewed milestones.",
+  "ai.review.openMilestone": "Go to milestone {index}",
+  "ai.report.title": "Read this report with AI",
+  "ai.report.lede":
+    "An advisory reading of the figures on this page, with every sentence pointing at the section it came from.",
+  "ai.report.generate": "Summarize this report",
+  "ai.report.unavailable":
+    "The summary is unavailable. The report above is unaffected.",
+  "ai.report.noPrices":
+    "HashVest has no price feed. Amounts stay inside one token and are never converted, valued or added together across tokens.",
+  "ai.report.disclaimer":
+    "Advisory only. Every figure comes from the sections above, which are the live GrantVault reads. Check them before acting.",
+  "ai.report.summary": "What the portfolio looks like",
+  "ai.report.watchlist": "Worth watching",
+  "ai.report.uncertainty": "Limitations and uncertainty",
+  "ai.report.checkedAt": "Read from HSK: {date} · {grants} grants",
+  "ai.report.stale":
+    "The report changed or this summary is over five minutes old.",
+  "ai.report.omitted":
+    "{count} associated grants were not included: one summary reads a bounded number of vaults.",
+  "ai.report.tokenSource": "{symbol} allocations",
+  "ai.report.source.lifecycle": "Grant lifecycle counts",
+  "ai.report.source.viewer": "Your own roles",
+  "ai.report.source.unlocks": "Upcoming unlock dates",
+  "ai.report.source.unreadable": "Grants that could not be read",
+  "ai.tools.forbidden":
+    "You do not have access to this tool in this organization.",
+  "ai.tools.failed":
+    "The analysis could not be completed. You can continue manually and try again.",
+  "ai.tools.working": "Preparing an advisory suggestion…",
+  "ai.tools.redacted":
+    "Sensitive text was removed before processing or displaying the suggestion.",
+  "ai.tools.replace":
+    "Replace the current template fields with this suggestion? Your edits will be replaced.",
+  "ai.templates.title": "Generate a template with AI",
+  "ai.templates.lede":
+    "Describe a reusable configuration, then review and edit it before saving.",
+  "ai.templates.prompt": "What should this template describe?",
+  "ai.templates.unavailable":
+    "AI generation is unavailable. Continue with the template editor below.",
+  "ai.templates.apply": "Apply to the editor",
+  "ai.templates.disclaimer":
+    "The owner reviews and explicitly saves the template. Applying a suggestion does not save it or request a wallet transaction. Choose any default reviewer yourself.",
+  "ai.review.title": "Evidence analysis",
+  "ai.review.lede":
+    "Summarize private workspace notes and current grant reads to support your review.",
+  "ai.review.generate": "Analyze evidence",
+  "ai.review.unavailable":
+    "The copilot is unavailable. Manual review and approval remain available.",
+  "ai.review.linksUnread":
+    "Linked content was not downloaded or verified. This analysis uses submitted notes, evidence dates and current HSK reads only.",
+  "ai.review.disclaimer":
+    "Advisory only. Check the sources and decide yourself. Approval requires the existing reviewer action and your wallet; this section cannot execute it.",
+  "ai.review.summary": "Progress summary",
+  "ai.review.findings": "Evidence gaps and inconsistencies",
+  "ai.review.questions": "Questions for the submitter",
+  "ai.review.uncertainty": "Limitations and uncertainty",
+  "ai.review.recommendation": "Non-binding recommendation",
+  "ai.review.approve": "Consider approval after checking the sources",
+  "ai.review.request_information": "Request more information",
+  "ai.review.insufficient_information": "Insufficient information",
+  "ai.review.sources": "Sources used",
+  "ai.review.chainSource": "Current HSK grant reads",
+  "ai.review.evidenceSource": "Evidence for milestone {index}",
+  "ai.review.checkedAt": "Consulted: {date} · block {block}",
+  "ai.review.evidenceDate": "Updated: {date}",
+  "ai.review.stale":
+    "The context has changed or this analysis is over five minutes old. Regenerate before using the recommendation.",
+  "ai.review.missingNotes":
+    "Some pending milestones have no usable evidence note. Their linked content cannot be assessed.",
+  "ai.review.open": "Open evidence analysis",
   // Shell: header, navigation, footer.
   "shell.home": "HashVest home",
   "shell.nav.label": "Main navigation",

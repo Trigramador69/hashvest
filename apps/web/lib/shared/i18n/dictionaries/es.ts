@@ -9,6 +9,95 @@ import type { TranslationDictionary } from "./en";
  * `min(...)` formula stay untranslated — they are technical literals.
  */
 export const es: TranslationDictionary = {
+  "ai.action.copy": "Copiar como informe",
+  "ai.action.copied": "Copiado al portapapeles.",
+  "ai.action.copyFailed":
+    "El portapapeles no está disponible. Selecciona el texto y cópialo.",
+  "ai.action.regenerate": "Generar de nuevo",
+  "ai.action.cancel": "Cancelar",
+  "ai.tools.replaceConfirm": "Reemplazar mis ediciones",
+  "ai.templates.prompt.placeholder":
+    "Por ejemplo: un grant reutilizable liberado contra dos milestones revisados.",
+  "ai.templates.examples": "Empieza desde:",
+  "ai.templates.example.milestones.label": "Milestones",
+  "ai.templates.example.milestones":
+    "Un grant reutilizable liberado contra dos milestones revisados: un prototipo y una versión.",
+  "ai.templates.example.vesting.label": "Vesting",
+  "ai.templates.example.vesting":
+    "Un grant de un año para una persona colaboradora, con vesting diario tras un cliff de tres meses.",
+  "ai.templates.example.hybrid.label": "Híbrido",
+  "ai.templates.example.hybrid":
+    "Un grant de seis meses que libera por tiempo y además con dos milestones revisados.",
+  "ai.review.openMilestone": "Ir al milestone {index}",
+  "ai.report.title": "Leer este informe con IA",
+  "ai.report.lede":
+    "Una lectura orientativa de las cifras de esta página, con cada frase señalando la sección de la que salió.",
+  "ai.report.generate": "Resumir este informe",
+  "ai.report.unavailable":
+    "El resumen no está disponible. El informe de arriba no cambia.",
+  "ai.report.noPrices":
+    "HashVest no tiene fuente de precios. Los importes se quedan dentro de un token y nunca se convierten, valoran ni suman entre tokens.",
+  "ai.report.disclaimer":
+    "Solo orientativo. Cada cifra viene de las secciones de arriba, que son las lecturas en vivo del GrantVault. Compruébalas antes de actuar.",
+  "ai.report.summary": "Cómo está la cartera",
+  "ai.report.watchlist": "Conviene vigilar",
+  "ai.report.uncertainty": "Limitaciones e incertidumbre",
+  "ai.report.checkedAt": "Leído de HSK: {date} · {grants} grants",
+  "ai.report.stale":
+    "El informe cambió o este resumen tiene más de cinco minutos.",
+  "ai.report.omitted":
+    "{count} grants asociados no se incluyeron: un resumen lee un número acotado de vaults.",
+  "ai.report.tokenSource": "Asignaciones en {symbol}",
+  "ai.report.source.lifecycle": "Conteos de ciclo de vida",
+  "ai.report.source.viewer": "Tus propios roles",
+  "ai.report.source.unlocks": "Próximas fechas de desbloqueo",
+  "ai.report.source.unreadable": "Grants que no se pudieron leer",
+  "ai.tools.forbidden":
+    "No tienes acceso a esta herramienta en esta organización.",
+  "ai.tools.failed":
+    "No se pudo completar el análisis. Puedes continuar manualmente y reintentar.",
+  "ai.tools.working": "Preparando una sugerencia orientativa…",
+  "ai.tools.redacted":
+    "Se eliminó texto sensible antes de procesar o mostrar la sugerencia.",
+  "ai.tools.replace":
+    "¿Reemplazar los campos actuales con esta sugerencia? Se reemplazarán tus ediciones.",
+  "ai.templates.title": "Generar plantilla con IA",
+  "ai.templates.lede":
+    "Describe una configuración reutilizable; revísala y edítala antes de guardar.",
+  "ai.templates.prompt": "¿Qué debe definir esta plantilla?",
+  "ai.templates.unavailable":
+    "La generación con IA no está disponible. Continúa con el editor de abajo.",
+  "ai.templates.apply": "Aplicar al editor",
+  "ai.templates.disclaimer":
+    "El propietario revisa y guarda la plantilla explícitamente. Aplicar una sugerencia no la guarda ni solicita transacciones. Elige tú el revisor predeterminado.",
+  "ai.review.title": "Análisis de evidencia",
+  "ai.review.lede":
+    "Resume notas privadas del workspace y lecturas actuales del grant para apoyar tu revisión.",
+  "ai.review.generate": "Analizar evidencia",
+  "ai.review.unavailable":
+    "El copilot no está disponible. Puedes revisar y aprobar manualmente.",
+  "ai.review.linksUnread":
+    "El contenido de los enlaces no se descargó ni verificó. El análisis utiliza solo notas, fechas de evidencia y lecturas actuales de HSK.",
+  "ai.review.disclaimer":
+    "Solo orientativo. Comprueba las fuentes y decide. Aprobar requiere la acción del revisor y tu wallet; esta sección no puede ejecutarla.",
+  "ai.review.summary": "Resumen de progreso",
+  "ai.review.findings": "Vacíos e inconsistencias",
+  "ai.review.questions": "Preguntas para quien envió la evidencia",
+  "ai.review.uncertainty": "Limitaciones e incertidumbre",
+  "ai.review.recommendation": "Recomendación no vinculante",
+  "ai.review.approve": "Considerar aprobación tras comprobar las fuentes",
+  "ai.review.request_information": "Solicitar más información",
+  "ai.review.insufficient_information": "Información insuficiente",
+  "ai.review.sources": "Fuentes utilizadas",
+  "ai.review.chainSource": "Lecturas actuales del grant en HSK",
+  "ai.review.evidenceSource": "Evidencia del milestone {index}",
+  "ai.review.checkedAt": "Consultado: {date} · bloque {block}",
+  "ai.review.evidenceDate": "Actualizada: {date}",
+  "ai.review.stale":
+    "El contexto cambió o el análisis tiene más de cinco minutos. Regenera antes de usar la recomendación.",
+  "ai.review.missingNotes":
+    "Algunos milestones pendientes no tienen notas de evidencia utilizables. No se puede evaluar el contenido enlazado.",
+  "ai.review.open": "Abrir análisis de evidencia",
   "shell.home": "Inicio de HashVest",
   "shell.nav.label": "Navegación principal",
   "shell.footer.tagline": "Concesiones programables en HashKey Chain",

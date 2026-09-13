@@ -97,12 +97,29 @@ function readContent(payload: unknown): string {
  * is, whether it came from a provider or from the offline drafter.
  */
 export async function requestAiGrantDraft({
+  locale,
+  ...options
+}: AiProviderRequest): Promise<string> {
+  return requestAiStructured({
+    ...options,
+    system: buildSystemPrompt(locale),
+    prompt: buildUserPrompt(options.prompt),
+    schema: AI_GRANT_DRAFT_JSON_SCHEMA,
+  });
+}
+
+/** Shared transport only; each tool owns its strict parser and authority boundary. */
+export async function requestAiStructured({
   config,
   prompt,
-  locale,
+  system,
+  schema,
   fetchImpl = fetch,
   signal,
-}: AiProviderRequest): Promise<string> {
+}: Omit<AiProviderRequest, "locale"> & {
+  system: string;
+  schema: object;
+}): Promise<string> {
   const timeout = AbortSignal.timeout(AI_REQUEST_TIMEOUT_MS);
   const abort = signal ? AbortSignal.any([signal, timeout]) : timeout;
 
@@ -120,11 +137,11 @@ export async function requestAiGrantDraft({
         max_tokens: config.maxOutputTokens,
         response_format: {
           type: "json_schema",
-          json_schema: AI_GRANT_DRAFT_JSON_SCHEMA,
+          json_schema: schema,
         },
         messages: [
-          { role: "system", content: buildSystemPrompt(locale) },
-          { role: "user", content: buildUserPrompt(prompt) },
+          { role: "system", content: system },
+          { role: "user", content: prompt },
         ],
       }),
       signal: abort,
@@ -143,9 +160,33 @@ export async function requestAiGrantDraft({
 
   let payload: unknown;
   try {
-    payload = await response.json();
+    const reader = response.body?.getReader();
+    if (!reader) throw new AiProviderError("malformed");
+    const chunks: Uint8Array[] = [];
+    let size = 0;
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        size += value.length;
+        if (size > 128000) {
+          await reader.cancel();
+          throw new AiProviderError("malformed");
+        }
+        chunks.push(value);
+      }
+    } finally {
+      reader.releaseLock();
+    }
+    const bytes = new Uint8Array(size);
+    let offset = 0;
+    for (const chunk of chunks) {
+      bytes.set(chunk, offset);
+      offset += chunk.length;
+    }
+    payload = JSON.parse(new TextDecoder().decode(bytes));
   } catch {
-    throw new AiProviderError("malformed");
+    throw new AiProviderError(abort.aborted ? "timeout" : "malformed");
   }
   return readContent(payload);
 }

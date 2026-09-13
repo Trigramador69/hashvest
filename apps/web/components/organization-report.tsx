@@ -23,6 +23,9 @@ import {
 } from "@/lib/protocol/grants";
 import { useTranslations } from "@/lib/shared/i18n/provider";
 
+import { reportStateKey } from "@/lib/shared/ai-tools/report";
+
+import { AiReportSummary } from "./ai-report-summary";
 import { Notice, Progress } from "./grant-ui";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
@@ -294,8 +297,26 @@ export function OrganizationReportView({
         </div>
         <Freshness report={report} />
       </div>
-      <PartialNotice report={report} onRetry={() => void reads.refetch()} />
-      <section className="space-y-2">
+      <div id="report-partial" className="scroll-mt-6">
+        <PartialNotice report={report} onRetry={() => void reads.refetch()} />
+      </div>
+      <AiReportSummary
+        organizationId={organizationId}
+        currentStateKey={reportStateKey({
+          lifecycle: report.lifecycle,
+          viewer: report.viewer,
+          tokenGroups: report.tokenGroups.map((group) => ({
+            symbol: group.symbol,
+            totalAllocation: tokenAmount(group.totalAllocation, group.decimals),
+            unlockedAmount: tokenAmount(group.unlockedAmount, group.decimals),
+            claimedAmount: tokenAmount(group.claimedAmount, group.decimals),
+            claimableAmount: tokenAmount(group.claimableAmount, group.decimals),
+          })),
+          unreadableVaults: [],
+        })}
+        disabled={reads.isPending}
+      />
+      <section id="report-lifecycle" className="scroll-mt-6 space-y-2">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <MetricCard
             label={t("report.metric.active")}
@@ -315,7 +336,7 @@ export function OrganizationReportView({
         </div>
         <SourceNote>{t("report.metric.lifecycle.source")}</SourceNote>
       </section>
-      <section className="space-y-2">
+      <section id="report-viewer" className="scroll-mt-6 space-y-2">
         <h3 className="font-mono text-lg font-normal">
           {t("report.viewer.title")}
         </h3>
@@ -336,7 +357,7 @@ export function OrganizationReportView({
         </div>
         <SourceNote>{t("report.viewer.source")}</SourceNote>
       </section>
-      <section className="space-y-4">
+      <section id="report-tokens" className="scroll-mt-6 space-y-4">
         <div>
           <h3 className="font-mono text-lg font-normal">
             {t("report.tokens.title")}
@@ -351,7 +372,9 @@ export function OrganizationReportView({
           ))}
         </div>
       </section>
-      <UpcomingUnlocks unlocks={report.upcomingUnlocks} />
+      <div id="report-upcoming" className="scroll-mt-6">
+        <UpcomingUnlocks unlocks={report.upcomingUnlocks} />
+      </div>
     </div>
   );
 }

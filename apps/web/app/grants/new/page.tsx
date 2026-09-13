@@ -1120,6 +1120,10 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                 <fieldset className="min-w-0 space-y-6" disabled={tx.pending}>
                   {step === STEP.template && (
                     <div className="space-y-7">
+                      <AiGrantBuilder
+                        onApply={applyAiDraft}
+                        disabled={tx.pending}
+                      />
                       <OrganizationTemplatePicker
                         organizationId={templateSource || undefined}
                         fixedOrganization={Boolean(organizationId)}
@@ -1840,9 +1844,6 @@ export function NewGrant({ organizationId }: NewGrantProps) {
           </Card>
           {step === STEP.grant && <DemoFaucet />}
         </>
-      )}
-      {!creationConfirmed && (
-        <AiGrantBuilder onApply={applyAiDraft} disabled={tx.pending} />
       )}
     </div>
   );
