@@ -76,7 +76,9 @@ relates to HashVest Cloud and present the intended Free / Team / Enterprise
 value ladder. Their catalog lives in `apps/web/lib/shared/product-model.ts`
 and is presentation metadata only. It has no billing, checkout, metering,
 entitlement, plan-assignment, or authorization path, and it never changes
-onchain behavior.
+onchain behavior. The designed protocol fee in
+[`protocol-fee-spec.md`](protocol-fee-spec.md) is a future onchain surplus, not
+a Cloud price, and must not be added to this catalog as billing.
 
 Each capability is explicitly classified as `demo` or `roadmap`. Roadmap labels
 are required for work that is not available in the current demo. Sponsored
@@ -151,6 +153,12 @@ The complete threat model and deployment gate are in
 
 - **An AI draft owns nothing.** It is a suggestion shaped as an editable preset, so it reaches the wizard through the same `assertValidPreset` gate a hand-written preset passes and `prepare()` remains the only source of truth for what is submitted. Its draft type has no field for a beneficiary, reviewer, token, eligibility provider, start timestamp, or revocability, so it cannot suggest an identity or a transaction at all. The only trace a grant keeps of one is `organization_grants.template_key = "ai-draft"`, which is presentation metadata like every other template key. Prompts are never retained.
 
+A protocol fee is designed, not live. The current factory is ownerless and
+zero-fee, so the authority table above has no fee row. If a later factory is
+separately approved, the quote, rate, treasury, and waiver become HSK fields
+and Cloud may only display that live quote. See
+[`protocol-fee-spec.md`](protocol-fee-spec.md).
+
 ## Public integration surface and extension points
 
 The Protocol is usable without this application. Anyone integrating should depend on the contract ABIs and the factory's role discovery arrays, not on the Cloud API.
@@ -216,19 +224,19 @@ In force from the moment this document merges until submission:
 
 ## Roadmap ownership
 
-| Milestone                                             | Owner                                                       | Status         |
-| ----------------------------------------------------- | ----------------------------------------------------------- | -------------- |
-| M0 — Protocol/Cloud boundary & baseline               | Cloud + Protocol                                            | Hackathon P0   |
-| M1 — Global grant templates                           | Cloud                                                       | Hackathon P0   |
-| M2 — Revocation & protocol safety                     | Protocol                                                    | Hackathon P0   |
-| M3 — Lifecycle & funding health                       | Cloud                                                       | Hackathon P0   |
-| M4 — i18n, browser E2E & submission                   | Cloud + Protocol                                            | Hackathon P0   |
-| M5 — P1 Cloud additions after P0                      | Cloud (HAS-23, HAS-24, HAS-27, HAS-30 are Cloud + Protocol) | Post-hackathon |
-| M6 — P2 intelligence, operations & protocol readiness | Mixed; includes HAS-38 extraction                           | Post-hackathon |
-| M7 — P3 long-term protocol, Cloud & ecosystem         | Mixed                                                       | Post-hackathon |
+| Milestone                                             | Owner                                                                     | Status         |
+| ----------------------------------------------------- | ------------------------------------------------------------------------- | -------------- |
+| M0 — Protocol/Cloud boundary & baseline               | Cloud + Protocol                                                          | Hackathon P0   |
+| M1 — Global grant templates                           | Cloud                                                                     | Hackathon P0   |
+| M2 — Revocation & protocol safety                     | Protocol                                                                  | Hackathon P0   |
+| M3 — Lifecycle & funding health                       | Cloud                                                                     | Hackathon P0   |
+| M4 — i18n, browser E2E & submission                   | Cloud + Protocol                                                          | Hackathon P0   |
+| M5 — P1 Cloud additions after P0                      | Cloud (HAS-23, HAS-24, HAS-27, HAS-30 are Cloud + Protocol)               | Post-hackathon |
+| M6 — P2 intelligence, operations & protocol readiness | Mixed; includes HAS-38 extraction and a blocked HAS-40 fee implementation | Post-hackathon |
+| M7 — P3 long-term protocol, Cloud & ecosystem         | Mixed                                                                     | Post-hackathon |
 
 ## Security boundary
 
 HashVest MVP is unaudited, targets HSK Testnet only, and uses a faucet-mintable demo token. It is not production custody software. Explicitly revocable new vaults permit only issuer-triggered, one-way recovery of unearned allocation; earned and claimed beneficiary value is preserved. Non-revocable and previously deployed vaults retain their permanent terms.
 
-Compromising the Cloud layer must not put funds at risk. That property follows from this boundary: Supabase holds no key material, no signing authority, and no amount that any claim depends on.
+Compromising the Cloud layer must not put funds at risk. That property follows from this boundary: Supabase holds no key material, no signing authority, and no amount that any claim depends on. A designed protocol fee does not change that: the quote is factory-owned, and this repository must not implement or deploy it until a separate review.

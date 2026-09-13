@@ -15,6 +15,7 @@ This is a hackathon MVP deployed on **HSK Chain Testnet**. It is unaudited, uses
 | **Live proof**     | TIME, MILESTONE, HYBRID, and revocable grant lifecycles with 19 public transactions — [`docs/testnet-demo.json`](docs/testnet-demo.json) |
 | **Technical docs** | Problem, track, architecture, evidence, and roadmap — [`docs/submission.md`](docs/submission.md)                                         |
 | **Architecture**   | Protocol/Cloud boundary and per-field authority — [`docs/architecture.md`](docs/architecture.md)                                         |
+| **Protocol fee**   | Transparent optional create-time surplus (design only) — [`docs/protocol-fee-spec.md`](docs/protocol-fee-spec.md)                        |
 
 ## Features
 
@@ -27,6 +28,7 @@ This is a hackathon MVP deployed on **HSK Chain Testnet**. It is unaudited, uses
 - Optional one-way issuer revocation that recovers only unearned allocation while preserving earned and claimed beneficiary value.
 - Organization-sponsored first claims: organization-created grants use a versioned `SponsoredGrantVault`; the beneficiary signs the exact first claim and a server-only relayer pays HSK gas.
 - One fully funded vault per grant; SafeERC20 rejects underfunded fee-on-transfer funding.
+- Optional protocol fee: designed as a later create-time issuer surplus that never reduces allocation; not implemented. See [`docs/protocol-fee-spec.md`](docs/protocol-fee-spec.md).
 - Beneficiary-only claims, role dashboards, explorer links, and real HSK Testnet transactions.
 - Optional AI Grant Builder: a description becomes a validated, fully editable draft. It cannot sign, fund, approve, claim, revoke, or choose a wallet, and it works with no provider configured.
 
@@ -328,7 +330,7 @@ HashVest MVP has not been professionally audited. It targets HSK Testnet only, u
 
 ## Roadmap
 
-The product roadmap after the buildathon — remaining Cloud additions, AI-assisted review, reviewer quorum, and protocol extraction — is described in [`docs/submission.md`](docs/submission.md#future-roadmap). Organization templates, sponsored first claims, the human-reviewed AI Grant Builder, TGE unlock semantics, and private milestone evidence have already landed as Cloud context. A professional audit is the precondition for any mainnet deployment.
+The product roadmap after the buildathon — remaining Cloud additions, AI-assisted review, reviewer quorum, protocol extraction, and a separately reviewed protocol-fee implementation — is described in [`docs/submission.md`](docs/submission.md#future-roadmap). Organization templates, sponsored first claims, the human-reviewed AI Grant Builder, TGE unlock semantics, and private milestone evidence have already landed as Cloud context. The HAS-40 fee model is specified, not deployed. A professional audit is the precondition for any mainnet deployment.
 
 Hackathon P0 work, by milestone and owning layer:
 
@@ -340,7 +342,7 @@ Hackathon P0 work, by milestone and owning layer:
 | M3 — Lifecycle & funding health         | Cloud            |
 | M4 — i18n, browser E2E & submission     | Cloud + Protocol |
 
-Post-hackathon milestones M5–M7 cover P1–P3 work: AI-assisted review, reviewer quorum, analytics, notifications, compliance and attestation adapters, an embedded SDK, and extraction of the protocol into a public `hashvest-protocol` repository. Organization templates, bounded batch creation, sponsored first claims, the human-reviewed AI Grant Builder, TGE unlock semantics, and private milestone evidence (HAS-15/HAS-14) have landed as Cloud context; HSK remains authoritative for reviewer, approval, and value. New scope during the hackathon is a swap, never an addition — see the stop-adding-features rule in [`docs/architecture.md`](docs/architecture.md).
+Post-hackathon milestones M5–M7 cover P1–P3 work: AI-assisted review, reviewer quorum, analytics, notifications, compliance and attestation adapters, an embedded SDK, extraction of the protocol into a public `hashvest-protocol` repository, and a separately reviewed protocol-fee implementation. The HAS-40 fee model is specified in [`docs/protocol-fee-spec.md`](docs/protocol-fee-spec.md) and is not deployed. Organization templates, bounded batch creation, sponsored first claims, the human-reviewed AI Grant Builder, TGE unlock semantics, and private milestone evidence (HAS-15/HAS-14) have landed as Cloud context; HSK remains authoritative for reviewer, approval, and value. New scope during the hackathon is a swap, never an addition — see the stop-adding-features rule in [`docs/architecture.md`](docs/architecture.md).
 
 ## Contributing with agents
 
@@ -386,4 +388,3 @@ supabase/verification    Cloud     Constraint checks for migrations, disposable 
 Imports run one way: Cloud may depend on Protocol, never the reverse. `pnpm boundary:check` enforces this, along with service-role secret containment, protocol export drift, and documentation links. See [`docs/architecture.md`](docs/architecture.md).
 
 Important organization implementation files include `apps/web/lib/auth` (SIWE challenge verification and signed sessions), `apps/web/lib/organizations` (validation, server authorization, HSK GrantVault verification, types, and browser API client), `apps/web/hooks/use-organizations.ts` (TanStack Query data layer), and `apps/web/components/organization-*` / `members-manager.tsx` / `templates-manager.tsx` / `template-editor.tsx` (workspace UI). Organization lifecycle state remains derived from live protocol reads; it is not stored in Supabase.
-

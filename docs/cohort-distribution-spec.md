@@ -62,3 +62,12 @@ All rows must be validated before any transaction is broadcast:
    - Previous grants $1 \dots i-1$ remain permanently confirmed onchain.
    - The user sees a clear status table with a **Retry** button targeting only failed/uncreated rows.
    - Retries are idempotent: confirmed rows are skipped automatically.
+
+### Protocol fee interaction (HAS-40)
+
+The live factory is zero-fee, so cohort funding sufficiency remains
+$\sum \text{allocations}$. A later fee-aware factory, if separately approved,
+must requote each row and require
+$\sum (\text{allocation}_i + \text{fee}_i)$ for balance and allowance. Do not
+teach the current Cloud batch path a Cloud-invented fee. See
+[`protocol-fee-spec.md`](protocol-fee-spec.md).
