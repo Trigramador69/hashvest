@@ -4,7 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { FileText, LayoutDashboard, Menu, Settings2, X } from "lucide-react";
+import {
+  Building2,
+  FileText,
+  LayoutDashboard,
+  Menu,
+  Settings2,
+  X,
+} from "lucide-react";
 
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { SessionControl } from "@/components/session-control";
@@ -26,6 +33,11 @@ const NAV_ITEMS: Array<{
     icon: LayoutDashboard,
   },
   { href: appRoutes.grants, label: "shell.nav.grants", icon: FileText },
+  {
+    href: appRoutes.organizations,
+    label: "shell.nav.organizations",
+    icon: Building2,
+  },
   { href: appRoutes.settings, label: "shell.nav.settings", icon: Settings2 },
 ];
 
@@ -38,7 +50,10 @@ function ShellNav({ onNavigate }: { onNavigate: () => void }) {
     if (href === appRoutes.grants) {
       return pathname === href || pathname.startsWith("/grants/");
     }
-    return pathname.startsWith(appRoutes.settings);
+    if (href === appRoutes.organizations) {
+      return pathname.startsWith(appRoutes.organizations);
+    }
+    return pathname === appRoutes.settings;
   }
 
   return (

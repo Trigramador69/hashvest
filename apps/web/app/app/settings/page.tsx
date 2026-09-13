@@ -1,5 +1,5 @@
-import { OrganizationsSettings } from "@/components/organizations-settings";
+import { WorkspaceSettings } from "@/components/workspace-settings";
 
 export default function SettingsPage() {
-  return <OrganizationsSettings />;
+  return <WorkspaceSettings />;
 }

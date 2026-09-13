@@ -1,20 +1,12 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import { use } from "react";
+import { appRoutes } from "@/lib/shared/routes";
 
-import { OrganizationHeader } from "@/components/organization-ui";
-import { TemplatesManager } from "@/components/templates-manager";
-
-export default function OrganizationTemplatesPage({
+export default async function LegacyOrganizationTemplatesPage({
   params,
 }: {
   params: Promise<{ organizationId: string }>;
 }) {
-  const { organizationId } = use(params);
-  return (
-    <div className="space-y-5">
-      <OrganizationHeader organizationId={organizationId} />
-      <TemplatesManager organizationId={organizationId} />
-    </div>
-  );
+  const { organizationId } = await params;
+  redirect(appRoutes.organizationTemplates(organizationId));
 }

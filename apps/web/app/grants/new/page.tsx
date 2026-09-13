@@ -1542,7 +1542,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                         <label className="flex items-start gap-3 cursor-pointer">
                           <input
                             type="checkbox"
-                            className="mt-1 size-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            className="mt-1 accent-primary"
                             checked={revocable}
                             onChange={(event) =>
                               setRevocable(event.target.checked)
@@ -1592,6 +1592,16 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                         )}
                       </div>
                       <dl className="space-y-4 text-sm">
+                        <div className="flex flex-wrap justify-between gap-2">
+                          <dt className="text-muted-foreground">
+                            {t("wizard.review.vaultKind")}
+                          </dt>
+                          <dd>
+                            {organizationId
+                              ? t("wizard.review.vaultKind.sponsored")
+                              : t("wizard.review.vaultKind.direct")}
+                          </dd>
+                        </div>
                         {[
                           ["issuer", prepared.issuer],
                           ["beneficiary", prepared.config.beneficiary],
@@ -1746,6 +1756,19 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                           ))}
                         </div>
                       )}
+                      <Notice
+                        title={
+                          organizationId
+                            ? t("wizard.review.vaultKind.sponsoredTitle")
+                            : t("wizard.review.vaultKind.directTitle")
+                        }
+                      >
+                        <p>
+                          {organizationId
+                            ? t("wizard.review.vaultKind.sponsoredBody")
+                            : t("wizard.review.vaultKind.directBody")}
+                        </p>
+                      </Notice>
                       <Notice
                         title={
                           prepared.config.revocable

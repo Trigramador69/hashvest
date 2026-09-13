@@ -1,4 +1,4 @@
-const organizationsRoot = "/app/settings/organizations";
+const organizationsRoot = "/app/organizations";
 
 /**
  * Product routes that are shared by navigation and feature components.
@@ -7,6 +7,7 @@ const organizationsRoot = "/app/settings/organizations";
 export const appRoutes = {
   overview: "/app",
   grants: "/app/grants",
+  organizations: organizationsRoot,
   settings: "/app/settings",
   createGrant: "/grants/new",
   newOrganization: `${organizationsRoot}/new`,
@@ -18,6 +19,8 @@ export const appRoutes = {
     `${organizationsRoot}/${organizationId}/templates`,
   organizationReports: (organizationId: string) =>
     `${organizationsRoot}/${organizationId}/reports`,
+  organizationSettings: (organizationId: string) =>
+    `${organizationsRoot}/${organizationId}/settings`,
   organizationGrants: (organizationId: string) =>
     `${organizationsRoot}/${organizationId}/grants`,
   organizationNewGrant: (organizationId: string) =>

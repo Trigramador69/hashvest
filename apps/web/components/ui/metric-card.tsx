@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 
 import { cn } from "@/lib/shared/utils";
 import { DataArt } from "./data-art";
@@ -11,6 +12,7 @@ export function MetricCard({
   comparison,
   art = "rings",
   trendTone = "positive",
+  href,
   className,
 }: {
   label: string;
@@ -19,12 +21,11 @@ export function MetricCard({
   comparison?: ReactNode;
   art?: "orb" | "mesh" | "rings" | "nodes";
   trendTone?: "positive" | "warning" | "neutral";
+  href?: string;
   className?: string;
 }) {
-  return (
-    <Panel
-      className={cn("relative min-h-[128px] overflow-hidden p-5", className)}
-    >
+  const body = (
+    <>
       <div className="relative z-10">
         <p className="font-mono text-[28px] font-medium leading-none tracking-[-0.03em] tabular-nums text-foreground">
           {value}
@@ -52,6 +53,24 @@ export function MetricCard({
         variant={art}
         className="absolute -right-1 bottom-2 h-20 w-24 opacity-80"
       />
-    </Panel>
+    </>
   );
+  const cardClassName = cn(
+    "relative min-h-[128px] overflow-hidden p-5",
+    className,
+  );
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className={cn(
+          "block min-w-0 rounded-card border border-border bg-surface-1 shadow-none transition-colors hover:border-border-strong hover:bg-surface-hover",
+          cardClassName,
+        )}
+      >
+        {body}
+      </Link>
+    );
+  }
+  return <Panel className={cardClassName}>{body}</Panel>;
 }

@@ -433,6 +433,15 @@ function SponsoredActionPanel({
               {availability}
             </p>
           )}
+          {policy.data && !compact && (
+            <p className="text-xs leading-5 text-muted-foreground">
+              {t("detail.sponsor.usage", {
+                remaining: policy.data.remainingActions,
+                max: policy.data.maxActions,
+                daily: policy.data.maxActionsPerWalletPerDay,
+              })}
+            </p>
+          )}
           {confirming ? (
             <div
               aria-labelledby={confirmationId}
@@ -766,6 +775,11 @@ export function GrantDetail({ address }: { address: Address }) {
                 ? t("detail.badge.revocable")
                 : t("detail.badge.nonRevocable")}
             </span>
+            <span className="border border-primary/20 bg-secondary px-2 py-1 font-mono text-[10px] text-muted-foreground">
+              {g.sponsoredActions.supported
+                ? t("detail.badge.sponsored")
+                : t("detail.badge.walletPaid")}
+            </span>
             {canRevoke && (
               <Button
                 variant="outline"
@@ -1060,7 +1074,10 @@ export function GrantDetail({ address }: { address: Address }) {
                         date: dateLabel(g.revokedAt),
                       })
                     : t("detail.terms.revocableNote")
-                  : t("detail.terms.fixed")}
+                  : t("detail.terms.fixed")}{" "}
+                {g.sponsoredActions.supported
+                  ? t("detail.terms.sponsored")
+                  : t("detail.terms.walletPaid")}
               </p>
               <dl className="space-y-4">
                 {[

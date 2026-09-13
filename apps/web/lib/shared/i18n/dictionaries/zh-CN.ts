@@ -15,6 +15,7 @@ export const zhCN: TranslationDictionary = {
   "shell.footer.disclaimer": "黑客松 MVP · 未经审计 · 仅限测试网资产",
   "shell.nav.overview": "概览",
   "shell.nav.grants": "资助",
+  "shell.nav.organizations": "组织",
   "shell.nav.settings": "设置",
   "shell.nav.plans": "方案",
   "shell.navigation.open": "打开导航",
@@ -188,6 +189,23 @@ export const zhCN: TranslationDictionary = {
     "可撤销的资助：已于 {date} 撤销。受益人已赚取的权益受到严格保留。",
   "detail.badge.revocable": "可撤销",
   "detail.badge.nonRevocable": "不可撤销",
+  "detail.badge.sponsored": "赞助金库",
+  "detail.badge.walletPaid": "钱包付费金库",
+  "detail.terms.sponsored":
+    "此 GrantVault 接受受益人签名的领取和审核人签名的批准，由 relayer 提交。钱包付费操作仍然可用。",
+  "detail.terms.walletPaid":
+    "此 GrantVault 只接受钱包付费的领取和批准。它早于赞助操作。",
+  "card.sponsored": "赞助金库",
+  "card.walletPaid": "钱包付费金库",
+  "wizard.review.vaultKind": "金库类型",
+  "wizard.review.vaultKind.sponsored": "SponsoredGrantVault",
+  "wizard.review.vaultKind.direct": "GrantVault",
+  "wizard.review.vaultKind.sponsoredTitle": "组织赞助金库",
+  "wizard.review.vaultKind.sponsoredBody":
+    "工厂将部署 SponsoredGrantVault。操作方仍需签署确切的领取或批准；组织可以支付 HSK gas。钱包付费路径仍然可用。",
+  "wizard.review.vaultKind.directTitle": "直接 GrantVault",
+  "wizard.review.vaultKind.directBody":
+    "工厂将部署 GrantVault。领取和批准由操作方钱包支付。",
   "detail.claimReason.revokedAllClaimed":
     "该资助已被撤销。已赚取的代币都已领取完毕。",
   "detail.claimReason.revokedClaimable":
@@ -264,6 +282,7 @@ export const zhCN: TranslationDictionary = {
   "overview.sponsorship.title": "组织赞助协议操作",
   "overview.sponsorship.lede":
     "为受益人领取和审核人里程碑批准设置明确的 HSK gas 策略。",
+  "overview.sponsorship.open": "打开策略",
   "overview.sponsorship.loading": "正在读取赞助策略…",
   "overview.sponsorship.error": "赞助策略暂时不可用。",
   "overview.sponsorship.enabled": "启用赞助操作",
@@ -284,6 +303,7 @@ export const zhCN: TranslationDictionary = {
   "overview.sponsorship.remaining": "剩余",
   "overview.sponsorship.gasSpent": "已用 gas",
   "overview.sponsorship.gasReserved": "已预留 gas",
+  "overview.sponsorship.gasRemaining": "剩余 gas",
   "overview.sponsorship.relayer": "Relayer",
   "overview.sponsorship.relayerReady": "已配置",
   "overview.sponsorship.relayerMissing": "未配置",
@@ -392,21 +412,40 @@ export const zhCN: TranslationDictionary = {
   "dashboard.empty.1.body": "指派给此钱包的资助会自动出现在这里。",
   "dashboard.empty.2.title": "还没有需要审核的里程碑。",
   "dashboard.empty.2.body": "将此钱包指定为审核人的资助会出现在这里。",
-  "settings.eyebrow": "工作区设置",
-  "settings.title": "组织。",
-  "settings.lede": "管理为资助提供上下文的组织。",
-  "settings.create": "创建组织",
-  "settings.loading.title": "正在加载组织",
-  "settings.loading.body": "正在读取你的工作区成员关系…",
-  "settings.error.title": "无法加载组织",
-  "settings.error.body": "请刷新页面并检查工作区连接。",
-  "settings.retry": "重试",
-  "settings.list.title": "你的组织",
-  "settings.organization.open": "打开",
-  "settings.organization.counts": "{members} 位成员 · {grants} 份资助",
-  "settings.empty.title": "创建你的第一个组织",
-  "settings.empty.body":
+  "organizations.eyebrow": "组织",
+  "organizations.title": "组织。",
+  "organizations.lede": "管理为资助提供上下文的组织。",
+  "organizations.create": "创建组织",
+  "organizations.loading.title": "正在加载组织",
+  "organizations.loading.body": "正在读取你的工作区成员关系…",
+  "organizations.error.title": "无法加载组织",
+  "organizations.error.body": "请刷新页面并检查工作区连接。",
+  "organizations.retry": "重试",
+  "organizations.list.title": "你的组织",
+  "organizations.organization.open": "打开",
+  "organizations.organization.policy": "赞助领取",
+  "organizations.organization.counts": "{members} 位成员 · {grants} 份资助",
+  "organizations.empty.title": "创建你的第一个组织",
+  "organizations.empty.body":
     "为你的团队、生态或国库建立一个工作区。你会自动成为所有者。",
+  "settings.eyebrow": "工作区",
+  "settings.title": "设置。",
+  "settings.lede":
+    "此钱包的会话、语言和网络。方案包装仍仅为展示，不被强制执行。",
+  "settings.session.title": "工作区会话",
+  "settings.session.body": "登录后可读取组织上下文。这绝不会授权链上操作。",
+  "settings.language.title": "语言",
+  "settings.language.body": "应用于此浏览器。钱包和协议值保持原样。",
+  "settings.plans.title": "产品模型",
+  "settings.plans.body": "Free、Team 和 Enterprise 是包装，不是已执行的限额。",
+  "settings.plans.action": "查看方案",
+  "settings.sponsorship.title": "赞助领取",
+  "settings.sponsorship.body":
+    "每个组织自行设定将为多少次受益人领取和审核人批准支付 HSK gas。这是组织策略，不是 Free 方案额度。",
+  "settings.sponsorship.configure": "配置",
+  "settings.sponsorship.signIn": "登录工作区后即可打开组织的赞助领取策略。",
+  "settings.sponsorship.empty":
+    "请先创建组织。所有者在该组织的“设置”标签页中设定赞助操作上限。",
   "dashboard.connect.eyebrow": "工作区概览",
   "dashboard.connect.title": "连接钱包以查看工作。",
   "dashboard.connect.body":
@@ -482,6 +521,7 @@ export const zhCN: TranslationDictionary = {
   "workspace.tab.members": "成员",
   "workspace.tab.templates": "模板",
   "workspace.tab.reports": "报表",
+  "workspace.tab.settings": "设置",
 
   "report.title": "运营报表",
   "report.lede":
@@ -670,9 +710,12 @@ export const zhCN: TranslationDictionary = {
     "一次签名即可启用链下的组织上下文。它不会授权任何链上操作。",
   "faucet.title": "演示代币 · {symbol}",
   "faucet.lede": "用于你第一份资助的测试代币，没有任何货币价值。",
+  "faucet.lede.amount":
+    "每次点击铸造 {amount} {symbol}。仅限测试代币，没有任何货币价值。",
   "faucet.balance": "你的余额：",
   "faucet.balanceError": "无法获取代币余额。请检查测试网 RPC。",
   "faucet.action": "领取演示用 {symbol}",
+  "faucet.action.amount": "领取 {amount} {symbol}",
   "faucet.minting": "正在铸造…",
 
   // 资助相关界面：共享 UI、卡片和资助详情页。地址、哈希、区块号、代币符号和 RPC URL 均通过参数传入。
@@ -841,6 +884,8 @@ export const zhCN: TranslationDictionary = {
   "detail.sponsor.vaultNotAllowed": "此 GrantVault 不在组织赞助允许列表中。",
   "detail.sponsor.limitReached":
     "操作上限或 HSK gas 预算已用尽。钱包付费操作仍然可用。",
+  "detail.sponsor.usage":
+    "组织赞助操作剩余 {remaining} / {max}。每个钱包每日上限：{daily}。",
   "detail.sponsor.relayerMissing":
     "组织 relayer 尚未配置或没有资金。请使用钱包付费操作。",
   "detail.eligibility.title": "资格校验",

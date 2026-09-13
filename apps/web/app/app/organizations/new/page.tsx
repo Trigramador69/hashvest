@@ -1,7 +1,5 @@
-import { redirect } from "next/navigation";
+import { NewOrganizationPage } from "@/components/new-organization-page";
 
-import { appRoutes } from "@/lib/shared/routes";
-
-export default function LegacyNewOrganizationPage() {
-  redirect(appRoutes.newOrganization);
+export default function NewOrganizationRoute() {
+  return <NewOrganizationPage />;
 }

@@ -35,8 +35,8 @@ looks confident, which is the failure mode both issues call out.
 
 `apps/web/lib/dashboard/organization-report.ts` is a pure reducer over the
 snapshots. It is rendered by `apps/web/components/organization-report.tsx` at
-`/app/settings/organizations/:id/reports`, with the legacy
-`/app/organizations/:id/reports` path kept as a redirect.
+`/app/organizations/:id/reports`, with the legacy
+`/app/settings/organizations/:id/reports` path kept as a redirect.
 
 ### What it reports, and from where
 

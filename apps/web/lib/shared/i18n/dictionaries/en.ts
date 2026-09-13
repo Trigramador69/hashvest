@@ -16,6 +16,7 @@ export const en = {
   "shell.footer.disclaimer": "Hackathon MVP · Unaudited · Testnet assets only",
   "shell.nav.overview": "Overview",
   "shell.nav.grants": "Grants",
+  "shell.nav.organizations": "Organizations",
   "shell.nav.settings": "Settings",
   "shell.nav.plans": "Plans",
   "shell.navigation.open": "Open navigation",
@@ -214,6 +215,23 @@ export const en = {
     "Revocable grant: revoked on {date}. Beneficiary earned entitlement is strictly preserved.",
   "detail.badge.revocable": "Revocable",
   "detail.badge.nonRevocable": "Non-revocable",
+  "detail.badge.sponsored": "Sponsored vault",
+  "detail.badge.walletPaid": "Wallet-paid vault",
+  "detail.terms.sponsored":
+    "This GrantVault accepts beneficiary-signed claims and reviewer-signed approvals submitted by a relayer. Wallet-paid actions remain available.",
+  "detail.terms.walletPaid":
+    "This GrantVault only accepts wallet-paid claims and approvals. It predates sponsored actions.",
+  "card.sponsored": "Sponsored vault",
+  "card.walletPaid": "Wallet-paid vault",
+  "wizard.review.vaultKind": "Vault type",
+  "wizard.review.vaultKind.sponsored": "SponsoredGrantVault",
+  "wizard.review.vaultKind.direct": "GrantVault",
+  "wizard.review.vaultKind.sponsoredTitle": "Organization-sponsored vault",
+  "wizard.review.vaultKind.sponsoredBody":
+    "The factory will deploy a SponsoredGrantVault. The actor still signs the exact claim or approval; the organization may pay HSK gas. The wallet-paid path stays available.",
+  "wizard.review.vaultKind.directTitle": "Direct GrantVault",
+  "wizard.review.vaultKind.directBody":
+    "The factory will deploy a GrantVault. Claims and approvals are paid by the actor wallet.",
   "detail.claimReason.revokedAllClaimed":
     "The grant was revoked. All earned tokens have already been claimed.",
   "detail.claimReason.revokedClaimable":
@@ -296,6 +314,7 @@ export const en = {
   "overview.sponsorship.title": "Sponsored protocol actions",
   "overview.sponsorship.lede":
     "Set an explicit HSK gas policy for beneficiary claims and reviewer milestone approvals.",
+  "overview.sponsorship.open": "Open policy",
   "overview.sponsorship.loading": "Reading sponsorship policy…",
   "overview.sponsorship.error":
     "The sponsorship policy is temporarily unavailable.",
@@ -317,6 +336,7 @@ export const en = {
   "overview.sponsorship.remaining": "Remaining",
   "overview.sponsorship.gasSpent": "Gas spent",
   "overview.sponsorship.gasReserved": "Gas reserved",
+  "overview.sponsorship.gasRemaining": "Gas remaining",
   "overview.sponsorship.relayer": "Relayer",
   "overview.sponsorship.relayerReady": "Configured",
   "overview.sponsorship.relayerMissing": "Not configured",
@@ -430,21 +450,46 @@ export const en = {
   "dashboard.empty.2.title": "No milestones to review yet.",
   "dashboard.empty.2.body":
     "Grants that name this wallet as reviewer will appear here.",
-  "settings.eyebrow": "Workspace settings",
-  "settings.title": "Organizations.",
-  "settings.lede": "Manage the organizations that add context to your grants.",
-  "settings.create": "Create organization",
-  "settings.loading.title": "Loading organizations",
-  "settings.loading.body": "Reading your workspace memberships…",
-  "settings.error.title": "Organizations could not be loaded",
-  "settings.error.body": "Refresh after checking your workspace connection.",
-  "settings.retry": "Retry",
-  "settings.list.title": "Your organizations",
-  "settings.organization.open": "Open",
-  "settings.organization.counts": "{members} members · {grants} grants",
-  "settings.empty.title": "Create your first organization",
-  "settings.empty.body":
+  "organizations.eyebrow": "Organizations",
+  "organizations.title": "Organizations.",
+  "organizations.lede":
+    "Manage the organizations that add context to your grants.",
+  "organizations.create": "Create organization",
+  "organizations.loading.title": "Loading organizations",
+  "organizations.loading.body": "Reading your workspace memberships…",
+  "organizations.error.title": "Organizations could not be loaded",
+  "organizations.error.body":
+    "Refresh after checking your workspace connection.",
+  "organizations.retry": "Retry",
+  "organizations.list.title": "Your organizations",
+  "organizations.organization.open": "Open",
+  "organizations.organization.policy": "Sponsored claims",
+  "organizations.organization.counts": "{members} members · {grants} grants",
+  "organizations.empty.title": "Create your first organization",
+  "organizations.empty.body":
     "Set up a workspace for your team, ecosystem, or treasury. You become the owner automatically.",
+  "settings.eyebrow": "Workspace",
+  "settings.title": "Settings.",
+  "settings.lede":
+    "Session, language, and network for this wallet. Plan packaging stays presentation-only.",
+  "settings.session.title": "Workspace session",
+  "settings.session.body":
+    "Sign in to read organization context. This never authorizes an onchain action.",
+  "settings.language.title": "Language",
+  "settings.language.body":
+    "Applies to this browser. Wallet and protocol values stay in their original form.",
+  "settings.plans.title": "Product model",
+  "settings.plans.body":
+    "Free, Team, and Enterprise are packaging, not enforced limits.",
+  "settings.plans.action": "View plans",
+  "settings.sponsorship.title": "Sponsored claims",
+  "settings.sponsorship.body":
+    "Each organization sets how many beneficiary claims and reviewer approvals it will pay HSK gas for. That policy is not a Free-plan allowance.",
+  "settings.sponsorship.configure": "Configure",
+  "settings.sponsorship.signIn":
+    "Sign in to the workspace to open an organization's sponsored-claim policy.",
+  "settings.sponsorship.empty":
+    "Create an organization first. The owner sets the sponsored-action limit on that organization's Settings tab.",
   // Analytics dashboard: read-only projections of live HSK grant state.
   "dashboard.connect.eyebrow": "Workspace overview",
   "dashboard.connect.title": "Connect to see your work.",
@@ -525,6 +570,7 @@ export const en = {
   "workspace.tab.members": "Members",
   "workspace.tab.templates": "Templates",
   "workspace.tab.reports": "Reports",
+  "workspace.tab.settings": "Settings",
 
   // Organization report (HAS-41). Every figure is a live GrantVault read;
   // Supabase supplies only which vaults belong to the organization.
@@ -734,9 +780,12 @@ export const en = {
     "One signature enables off-chain organization context. It does not authorize blockchain actions.",
   "faucet.title": "Demo token · {symbol}",
   "faucet.lede": "Test tokens for your first grant. No monetary value.",
+  "faucet.lede.amount":
+    "Each click mints {amount} {symbol}. Test tokens only. No monetary value.",
   "faucet.balance": "Your balance:",
   "faucet.balanceError": "Token balance is unavailable. Check the Testnet RPC.",
   "faucet.action": "Get demo {symbol}",
+  "faucet.action.amount": "Get {amount} {symbol}",
   "faucet.minting": "Minting…",
 
   // Grant surfaces: shared UI (grant-ui), cards, and the grant detail page. Addresses, hashes, block numbers, token symbols and RPC URLs arrive as values.
@@ -915,6 +964,8 @@ export const en = {
     "This GrantVault is not in the organization sponsorship allowlist.",
   "detail.sponsor.limitReached":
     "The action limit or HSK gas budget has been reached. The wallet-paid action remains available.",
+  "detail.sponsor.usage":
+    "{remaining} of {max} organization-sponsored actions remaining. Daily wallet limit: {daily}.",
   "detail.sponsor.relayerMissing":
     "The organization relayer is not configured or funded yet. Use the wallet-paid action.",
   "detail.eligibility.title": "Eligibility",

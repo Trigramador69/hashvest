@@ -20,35 +20,35 @@ export function OrganizationsSettings() {
   return (
     <div className="mx-auto max-w-4xl space-y-5">
       <PageHeading
-        eyebrow={t("settings.eyebrow")}
-        title={t("settings.title")}
+        eyebrow={t("organizations.eyebrow")}
+        title={t("organizations.title")}
         action={
           session.walletMatches ? (
             <Link
               className={buttonVariants({ size: "sm" })}
               href={appRoutes.newOrganization}
             >
-              {t("settings.create")}
+              {t("organizations.create")}
             </Link>
           ) : undefined
         }
       >
-        <p>{t("settings.lede")}</p>
+        <p>{t("organizations.lede")}</p>
       </PageHeading>
 
       <WorkspaceAccessNotice />
 
       {session.walletMatches && organizations.isPending && (
-        <Notice title={t("settings.loading.title")}>
-          <p>{t("settings.loading.body")}</p>
+        <Notice title={t("organizations.loading.title")}>
+          <p>{t("organizations.loading.body")}</p>
         </Notice>
       )}
 
       {session.walletMatches && organizations.isError && (
-        <Notice title={t("settings.error.title")} error>
+        <Notice title={t("organizations.error.title")} error>
           <p>
             {errorMessage(organizations.error, {
-              fallback: t("settings.error.body"),
+              fallback: t("organizations.error.body"),
             })}
           </p>
           <Button
@@ -57,7 +57,7 @@ export function OrganizationsSettings() {
             size="sm"
             onClick={() => void organizations.refetch()}
           >
-            {t("settings.retry")}
+            {t("organizations.retry")}
           </Button>
         </Notice>
       )}
@@ -66,30 +66,43 @@ export function OrganizationsSettings() {
         organizations.isSuccess &&
         (organizations.data?.length ? (
           <Panel>
-            <PanelHeader title={t("settings.list.title")} />
+            <PanelHeader title={t("organizations.list.title")} />
             <PanelBody className="p-0">
               <div className="divide-y divide-border-soft">
                 {organizations.data.map((organization) => (
-                  <Link
+                  <div
                     key={organization.id}
-                    href={appRoutes.organization(organization.id)}
-                    className="group flex min-h-20 items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-surface-hover"
+                    className="flex min-h-20 items-center justify-between gap-4 px-5 py-4"
                   >
-                    <span className="min-w-0">
+                    <Link
+                      href={appRoutes.organization(organization.id)}
+                      className="min-w-0 hover:text-primary"
+                    >
                       <span className="block truncate font-mono text-sm text-foreground">
                         {organization.name}
                       </span>
                       <span className="mt-1 block font-mono text-[10px] text-muted-foreground">
-                        {t("settings.organization.counts", {
+                        {t("organizations.organization.counts", {
                           members: organization.memberCount,
                           grants: organization.grantCount,
                         })}
                       </span>
+                    </Link>
+                    <span className="flex shrink-0 items-center gap-3">
+                      <Link
+                        href={appRoutes.organizationSettings(organization.id)}
+                        className="font-mono text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        {t("organizations.organization.policy")}
+                      </Link>
+                      <Link
+                        href={appRoutes.organization(organization.id)}
+                        className="font-mono text-xs text-primary hover:underline"
+                      >
+                        {t("organizations.organization.open")} →
+                      </Link>
                     </span>
-                    <span className="shrink-0 font-mono text-xs text-primary opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
-                      {t("settings.organization.open")} →
-                    </span>
-                  </Link>
+                  </div>
                 ))}
               </div>
             </PanelBody>
@@ -97,10 +110,10 @@ export function OrganizationsSettings() {
         ) : (
           <div className="rounded-card border border-dashed border-border p-10 text-center">
             <p className="font-mono text-lg text-foreground">
-              {t("settings.empty.title")}
+              {t("organizations.empty.title")}
             </p>
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-              {t("settings.empty.body")}
+              {t("organizations.empty.body")}
             </p>
           </div>
         ))}

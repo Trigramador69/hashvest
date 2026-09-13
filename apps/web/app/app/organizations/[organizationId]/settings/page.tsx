@@ -2,10 +2,10 @@
 
 import { use } from "react";
 
-import { OrganizationGrants } from "@/components/organization-overview";
+import { OrganizationSettings } from "@/components/organization-overview";
 import { OrganizationHeader } from "@/components/organization-ui";
 
-export default function OrganizationGrantsPage({
+export default function OrganizationSettingsPage({
   params,
 }: {
   params: Promise<{ organizationId: string }>;
@@ -14,7 +14,7 @@ export default function OrganizationGrantsPage({
   return (
     <div className="space-y-5">
       <OrganizationHeader organizationId={organizationId} />
-      <OrganizationGrants organizationId={organizationId} />
+      <OrganizationSettings organizationId={organizationId} />
     </div>
   );
 }

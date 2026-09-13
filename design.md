@@ -150,6 +150,11 @@ Se eligió azul cobalto porque:
 }
 ```
 
+Native choice controls (`checkbox`, `radio`, `range`) inherit
+`accent-color: var(--accent-green)`. Do not leave the browser-default blue, and
+do not style checked state with leftover `border-gray-*` / `text-primary` form
+plugin classes.
+
 ## 2.3. Distribución de color
 
 En un viewport desktop promedio:
@@ -399,13 +404,14 @@ The authenticated app shell exposes only product surfaces that have a working de
 
 - `/app` — overview and live HSK analytics;
 - `/app/grants` — direct grants grouped by Issued, Received, and Review;
-- `/app/settings` — organization context and creation;
-- `/app/settings/organizations/<uuid>` — organization overview, grants, and members.
+- `/app/organizations` — organization list and creation;
+- `/app/organizations/<uuid>` — organization overview, grants, reports, members, templates, and sponsorship settings;
+- `/app/settings` — workspace session, language, network, and links to each organization's sponsored-claim policy.
 
-Organizations belong under Settings. Do not add generic SaaS modules, duplicate
+Organizations are a first-class shell destination. Do not add generic SaaS modules, duplicate
 grant lists, dead search inputs, notification buttons without a backing feed, or
-decorative CTAs that do not perform an action. Legacy paths may redirect to the
-canonical route, but must not render a second shell or page.
+decorative CTAs that do not perform an action. Legacy `/app/settings/organizations/...`
+paths may redirect to the canonical route, but must not render a second shell or page.
 
 The public product-model presentation is a separate, non-transactional surface:
 
