@@ -4,6 +4,7 @@ import {
   deriveGrantLifecycle,
   type GrantLifecycle,
 } from "../protocol/grant-state";
+import type { Locale } from "../shared/i18n/locales";
 
 export type DashboardRole = "issuer" | "beneficiary" | "reviewer";
 export type DashboardStrategy = "TIME" | "MILESTONE" | "HYBRID";
@@ -77,18 +78,18 @@ function monthKey(date: Date) {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
-function monthLabel(date: Date) {
-  return date.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" });
+function monthLabel(date: Date, locale: Locale) {
+  return date.toLocaleDateString(locale, { month: "short", timeZone: "UTC" });
 }
 
-function activityBuckets(now: Date): DashboardActivityBucket[] {
+function activityBuckets(now: Date, locale: Locale): DashboardActivityBucket[] {
   return Array.from({ length: 6 }, (_, index) => {
     const date = new Date(
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 5 + index, 1),
     );
     return {
       key: monthKey(date),
-      label: monthLabel(date),
+      label: monthLabel(date, locale),
       created: 0,
       approved: 0,
       claimed: 0,
@@ -126,12 +127,14 @@ export function aggregateDashboardAnalytics({
   events,
   partial = false,
   now = new Date(),
+  locale,
 }: {
   wallet?: string;
   snapshots: DashboardGrantSnapshot[];
   events: DashboardChainEvent[];
   partial?: boolean;
   now?: Date;
+  locale?: Locale;
 }): DashboardAnalytics {
   const sortedEvents = [...events].sort((a, b) => {
     const blockDifference = Number(b.blockNumber - a.blockNumber);
@@ -158,7 +161,7 @@ export function aggregateDashboardAnalytics({
       lastActivityAt,
     } satisfies DashboardGrant;
   });
-  const buckets = activityBuckets(now);
+  const buckets = activityBuckets(now, locale ?? "en");
   const bucketByKey = new Map(buckets.map((bucket) => [bucket.key, bucket]));
   for (const event of sortedEvents) {
     if (!event.timestamp) continue;

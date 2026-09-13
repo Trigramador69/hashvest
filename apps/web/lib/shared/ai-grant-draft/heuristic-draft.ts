@@ -70,7 +70,7 @@ const NUMBER_WORDS = new Map<string, number>([
 const NUMBER_WORD_SOURCE = [...NUMBER_WORDS.keys()].join("|");
 
 /**
- * Time words mapped to the wizard's `<select>`.
+ * Time words mapped to the wizard's schedule choice.
  *
  * The wizard offers minutes, hours and days, so weeks, months and years are
  * converted into days rather than substituted: "two months" is 60 days, not

@@ -108,7 +108,15 @@ class Pixel {
   }
 }
 
-class PixelCanvasElement extends HTMLElement {
+// Next evaluates client component modules while rendering on the server. Keep
+// the class definition server-safe; the real custom element is only registered
+// from the client-side effect below, where `HTMLElement` and the DOM exist.
+const PixelCanvasElementBase: typeof HTMLElement =
+  typeof HTMLElement === "undefined"
+    ? (class {} as typeof HTMLElement)
+    : HTMLElement;
+
+class PixelCanvasElement extends PixelCanvasElementBase {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D | null;
   private pixels: Pixel[] = [];

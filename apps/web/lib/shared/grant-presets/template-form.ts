@@ -37,7 +37,7 @@ export type TemplateForm = {
   name: string;
   description: string;
   strategy: GrantDraftDefinition["strategy"];
-  /** Seconds, as the wizard's own schedule <select> values. */
+  /** Seconds, as the wizard's own schedule choice values. */
   unit: string;
   cliff: string;
   duration: string;

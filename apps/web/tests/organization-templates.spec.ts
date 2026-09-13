@@ -19,6 +19,11 @@ import { test, expect, type Page } from "@playwright/test";
  */
 const problems = (page: Page) => page.locator("form [role='alert']");
 
+async function choose(page: Page, label: string, option: string) {
+  await page.getByRole("combobox", { name: label }).click();
+  await page.getByRole("option", { name: option, exact: true }).click();
+}
+
 /** Records every workspace write the page attempts, and every wallet call. */
 async function trackRequests(page: Page) {
   const requests: string[] = [];
@@ -75,9 +80,7 @@ test.describe("organization template editor", () => {
     await expect(page.getByLabel("Cliff", { exact: true })).toBeVisible();
     await expect(page.getByText("Milestones", { exact: true })).toHaveCount(0);
 
-    await page
-      .getByLabel("Unlock strategy")
-      .selectOption({ label: "Milestone grant" });
+    await choose(page, "Unlock strategy", "Milestone grant");
     await expect(page.getByLabel("Cliff", { exact: true })).toHaveCount(0);
     await expect(page.getByLabel("Share (%)")).toBeVisible();
     await expect(page.getByLabel("Default reviewer")).toBeVisible();
@@ -107,9 +110,7 @@ test.describe("organization template editor", () => {
     await page.goto("/visual/templates", { waitUntil: "domcontentloaded" });
 
     await page.getByLabel("Name", { exact: true }).fill("Partner integration");
-    await page
-      .getByLabel("Unlock strategy")
-      .selectOption({ label: "Milestone grant" });
+    await choose(page, "Unlock strategy", "Milestone grant");
     await page.getByLabel("Milestone 1").fill("Integration");
     await page.getByLabel("Share (%)").fill("40");
     await page.getByRole("button", { name: "Save template" }).click();

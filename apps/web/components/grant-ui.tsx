@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useSwitchChain } from "wagmi";
 import {
   addressExplorerUrl,
@@ -9,6 +8,7 @@ import {
   transactionExplorerUrl,
 } from "@hashvest/web3";
 import type { Address } from "viem";
+import { RainbowConnectButton } from "@/components/rainbow-connect-button";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "@/lib/shared/i18n/provider";
 import { errorMessage, shortAddress, tokenAmount } from "@/lib/protocol/grants";
@@ -108,7 +108,7 @@ export function NetworkNotice() {
       <Notice title={t("ui.connect.title")}>
         <p>{t("ui.connect.body", NETWORK)}</p>
         <div className="mt-4">
-          <ConnectButton showBalance={false} />
+          <RainbowConnectButton />
         </div>
       </Notice>
     );

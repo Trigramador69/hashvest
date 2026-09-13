@@ -22,7 +22,7 @@ export type GrantPresetMilestone = {
 
 /** A TIME/HYBRID preset's vesting schedule, expressed in the wizard's own unit vocabulary. */
 export type GrantPresetTiming = {
-  unit: "60" | "3600" | "86400"; // Minutes | Hours | Days — mirrors the wizard's <select>
+  unit: "60" | "3600" | "86400"; // Minutes | Hours | Days — mirrors the wizard's schedule choice
   cliff: string;
   duration: string;
   /** Plain-language real-world equivalent, shown in the UI (values here are demo-compressed). */

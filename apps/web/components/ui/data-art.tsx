@@ -12,25 +12,112 @@ const palettes = {
   white: { primary: "#D8D9D5", secondary: "#57D98B" },
 } as const;
 
+type Point = readonly [x: number, y: number, opacity?: number];
+
+/*
+ * Sparse, fixed point clouds keep the art stable in screenshots and avoid
+ * drawing a second chart or a rigid decorative silhouette inside a card. The
+ * variant names preserve each call site's placement intent; none draws a
+ * literal geometric ring, mesh, or node connection anymore.
+ */
+const POINTS: Record<NonNullable<DataArtProps["variant"]>, readonly Point[]> = {
+  orb: [
+    [10, 39],
+    [16, 31],
+    [22, 36],
+    [28, 26],
+    [35, 31],
+    [41, 22],
+    [48, 28],
+    [55, 20],
+    [62, 27],
+    [69, 23],
+    [76, 32],
+    [84, 27],
+    [91, 37],
+    [99, 32],
+    [20, 46, 0.38],
+    [32, 42, 0.48],
+    [45, 39, 0.56],
+    [58, 37, 0.42],
+    [71, 42, 0.5],
+    [87, 46, 0.34],
+  ],
+  mesh: [
+    [9, 44],
+    [15, 38],
+    [21, 33],
+    [27, 27],
+    [34, 31],
+    [41, 37],
+    [48, 42],
+    [55, 35],
+    [62, 28],
+    [69, 24],
+    [76, 30],
+    [83, 36],
+    [91, 42],
+    [100, 37],
+    [18, 50, 0.38],
+    [31, 44, 0.42],
+    [45, 29, 0.48],
+    [58, 47, 0.36],
+    [72, 38, 0.45],
+    [86, 27, 0.4],
+  ],
+  rings: [
+    [12, 30],
+    [18, 24],
+    [26, 20],
+    [35, 18],
+    [45, 20],
+    [54, 25],
+    [62, 31],
+    [70, 38],
+    [79, 43],
+    [88, 42],
+    [97, 36],
+    [22, 40, 0.42],
+    [32, 44, 0.38],
+    [43, 45, 0.48],
+    [55, 42, 0.36],
+    [67, 47, 0.42],
+    [80, 49, 0.34],
+    [92, 46, 0.4],
+  ],
+  nodes: [
+    [14, 32],
+    [21, 24],
+    [21, 41],
+    [30, 30, 0.58],
+    [39, 35],
+    [50, 25],
+    [50, 43],
+    [61, 31],
+    [71, 35, 0.62],
+    [80, 23],
+    [80, 43],
+    [91, 32],
+    [26, 16, 0.34],
+    [43, 49, 0.35],
+    [67, 15, 0.32],
+    [86, 50, 0.32],
+  ],
+};
+
 export function DataArt({
   className,
   variant = "orb",
   accent = "green",
 }: DataArtProps) {
   const colors = palettes[accent];
-  const points = Array.from({ length: 40 }, (_, index) => {
-    const row = Math.floor(index / 10);
-    const column = index % 10;
-    const offset = (row % 2) * 2;
-    const opacity = 0.25 + ((index * 17) % 70) / 100;
-    return {
-      cx: 12 + column * 9 + offset,
-      cy: 16 + row * 9,
-      opacity,
-      color: index % 4 === 0 ? colors.secondary : colors.primary,
-      radius: index % 5 === 0 ? 1.4 : 1,
-    };
-  });
+  const points = POINTS[variant].map(([cx, cy, opacity], index) => ({
+    cx,
+    cy,
+    opacity: opacity ?? (index % 4 === 0 ? 0.64 : 0.45),
+    color: index % 5 === 0 ? colors.secondary : colors.primary,
+    radius: index % 6 === 0 ? 1.35 : 1,
+  }));
 
   return (
     <svg
@@ -40,71 +127,16 @@ export function DataArt({
       fill="none"
       role="presentation"
     >
-      {variant === "rings" &&
-        [16, 23, 30].map((radius, index) => (
-          <circle
-            key={radius}
-            cx="55"
-            cy="32"
-            r={radius}
-            stroke={index === 1 ? colors.primary : colors.secondary}
-            strokeDasharray="1 3"
-            strokeOpacity={0.45 - index * 0.08}
-          />
-        ))}
-      {variant === "mesh" && (
-        <>
-          <path
-            d="M7 42 29 19l23 18 23-25 21 16"
-            stroke={colors.primary}
-            strokeDasharray="1 3"
-            strokeOpacity=".55"
-          />
-          <path
-            d="m9 50 21-19 22 14 23-21 18 12"
-            stroke={colors.secondary}
-            strokeDasharray="1 4"
-            strokeOpacity=".45"
-          />
-        </>
-      )}
-      {variant === "nodes" &&
-        [
-          [22, 32, 10, 17],
-          [22, 32, 10, 47],
-          [88, 32, 100, 17],
-          [88, 32, 100, 47],
-        ].map(([x1, y1, x2, y2], index) => (
-          <path
-            key={`${x1}-${y1}-${x2}-${y2}`}
-            d={`M${x1} ${y1} L${x2} ${y2}`}
-            stroke={index % 2 ? colors.secondary : colors.primary}
-            strokeDasharray="1 3"
-            strokeOpacity=".5"
-          />
-        ))}
-      {(variant === "orb" || variant === "mesh" || variant === "nodes") &&
-        points.map((point, index) => (
-          <circle
-            key={index}
-            cx={point.cx}
-            cy={point.cy}
-            r={point.radius}
-            fill={point.color}
-            fillOpacity={point.opacity}
-          />
-        ))}
-      {variant === "orb" && (
-        <ellipse
-          cx="55"
-          cy="32"
-          rx="43"
-          ry="23"
-          stroke={colors.primary}
-          strokeDasharray="1 4"
-          strokeOpacity=".38"
+      {points.map((point, index) => (
+        <circle
+          key={`${point.cx}-${point.cy}-${index}`}
+          cx={point.cx}
+          cy={point.cy}
+          r={point.radius}
+          fill={point.color}
+          fillOpacity={point.opacity}
         />
-      )}
+      ))}
     </svg>
   );
 }

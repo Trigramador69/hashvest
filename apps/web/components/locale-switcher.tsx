@@ -2,8 +2,14 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown } from "lucide-react";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   LOCALES,
   LOCALE_COOKIE_MAX_AGE_SECONDS,
@@ -47,44 +53,36 @@ export function LocaleSwitcher({
   }
 
   return (
-    <label
+    <div
       className={cn(
         "relative inline-flex items-center",
         size === "default" && "w-full max-w-xs",
       )}
     >
-      <span className="sr-only">{t("locale.label")}</span>
-      <select
-        className={cn(
-          "appearance-none rounded-control border border-border bg-surface-2 font-mono text-xs tracking-[-0.01em] text-foreground",
-          "pr-8 transition-colors hover:border-border-strong hover:bg-surface-hover",
-          "focus:border-border-strong focus:outline-none focus-visible:border-border-strong",
-          "disabled:cursor-not-allowed disabled:opacity-60",
-          size === "compact"
-            ? "h-9 min-w-[8.5rem] pl-3"
-            : "h-11 w-full min-h-11 pl-3.5",
-        )}
-        value={locale}
-        aria-label={t("locale.choose")}
-        disabled={pending}
-        onChange={(event) => select(event.target.value)}
-      >
-        {LOCALES.map((entry) => (
-          <option
-            key={entry.code}
-            value={entry.code}
-            lang={entry.htmlLang}
-            className="bg-surface-2 text-foreground"
-          >
-            {entry.label}
-          </option>
-        ))}
-      </select>
-      <ChevronDown
-        aria-hidden
-        className="pointer-events-none absolute right-2.5 size-3.5 text-muted-foreground"
-        strokeWidth={1.25}
-      />
-    </label>
+      <span aria-hidden="true" className="sr-only">
+        {t("locale.label")}
+      </span>
+      <Select value={locale} onValueChange={select} disabled={pending}>
+        <SelectTrigger
+          aria-label={t("locale.choose")}
+          className={cn(
+            size === "compact" ? "h-11 min-w-[8.5rem]" : "h-11 min-h-11 w-full",
+          )}
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent align="start">
+          {LOCALES.map((entry) => (
+            <SelectItem
+              key={entry.code}
+              value={entry.code}
+              lang={entry.htmlLang}
+            >
+              {entry.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }

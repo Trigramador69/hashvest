@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
+import { ChevronDown } from "lucide-react";
 import { useAccount } from "wagmi";
 import { formatEther, parseEther, type Address } from "viem";
 import { hskTestnet } from "@hashvest/web3";
@@ -37,6 +38,11 @@ import { MembersPreview } from "./organization-ui";
 import { Button, buttonVariants } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { MetricCard } from "./ui/metric-card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "./ui/collapsible";
 import { FundingHealthSummary, GrantLifecycleBadge, Notice } from "./grant-ui";
 import { deriveGrantState } from "@/lib/protocol/grant-state";
 import {
@@ -253,6 +259,7 @@ function LinkExistingGrant({ organizationId }: { organizationId: string }) {
   const t = useTranslations();
   const [vaultAddress, setVaultAddress] = useState("");
   const [description, setDescription] = useState("");
+  const [open, setOpen] = useState(false);
   const linkGrant = useLinkOrganizationGrant(organizationId);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -269,47 +276,71 @@ function LinkExistingGrant({ organizationId }: { organizationId: string }) {
     }
   }
   return (
-    <details className="rounded-card border border-border bg-surface-1 p-5">
-      <summary className="cursor-pointer font-mono text-xs font-medium">
-        {t("overview.link.summary")}
-      </summary>
-      <p className="mt-3 text-sm leading-6 text-muted-foreground">
-        {t("overview.link.lede")}
-      </p>
-      <form className="mt-4 space-y-4" onSubmit={(event) => void submit(event)}>
-        <input
-          className="field font-mono"
-          value={vaultAddress}
-          onChange={(event) => setVaultAddress(event.target.value)}
-          placeholder={t("overview.link.address.placeholder")}
-          aria-label={t("overview.link.address.label")}
-          required
-        />
-        <input
-          className="field"
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-          placeholder={t("overview.link.description.placeholder")}
-          maxLength={1000}
-        />
-        <Button type="submit" variant="outline" disabled={linkGrant.isPending}>
-          {linkGrant.isPending
-            ? t("overview.link.pending")
-            : t("overview.link.action")}
-        </Button>
-        {linkGrant.isError && (
-          <p role="alert" className="text-sm text-destructive">
-            {errorMessage(linkGrant.error, {
-              fallback: t("ui.error.requestFailed"),
-              rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
-            })}
-          </p>
-        )}
-        {linkGrant.isSuccess && (
-          <p className="text-sm text-primary">{t("overview.link.success")}</p>
-        )}
-      </form>
-    </details>
+    <Collapsible
+      open={open}
+      onOpenChange={setOpen}
+      className="rounded-card border border-border bg-surface-1 p-5"
+    >
+      <CollapsibleTrigger asChild>
+        <button
+          type="button"
+          className="flex min-h-11 w-full items-center justify-between gap-4 text-left font-mono text-xs font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          aria-label={t("overview.link.summary")}
+        >
+          {t("overview.link.summary")}
+          <ChevronDown
+            aria-hidden
+            className={`size-4 shrink-0 text-muted-foreground transition-transform duration-180 ${open ? "rotate-180" : ""}`}
+            strokeWidth={1.25}
+          />
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">
+          {t("overview.link.lede")}
+        </p>
+        <form
+          className="mt-4 space-y-4"
+          onSubmit={(event) => void submit(event)}
+        >
+          <input
+            className="field font-mono"
+            value={vaultAddress}
+            onChange={(event) => setVaultAddress(event.target.value)}
+            placeholder={t("overview.link.address.placeholder")}
+            aria-label={t("overview.link.address.label")}
+            required
+          />
+          <input
+            className="field"
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder={t("overview.link.description.placeholder")}
+            maxLength={1000}
+          />
+          <Button
+            type="submit"
+            variant="outline"
+            disabled={linkGrant.isPending}
+          >
+            {linkGrant.isPending
+              ? t("overview.link.pending")
+              : t("overview.link.action")}
+          </Button>
+          {linkGrant.isError && (
+            <p role="alert" className="text-sm text-destructive">
+              {errorMessage(linkGrant.error, {
+                fallback: t("ui.error.requestFailed"),
+                rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+              })}
+            </p>
+          )}
+          {linkGrant.isSuccess && (
+            <p className="text-sm text-primary">{t("overview.link.success")}</p>
+          )}
+        </form>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 

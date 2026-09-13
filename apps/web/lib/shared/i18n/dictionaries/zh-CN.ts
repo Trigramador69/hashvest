@@ -103,6 +103,11 @@ export const zhCN: TranslationDictionary = {
   "locale.label": "语言",
   "locale.choose": "选择语言",
 
+  "wallet.connect": "连接钱包",
+  "wallet.wrongNetwork": "网络不匹配",
+  "wallet.changeNetwork": "切换网络",
+  "wallet.account": "打开钱包账户",
+
   "session.enabled": "工作区访问已启用",
   "session.signOut": "退出工作区",
   "session.signingOut": "正在退出…",
@@ -230,6 +235,7 @@ export const zhCN: TranslationDictionary = {
     "连接合规或证明服务商，同时不将权威性移出链上。仅限路线图。",
 
   // 撤销功能（HAS-26）、交易阶段，以及来自 lib/protocol 的校验提示。
+  "ui.close": "关闭",
   "ui.lifecycle.revoked": "已撤销",
   "party.terms": "条款",
   "tx.stage.confirm": "{label}：请在钱包中确认",
@@ -547,7 +553,9 @@ export const zhCN: TranslationDictionary = {
   "dashboard.chart.activity.title": "资助活动",
   "dashboard.chart.activity.lede": "最近六个月你所有资助的链上事件。",
   "dashboard.chart.activity.aria": "最近六个月的资助活动",
-  "dashboard.chart.activity.sr": "每个点代表一个仪表盘链上事件。",
+  "dashboard.chart.activity.sr":
+    "最近六个月按月统计的链上事件，包括创建、批准、领取和撤销。",
+  "dashboard.chart.activity.period": "月份",
   "dashboard.chart.series.created": "已创建",
   "dashboard.chart.series.approved": "已批准",
   "dashboard.chart.series.claimed": "已领取",

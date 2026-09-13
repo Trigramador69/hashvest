@@ -12,8 +12,16 @@ import { useTranslations } from "@/lib/shared/i18n/provider";
 
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 const MAX_MILESTONES = 20;
+const EMPTY_REVIEWER_VALUE = "__empty_reviewer__";
 
 /**
  * The template form (HAS-13), with no data source of its own.
@@ -104,19 +112,27 @@ export function TemplateEditor({
             <span className="text-sm font-medium">
               {t("templates.field.strategy")}
             </span>
-            <select
-              className="field"
-              value={form.strategy}
-              onChange={(event) =>
-                onChange({ strategy: Number(event.target.value) as 0 | 1 | 2 })
+            <Select
+              value={String(form.strategy)}
+              onValueChange={(value) =>
+                onChange({ strategy: Number(value) as 0 | 1 | 2 })
               }
             >
-              {([0, 1, 2] as const).map((index) => (
-                <option key={index} value={index}>
-                  {t(strategyKey(index, "name"))}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full font-sans text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="start">
+                {([0, 1, 2] as const).map((index) => (
+                  <SelectItem
+                    key={index}
+                    value={String(index)}
+                    className="font-sans text-sm"
+                  >
+                    {t(strategyKey(index, "name"))}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </label>
           {form.strategy !== 1 && (
             <div className="grid gap-4 sm:grid-cols-3">
@@ -124,15 +140,25 @@ export function TemplateEditor({
                 <span className="text-sm font-medium">
                   {t("wizard.field.unit.label")}
                 </span>
-                <select
-                  className="field"
+                <Select
                   value={form.unit}
-                  onChange={(event) => onChange({ unit: event.target.value })}
+                  onValueChange={(value) => onChange({ unit: value })}
                 >
-                  <option value="60">{t("wizard.unit.minutes")}</option>
-                  <option value="3600">{t("wizard.unit.hours")}</option>
-                  <option value="86400">{t("wizard.unit.days")}</option>
-                </select>
+                  <SelectTrigger className="w-full font-sans text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent align="start">
+                    <SelectItem value="60" className="font-sans text-sm">
+                      {t("wizard.unit.minutes")}
+                    </SelectItem>
+                    <SelectItem value="3600" className="font-sans text-sm">
+                      {t("wizard.unit.hours")}
+                    </SelectItem>
+                    <SelectItem value="86400" className="font-sans text-sm">
+                      {t("wizard.unit.days")}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </label>
               <label className="block space-y-2">
                 <span className="text-sm font-medium">
@@ -247,20 +273,40 @@ export function TemplateEditor({
                 <span className="text-sm font-medium">
                   {t("templates.field.reviewer")}
                 </span>
-                <select
-                  className="field"
-                  value={form.defaultReviewerMemberId}
-                  onChange={(event) =>
-                    onChange({ defaultReviewerMemberId: event.target.value })
+                <Select
+                  value={form.defaultReviewerMemberId || EMPTY_REVIEWER_VALUE}
+                  onValueChange={(value) =>
+                    onChange({
+                      defaultReviewerMemberId:
+                        value === EMPTY_REVIEWER_VALUE ? "" : value,
+                    })
                   }
                 >
-                  <option value="">{t("templates.field.reviewer.none")}</option>
-                  {members.map((member) => (
-                    <option key={member.id} value={member.id}>
-                      {member.displayName}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger
+                    className={`w-full font-sans text-sm ${form.defaultReviewerMemberId ? "" : "text-muted-foreground"}`}
+                  >
+                    <SelectValue
+                      placeholder={t("templates.field.reviewer.none")}
+                    />
+                  </SelectTrigger>
+                  <SelectContent align="start">
+                    <SelectItem
+                      value={EMPTY_REVIEWER_VALUE}
+                      className="font-sans text-sm"
+                    >
+                      {t("templates.field.reviewer.none")}
+                    </SelectItem>
+                    {members.map((member) => (
+                      <SelectItem
+                        key={member.id}
+                        value={member.id}
+                        className="font-sans text-sm"
+                      >
+                        {member.displayName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <span className="block text-xs leading-5 text-muted-foreground">
                   {t("templates.field.reviewer.hint")}
                 </span>

@@ -1,9 +1,28 @@
 "use client";
 
 import Link from "next/link";
+import { useId } from "react";
 import { CheckCircle2, Coins, Flag, RotateCcw } from "lucide-react";
+import {
+  CartesianGrid,
+  Cell,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 import { DataArt } from "@/components/ui/data-art";
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 import { MetricCard } from "@/components/ui/metric-card";
 import { Panel, PanelBody, PanelHeader } from "@/components/ui/panel";
 import {
@@ -17,6 +36,7 @@ import { shortAddress } from "@/lib/protocol/grants";
 import { useTranslations } from "@/lib/shared/i18n/provider";
 import type { Translator } from "@/lib/shared/i18n/dictionary";
 import { appRoutes } from "@/lib/shared/routes";
+import { cn } from "@/lib/shared/utils";
 
 function eventIcon(kind: DashboardChainEvent["kind"]) {
   if (kind === "created")
@@ -65,122 +85,145 @@ function DotBarChart({
   data: DashboardActivityBucket[];
   t: Translator;
 }) {
-  const width = 640;
-  const height = 230;
-  const chartTop = 16;
-  const chartBottom = 182;
-  const max = Math.max(
-    4,
-    ...data.map(
-      (item) => item.created + item.approved + item.claimed + item.revoked,
-    ),
-  );
-  const x = (index: number) =>
-    44 + (index * (width - 76)) / Math.max(1, data.length - 1);
-  const y = (value: number) =>
-    chartBottom - (value / max) * (chartBottom - chartTop);
-  const series = [
-    {
-      key: "created" as const,
-      color: "#57D98B",
+  const summaryId = useId();
+  const chartConfig = {
+    created: {
       label: t("dashboard.chart.series.created"),
+      color: "var(--chart-series-1)",
     },
-    {
-      key: "approved" as const,
-      color: "#4D6AD9",
+    approved: {
       label: t("dashboard.chart.series.approved"),
+      color: "var(--chart-series-2)",
     },
-    {
-      key: "claimed" as const,
-      color: "#D8D9D5",
+    claimed: {
       label: t("dashboard.chart.series.claimed"),
+      color: "var(--chart-series-3)",
     },
-    {
-      key: "revoked" as const,
-      color: "#E9832D",
+    revoked: {
       label: t("dashboard.chart.series.revoked"),
+      color: "var(--chart-series-4)",
     },
-  ];
+  } satisfies ChartConfig;
+
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap gap-x-4 gap-y-2 font-mono text-[10px] text-muted-foreground">
-        {series.map((item) => (
-          <span key={item.key} className="inline-flex items-center gap-1.5">
-            <span
-              className="size-1.5 rounded-full"
-              style={{ background: item.color }}
-            />
-            {item.label}
-          </span>
-        ))}
-      </div>
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        className="h-auto w-full"
-        role="img"
-        aria-label={t("dashboard.chart.activity.aria")}
-      >
-        {[0, 1, 2, 3].map((step) => {
-          const value = Math.round((max * step) / 3);
-          return (
-            <g key={step}>
-              <line
-                x1="44"
-                x2={width - 24}
-                y1={y(value)}
-                y2={y(value)}
-                stroke="rgba(245,245,241,.07)"
-                strokeDasharray="2 3"
-              />
-              <text
-                x="4"
-                y={y(value) + 3}
-                fill="#747672"
-                fontSize="10"
-                fontFamily="monospace"
-              >
-                {value}
-              </text>
-            </g>
-          );
-        })}
-        {data.map((item, index) => (
-          <g key={item.key}>
-            <line
-              x1={x(index)}
-              x2={x(index)}
-              y1={chartTop}
-              y2={chartBottom}
-              stroke="rgba(245,245,241,.04)"
+    <div>
+      <div className="overflow-x-auto">
+        <ChartContainer
+          config={chartConfig}
+          className="h-[250px] min-h-[250px] min-w-[320px]"
+          aria-describedby={summaryId}
+        >
+          <LineChart
+            accessibilityLayer
+            data={data}
+            margin={{ top: 4, right: 8, left: 0, bottom: 0 }}
+          >
+            <CartesianGrid
+              stroke="rgba(245,245,241,.07)"
               strokeDasharray="2 3"
+              vertical
             />
-            <text
-              x={x(index)}
-              y="210"
-              textAnchor="middle"
-              fill="#747672"
-              fontSize="10"
-              fontFamily="monospace"
-            >
-              {item.label}
-            </text>
-            {series.map((itemSeries, seriesIndex) => {
-              const value = item[itemSeries.key];
-              return Array.from({ length: value }, (_, pointIndex) => (
-                <circle
-                  key={`${itemSeries.key}-${pointIndex}`}
-                  cx={x(index) + (seriesIndex - 1.5) * 3}
-                  cy={y(pointIndex + 1)}
-                  r="1.5"
-                  fill={itemSeries.color}
-                  fillOpacity=".9"
-                />
-              ));
-            })}
-          </g>
-        ))}
-      </svg>
-      <p className="sr-only">{t("dashboard.chart.activity.sr")}</p>
+            <XAxis
+              dataKey="label"
+              axisLine={false}
+              tickLine={false}
+              tickMargin={10}
+              minTickGap={18}
+              tick={{ fill: "#747672", fontFamily: "monospace", fontSize: 10 }}
+            />
+            <YAxis
+              allowDecimals={false}
+              axisLine={false}
+              domain={[0, "auto"]}
+              tickLine={false}
+              tick={{ fill: "#747672", fontFamily: "monospace", fontSize: 10 }}
+              tickCount={4}
+              width={24}
+            />
+            <ChartTooltip
+              cursor={{
+                stroke: "rgba(245,245,241,.16)",
+                strokeDasharray: "2 3",
+              }}
+              content={<ChartTooltipContent />}
+            />
+            <ChartLegend
+              align="left"
+              content={
+                <ChartLegendContent className="justify-start gap-x-4 gap-y-2 pb-3 pt-0" />
+              }
+              itemSorter={null}
+              verticalAlign="top"
+            />
+            <Line
+              dataKey="created"
+              dot={{ r: 2, strokeWidth: 0 }}
+              isAnimationActive={false}
+              name={chartConfig.created.label as string}
+              stroke="var(--color-created)"
+              strokeLinecap="round"
+              strokeWidth={1.5}
+              type="linear"
+            />
+            <Line
+              dataKey="approved"
+              dot={{ r: 2, strokeWidth: 0 }}
+              isAnimationActive={false}
+              name={chartConfig.approved.label as string}
+              stroke="var(--color-approved)"
+              strokeLinecap="round"
+              strokeWidth={1.5}
+              type="linear"
+            />
+            <Line
+              dataKey="claimed"
+              dot={{ r: 2, strokeWidth: 0 }}
+              isAnimationActive={false}
+              name={chartConfig.claimed.label as string}
+              stroke="var(--color-claimed)"
+              strokeLinecap="round"
+              strokeWidth={1.5}
+              type="linear"
+            />
+            <Line
+              dataKey="revoked"
+              dot={{ r: 2, strokeWidth: 0 }}
+              isAnimationActive={false}
+              name={chartConfig.revoked.label as string}
+              stroke="var(--color-revoked)"
+              strokeLinecap="round"
+              strokeWidth={1.5}
+              type="linear"
+            />
+          </LineChart>
+        </ChartContainer>
+      </div>
+      <div className="sr-only">
+        <p id={summaryId}>{t("dashboard.chart.activity.sr")}</p>
+        <table>
+          <caption>{t("dashboard.chart.activity.aria")}</caption>
+          <thead>
+            <tr>
+              <th scope="col">{t("dashboard.chart.activity.period")}</th>
+              <th scope="col">{t("dashboard.chart.series.created")}</th>
+              <th scope="col">{t("dashboard.chart.series.approved")}</th>
+              <th scope="col">{t("dashboard.chart.series.claimed")}</th>
+              <th scope="col">{t("dashboard.chart.series.revoked")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((item) => (
+              <tr key={item.key}>
+                <th scope="row">{item.label}</th>
+                <td>{item.created}</td>
+                <td>{item.approved}</td>
+                <td>{item.claimed}</td>
+                <td>{item.revoked}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -192,62 +235,78 @@ function DonutChart({
   data: DashboardAnalytics["strategyDistribution"];
   t: Translator;
 }) {
-  const colors = ["#57D98B", "#4D6AD9", "#D8D9D5"];
+  const colors = [
+    "var(--chart-series-1)",
+    "var(--chart-series-2)",
+    "var(--chart-series-3)",
+  ];
   const total = data.reduce((sum, item) => sum + item.count, 0);
-  const radius = 46;
-  const circumference = 2 * Math.PI * radius;
-  let offset = 0;
+  const chartConfig = {
+    TIME: { label: strategyText("TIME", t), color: colors[0] },
+    MILESTONE: { label: strategyText("MILESTONE", t), color: colors[1] },
+    HYBRID: { label: strategyText("HYBRID", t), color: colors[2] },
+  } satisfies ChartConfig;
+
   return (
-    <div className="flex items-center gap-5">
-      <div className="relative size-36 shrink-0">
-        <svg
-          viewBox="0 0 120 120"
-          className="size-full -rotate-90"
+    <div className="flex flex-col items-center justify-center gap-5 sm:flex-row sm:items-center">
+      <div className="relative size-40 shrink-0">
+        <ChartContainer
+          config={chartConfig}
+          className="size-full min-h-0"
           role="img"
           aria-label={t("dashboard.chart.strategy.aria")}
         >
-          <circle
-            cx="60"
-            cy="60"
-            r={radius}
-            stroke="#202322"
-            strokeWidth="12"
-            fill="none"
-          />
-          {total > 0 &&
-            data.map((item, index) => {
-              const length = (item.count / total) * circumference;
-              const circle = (
-                <circle
-                  key={item.strategy}
-                  cx="60"
-                  cy="60"
-                  r={radius}
-                  stroke={colors[index]}
-                  strokeWidth="12"
-                  fill="none"
-                  strokeDasharray={`${length} ${circumference - length}`}
-                  strokeDashoffset={-offset}
-                />
-              );
-              offset += length;
-              return circle;
-            })}
-        </svg>
-        <div className="absolute inset-0 grid place-items-center text-center">
-          <span className="font-mono text-lg tabular-nums text-foreground">
+          <PieChart accessibilityLayer>
+            <Pie
+              data={[{ strategy: "background", count: 1 }]}
+              dataKey="count"
+              endAngle={-270}
+              fill="var(--chart-series-muted)"
+              isAnimationActive={false}
+              innerRadius={51}
+              outerRadius={67}
+              startAngle={90}
+              strokeWidth={0}
+            />
+            {total > 0 && (
+              <Pie
+                data={data}
+                dataKey="count"
+                endAngle={-270}
+                innerRadius={51}
+                isAnimationActive={false}
+                nameKey="strategy"
+                outerRadius={67}
+                paddingAngle={1}
+                startAngle={90}
+                strokeWidth={0}
+              >
+                {data.map((item, index) => (
+                  <Cell key={item.strategy} fill={colors[index]} />
+                ))}
+              </Pie>
+            )}
+            {total > 0 && (
+              <ChartTooltip
+                content={<ChartTooltipContent hideLabel nameKey="strategy" />}
+              />
+            )}
+          </PieChart>
+        </ChartContainer>
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+          <span className="font-mono text-2xl tabular-nums text-foreground">
             {total}
           </span>
-          <span className="-mt-8 font-mono text-[9px] text-muted-foreground">
+          <span className="mt-2 font-mono text-[9px] text-muted-foreground">
             {t("dashboard.chart.strategy.grants")}
           </span>
         </div>
       </div>
-      <div className="min-w-0 space-y-3">
+      <div className="w-full max-w-[17rem] min-w-0 space-y-3 sm:flex-1">
         {data.map((item, index) => (
           <div
             key={item.strategy}
-            className="flex items-center justify-between gap-3 text-xs"
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 text-xs"
           >
             <span className="inline-flex min-w-0 items-center gap-2 text-muted-foreground">
               <span
@@ -256,7 +315,7 @@ function DonutChart({
               />
               <span className="truncate">{strategyText(item.strategy, t)}</span>
             </span>
-            <span className="font-mono text-[11px] text-foreground">
+            <span className="text-right font-mono text-[11px] tabular-nums text-foreground">
               {total ? Math.round((item.count / total) * 100) : 0}%
             </span>
           </div>
@@ -360,10 +419,6 @@ function GrantTable({
   );
 }
 
-function cn(...values: Array<string | false | null | undefined>) {
-  return values.filter(Boolean).join(" ");
-}
-
 function ActivityList({
   events,
   t,
@@ -422,7 +477,7 @@ export function DashboardOverview({
   const data = analytics.data;
   if (!connected)
     return (
-      <Panel className="relative min-h-[150px] overflow-hidden p-6">
+      <Panel className="dashboard-reveal relative min-h-[150px] overflow-hidden p-6">
         <div className="relative z-10 max-w-xl">
           <p className="font-mono text-[10px] uppercase tracking-[0.08em] text-primary">
             {t("dashboard.connect.eyebrow")}
@@ -455,7 +510,7 @@ export function DashboardOverview({
   if (!data) return null;
   return (
     <div className="space-y-3">
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="dashboard-reveal-stagger grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label={t("dashboard.metric.active")}
           value={data.activeGrants}
@@ -500,7 +555,7 @@ export function DashboardOverview({
           {t("dashboard.analytics.partial")}
         </p>
       )}
-      <div className="grid gap-3 xl:grid-cols-12">
+      <div className="dashboard-reveal-stagger grid gap-3 xl:grid-cols-12">
         <Panel className="xl:col-span-8">
           <PanelHeader
             title={t("dashboard.chart.activity.title")}
@@ -520,7 +575,7 @@ export function DashboardOverview({
           </PanelBody>
         </Panel>
       </div>
-      <div className="grid gap-3 xl:grid-cols-12">
+      <div className="dashboard-reveal-stagger grid gap-3 xl:grid-cols-12">
         <Panel className="xl:col-span-5">
           <PanelHeader
             title={t("dashboard.chart.top.title")}

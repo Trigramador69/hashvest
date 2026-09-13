@@ -17,6 +17,8 @@ import {
   type DashboardChainEvent,
   type DashboardGrantSnapshot,
 } from "@/lib/dashboard/analytics";
+import { useI18n } from "@/lib/shared/i18n/provider";
+import type { Locale } from "@/lib/shared/i18n/locales";
 
 const FACTORY_START_BLOCK = BigInt(33032417);
 const LOG_WINDOW = 50_000n;
@@ -105,10 +107,12 @@ async function readDashboardData({
   client,
   wallet,
   organizationNames,
+  locale,
 }: {
   client: PublicClient;
   wallet: Address;
   organizationNames: Map<string, string>;
+  locale: Locale;
 }): Promise<DashboardAnalytics> {
   const factoryAddress = testnetDeployment.factory;
   if (!factoryAddress)
@@ -145,6 +149,7 @@ async function readDashboardData({
       snapshots: [],
       events: [],
       now: new Date(),
+      locale,
     });
 
   const snapshots: DashboardGrantSnapshot[] = [];
@@ -301,10 +306,12 @@ async function readDashboardData({
     events,
     partial,
     now: new Date(),
+    locale,
   });
 }
 
 export function useDashboardAnalytics() {
+  const { locale } = useI18n();
   const { address } = useAccount();
   const client = usePublicClient({ chainId: 133 });
   const organizations = useOrganizations();
@@ -330,12 +337,14 @@ export function useDashboardAnalytics() {
       "wallet-dashboard-analytics",
       address?.toLowerCase(),
       [...organizationNames.keys()].sort(),
+      locale,
     ],
     queryFn: () =>
       readDashboardData({
         client: client as PublicClient,
         wallet: getAddress(address as string),
         organizationNames,
+        locale,
       }),
     enabled: Boolean(address && client && testnetDeployment.factory),
     staleTime: 30_000,

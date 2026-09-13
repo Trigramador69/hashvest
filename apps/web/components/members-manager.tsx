@@ -17,6 +17,16 @@ import { useTranslations } from "@/lib/shared/i18n/provider";
 
 import { AddressDisplay, Notice } from "./grant-ui";
 import { MemberIdentity } from "./organization-ui";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
@@ -36,6 +46,10 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
   const [editingId, setEditingId] = useState<string>();
   const [editingName, setEditingName] = useState("");
   const [editingRole, setEditingRole] = useState("");
+  const [memberToRemove, setMemberToRemove] = useState<{
+    id: string;
+    displayName: string;
+  }>();
 
   if (!session.walletMatches) return null;
   if (organization.isPending || members.isPending)
@@ -90,12 +104,15 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
     }
   }
 
-  async function remove(memberId: string) {
-    if (!window.confirm(t("members.removeConfirm"))) return;
+  async function confirmRemove() {
+    const target = memberToRemove;
+    if (!target) return;
     try {
-      await removeMember.mutateAsync(memberId);
+      await removeMember.mutateAsync(target.id);
+      setMemberToRemove(undefined);
     } catch {
       // The server-safe mutation error is rendered below.
+      setMemberToRemove(undefined);
     }
   }
 
@@ -296,7 +313,12 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => void remove(member.id)}
+                                onClick={() =>
+                                  setMemberToRemove({
+                                    id: member.id,
+                                    displayName: member.displayName,
+                                  })
+                                }
                                 disabled={removeMember.isPending}
                               >
                                 {t("members.remove")}
@@ -321,6 +343,40 @@ export function MembersManager({ organizationId }: { organizationId: string }) {
           )}
         </CardContent>
       </Card>
+      <AlertDialog
+        open={Boolean(memberToRemove)}
+        onOpenChange={(open) => {
+          if (!open && !removeMember.isPending) setMemberToRemove(undefined);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("members.remove")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {memberToRemove && (
+                <span className="mb-1 block font-medium text-foreground">
+                  {memberToRemove.displayName}
+                </span>
+              )}
+              {t("members.removeConfirm")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removeMember.isPending}>
+              {t("members.edit.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={removeMember.isPending}
+              onClick={(event) => {
+                event.preventDefault();
+                void confirmRemove();
+              }}
+            >
+              {t("members.remove")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
