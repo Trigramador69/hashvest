@@ -215,7 +215,7 @@ export function AiGrantBuilder({
           role="dialog"
           aria-modal="true"
           aria-labelledby={titleId}
-          className="mb-3 flex max-h-[min(78vh,640px)] w-[min(calc(100vw-2.5rem),25rem)] flex-col overflow-hidden rounded-card border border-border bg-surface-1 shadow-[0_18px_40px_rgba(0,0,0,.55)]"
+          className="mb-3 flex max-h-[min(86vh,760px)] w-[min(calc(100vw-2.5rem),25rem)] flex-col overflow-hidden border border-border bg-surface-1 shadow-[0_18px_40px_rgba(0,0,0,.55)]"
         >
           <header className="relative border-b border-border-soft px-5 py-4">
             <PixelField
@@ -405,7 +405,10 @@ export function AiGrantBuilder({
         disabled={disabled}
         onClick={() => setOpen((current) => !current)}
         className={cn(
-          "relative ml-auto flex size-14 items-center justify-center overflow-hidden rounded-pill border border-border bg-surface-1 shadow-[0_10px_28px_rgba(0,0,0,.5)]",
+          // `rounded-full` rather than a `--radius-pill` utility: globals.css keeps
+          // that token in `:root` but exposes only sm/md/lg through `@theme`, so
+          // `rounded-pill` compiles to nothing and the launcher renders square.
+          "relative ml-auto flex size-14 items-center justify-center overflow-hidden rounded-full border border-border bg-surface-1 shadow-[0_10px_28px_rgba(0,0,0,.5)]",
           "transition-[border-color,background,transform] duration-180 ease-[cubic-bezier(.2,.8,.2,1)]",
           "hover:-translate-y-px hover:border-border-strong hover:bg-surface-hover",
           "disabled:pointer-events-none disabled:opacity-50",
