@@ -19,8 +19,9 @@ import {
 import {
   grantVaultAbi,
   hskTestnet,
-  SPONSORED_CLAIM_DOMAIN,
+  SPONSORED_ACTION_DOMAIN,
   SPONSORED_CLAIM_TYPES,
+  SPONSORED_REVIEW_TYPES,
   transactionExplorerUrl,
 } from "@hashvest/web3";
 import { Button } from "@/components/ui/button";
@@ -62,7 +63,10 @@ import { deriveRevocationPreview } from "@/lib/protocol/revocation";
 import { ParticipantIdentity } from "./grant-card";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
 import { organizationApi } from "@/lib/cloud/organizations/client";
-import type { SponsoredClaimRequest } from "@/lib/cloud/organizations/types";
+import type {
+  SponsoredActionRequest,
+  SponsoredActionType,
+} from "@/lib/cloud/organizations/types";
 import { SPONSORED_CLAIM_SIGNING_WINDOW_SECONDS } from "@/lib/shared/sponsored-claims";
 import { MilestoneEvidenceList } from "./milestone-evidence";
 
@@ -73,20 +77,24 @@ const REFRESH_SECONDS = 7;
 
 type SponsoredGrant = {
   claimableAmount: bigint;
-  claimedAmount: bigint;
   beneficiary: Address;
+  reviewer: Address;
   decimals: number;
   symbol: string;
+  revoked: boolean;
+  milestones: readonly { title: string; amount: bigint; approved: boolean }[];
   eligibility: { eligible: boolean; error: boolean };
-  sponsoredClaim: {
+  sponsoredActions: {
     supported: boolean;
-    nonce: bigint;
-    used: boolean;
+    claimNonce: bigint;
+    reviewNonce: bigint;
   };
 };
 
-type SignedSponsoredClaimInput = {
-  amount: string;
+type SignedSponsoredActionInput = {
+  actionType: SponsoredActionType;
+  amount?: string;
+  milestoneIndex?: number;
   nonce: string;
   deadline: string;
   relayerAddress: string;
@@ -94,7 +102,7 @@ type SignedSponsoredClaimInput = {
 };
 
 function sponsoredRequestStatusLabel(
-  request: SponsoredClaimRequest,
+  request: SponsoredActionRequest,
   t: ReturnType<typeof useTranslations>,
 ) {
   switch (request.status) {
@@ -108,19 +116,25 @@ function sponsoredRequestStatusLabel(
       return t("detail.sponsor.status.confirmed");
     case "failed":
       return t("detail.sponsor.status.failed");
+    case "abandoned":
+      return t("detail.sponsor.status.abandoned");
   }
 }
 
-function SponsoredClaimPanel({
+function SponsoredActionPanel({
   address,
   organizationId,
   grant,
   canWrite,
+  actionType,
+  milestoneIndex,
 }: {
   address: Address;
   organizationId: string;
   grant: SponsoredGrant;
   canWrite: boolean;
+  actionType: SponsoredActionType;
+  milestoneIndex?: number;
 }) {
   const t = useTranslations();
   const wallet = useAccount();
@@ -129,10 +143,15 @@ function SponsoredClaimPanel({
   const { signTypedDataAsync } = useSignTypedData();
   const [confirming, setConfirming] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [request, setRequest] = useState<SponsoredClaimRequest | null>(null);
+  const [request, setRequest] = useState<SponsoredActionRequest | null>(null);
   const [signedInput, setSignedInput] =
-    useState<SignedSponsoredClaimInput | null>(null);
+    useState<SignedSponsoredActionInput | null>(null);
   const [error, setError] = useState("");
+  const [nonceOccupied, setNonceOccupied] = useState(false);
+  const nonce =
+    actionType === "claim"
+      ? grant.sponsoredActions.claimNonce
+      : grant.sponsoredActions.reviewNonce;
 
   const relayerAddress =
     policy.data?.relayerAddress && isAddress(policy.data.relayerAddress)
@@ -142,13 +161,18 @@ function SponsoredClaimPanel({
   useEffect(() => {
     let cancelled = false;
     void organizationApi
-      .getSponsoredClaimByNonce(
+      .getSponsoredActionByNonce(
         organizationId,
         address,
-        grant.sponsoredClaim.nonce.toString(),
+        actionType,
+        nonce.toString(),
       )
       .then(({ request: existing }) => {
-        if (!cancelled && existing) setRequest(existing);
+        if (cancelled || !existing) return;
+        const matchesTarget =
+          actionType === "claim" || existing.milestoneIndex === milestoneIndex;
+        if (matchesTarget) setRequest(existing);
+        else setNonceOccupied(true);
       })
       .catch(() => {
         if (!cancelled) setError(t("detail.sponsor.statusUnavailable"));
@@ -156,13 +180,14 @@ function SponsoredClaimPanel({
     return () => {
       cancelled = true;
     };
-  }, [address, grant.sponsoredClaim.nonce, organizationId, t]);
+  }, [actionType, address, milestoneIndex, nonce, organizationId, t]);
 
   useEffect(() => {
     if (
       !request ||
       request.status === "confirmed" ||
-      request.status === "failed"
+      request.status === "failed" ||
+      request.status === "abandoned"
     )
       return;
     let cancelled = false;
@@ -170,7 +195,7 @@ function SponsoredClaimPanel({
     const poll = async () => {
       try {
         const { request: updated } =
-          await organizationApi.getSponsoredClaimStatus(
+          await organizationApi.getSponsoredActionStatus(
             organizationId,
             address,
             request.id,
@@ -196,39 +221,59 @@ function SponsoredClaimPanel({
     };
   }, [address, organizationId, queryClient, request, t]);
 
-  const sponsorshipReady =
-    grant.sponsoredClaim.supported &&
-    !grant.sponsoredClaim.used &&
-    grant.claimedAmount === 0n &&
-    grant.claimableAmount > 0n &&
-    grant.eligibility.eligible &&
-    !grant.eligibility.error &&
+  const actionLive =
+    actionType === "claim"
+      ? grant.claimableAmount > 0n &&
+        grant.eligibility.eligible &&
+        !grant.eligibility.error
+      : milestoneIndex !== undefined &&
+        !grant.revoked &&
+        grant.milestones[milestoneIndex] !== undefined &&
+        !grant.milestones[milestoneIndex].approved;
+  const policyAllows =
     policy.data?.enabled === true &&
-    (policy.data.remainingClaims ?? 0) > 0 &&
+    policy.data.allowedActions.includes(actionType) &&
+    policy.data.allowedVaults.some(
+      (vault) => vault.toLowerCase() === address.toLowerCase(),
+    ) &&
+    policy.data.remainingActions > 0 &&
+    BigInt(policy.data.remainingGasWei) > 0n;
+  const sponsorshipReady =
+    grant.sponsoredActions.supported &&
+    actionLive &&
+    policyAllows &&
     relayerAddress !== undefined &&
     canWrite &&
+    !nonceOccupied &&
     request === null;
   const retryReady =
     request?.status === "failed" && !request.txHash && signedInput !== null;
 
   let availability = t("detail.sponsor.unavailable");
-  if (!grant.sponsoredClaim.supported)
+  if (!grant.sponsoredActions.supported)
     availability = t("detail.sponsor.legacy");
-  else if (grant.sponsoredClaim.used || grant.claimedAmount !== 0n)
-    availability = t("detail.sponsor.firstClaimOnly");
-  else if (grant.claimableAmount === 0n)
+  else if (actionType === "claim" && grant.claimableAmount === 0n)
     availability = t("detail.sponsor.noClaimable");
   else if (policy.isPending) availability = t("detail.sponsor.checking");
   else if (policy.isError || !policy.data)
     availability = t("detail.sponsor.unavailable");
-  else if (!policy.data.enabled)
+  else if (!policy.data.enabled || !policy.data.allowedActions.includes(actionType))
     availability = t("detail.sponsor.policyDisabled");
-  else if (policy.data.remainingClaims <= 0)
+  else if (
+    !policy.data.allowedVaults.some(
+      (vault) => vault.toLowerCase() === address.toLowerCase(),
+    )
+  )
+    availability = t("detail.sponsor.vaultNotAllowed");
+  else if (
+    policy.data.remainingActions <= 0 ||
+    BigInt(policy.data.remainingGasWei) === 0n
+  )
     availability = t("detail.sponsor.limitReached");
   else if (!relayerAddress || !policy.data.relayerConfigured)
     availability = t("detail.sponsor.relayerMissing");
 
-  async function submit(input: SignedSponsoredClaimInput) {
+  async function submit(input: SignedSponsoredActionInput) {
     if (BigInt(input.deadline) <= BigInt(Math.floor(Date.now() / 1000))) {
       setError(t("detail.sponsor.expired"));
       return;
@@ -236,7 +281,7 @@ function SponsoredClaimPanel({
     setSubmitting(true);
     setError("");
     try {
-      const result = await organizationApi.submitSponsoredClaim(
+      const result = await organizationApi.submitSponsoredAction(
         organizationId,
         address,
         input,
@@ -253,7 +298,7 @@ function SponsoredClaimPanel({
     }
   }
 
-  async function sponsorClaim() {
+  async function sponsorAction() {
     if (!wallet.address || !relayerAddress) return;
     setConfirming(false);
     setSubmitting(true);
@@ -262,33 +307,56 @@ function SponsoredClaimPanel({
       const deadline = BigInt(
         Math.floor(Date.now() / 1000) + SPONSORED_CLAIM_SIGNING_WINDOW_SECONDS,
       );
-      const signature = await signTypedDataAsync({
-        account: wallet.address,
-        domain: {
-          ...SPONSORED_CLAIM_DOMAIN,
-          chainId: 133,
-          verifyingContract: address,
-        },
-        types: SPONSORED_CLAIM_TYPES,
-        primaryType: "SponsoredClaim",
-        message: {
-          vault: address,
-          beneficiary: grant.beneficiary,
-          amount: grant.claimableAmount,
-          nonce: grant.sponsoredClaim.nonce,
-          deadline,
-          relayer: relayerAddress,
-        },
-      });
-      const input = {
-        amount: grant.claimableAmount.toString(),
-        nonce: grant.sponsoredClaim.nonce.toString(),
+      const signature =
+        actionType === "claim"
+          ? await signTypedDataAsync({
+              account: wallet.address,
+              domain: {
+                ...SPONSORED_ACTION_DOMAIN,
+                chainId: 133,
+                verifyingContract: address,
+              },
+              types: SPONSORED_CLAIM_TYPES,
+              primaryType: "SponsoredClaim",
+              message: {
+                vault: address,
+                beneficiary: grant.beneficiary,
+                amount: grant.claimableAmount,
+                nonce,
+                deadline,
+                relayer: relayerAddress,
+              },
+            })
+          : await signTypedDataAsync({
+              account: wallet.address,
+              domain: {
+                ...SPONSORED_ACTION_DOMAIN,
+                chainId: 133,
+                verifyingContract: address,
+              },
+              types: SPONSORED_REVIEW_TYPES,
+              primaryType: "SponsoredMilestoneApproval",
+              message: {
+                vault: address,
+                reviewer: grant.reviewer,
+                milestoneIndex: BigInt(milestoneIndex as number),
+                nonce,
+                deadline,
+                relayer: relayerAddress,
+              },
+            });
+      const input: SignedSponsoredActionInput = {
+        actionType,
+        ...(actionType === "claim"
+          ? { amount: grant.claimableAmount.toString() }
+          : { milestoneIndex }),
+        nonce: nonce.toString(),
         deadline: deadline.toString(),
         relayerAddress: relayerAddress as string,
         signature,
       };
       setSignedInput(input);
-      const result = await organizationApi.submitSponsoredClaim(
+      const result = await organizationApi.submitSponsoredAction(
         organizationId,
         address,
         input,
@@ -305,14 +373,24 @@ function SponsoredClaimPanel({
     }
   }
 
+  const compact = actionType === "review";
+  const confirmationId = `sponsored-${actionType}-${milestoneIndex ?? "claim"}-confirm-title`;
   return (
-    <section className="space-y-4 rounded-card border border-primary/25 bg-[rgba(87,217,139,.04)] p-4">
+    <section
+      className={
+        compact
+          ? "space-y-2"
+          : "space-y-4 rounded-card border border-primary/25 bg-[rgba(87,217,139,.04)] p-4"
+      }
+    >
+      {!compact && (
       <div>
         <h3 className="font-medium">{t("detail.sponsor.title")}</h3>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">
           {t("detail.sponsor.lede")}
         </p>
       </div>
+      )}
       {request && (
         <div
           aria-live="polite"
@@ -347,22 +425,30 @@ function SponsoredClaimPanel({
       )}
       {!request && (
         <>
-          <p className="text-xs leading-5 text-muted-foreground">
+          {!compact && <p className="text-xs leading-5 text-muted-foreground">
             {availability}
-          </p>
+          </p>}
           {confirming ? (
             <div
-              aria-labelledby="sponsored-claim-confirm-title"
+              aria-labelledby={confirmationId}
               className="space-y-3 rounded-card border border-primary/30 bg-surface-1 p-3"
               role="dialog"
             >
-              <h4 className="font-medium" id="sponsored-claim-confirm-title">
-                {t("detail.sponsor.confirmTitle")}
+              <h4 className="font-medium" id={confirmationId}>
+                {t(
+                  actionType === "claim"
+                    ? "detail.sponsor.confirmTitle"
+                    : "detail.sponsor.reviewConfirmTitle",
+                )}
               </h4>
               <p className="text-xs leading-5 text-muted-foreground">
-                {t("detail.sponsor.confirmBody", {
-                  amount: `${tokenAmount(grant.claimableAmount, grant.decimals)} ${grant.symbol}`,
-                })}
+                {actionType === "claim"
+                  ? t("detail.sponsor.confirmBody", {
+                      amount: `${tokenAmount(grant.claimableAmount, grant.decimals)} ${grant.symbol}`,
+                    })
+                  : t("detail.sponsor.reviewConfirmBody", {
+                      milestone: grant.milestones[milestoneIndex as number].title,
+                    })}
               </p>
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                 <span className="text-muted-foreground">
@@ -374,7 +460,7 @@ function SponsoredClaimPanel({
                 <Button
                   className="h-auto min-h-10 whitespace-normal py-2"
                   disabled={!sponsorshipReady || submitting}
-                  onClick={() => void sponsorClaim()}
+                  onClick={() => void sponsorAction()}
                 >
                   {submitting
                     ? t("detail.sponsor.signing")
@@ -395,7 +481,11 @@ function SponsoredClaimPanel({
               disabled={!sponsorshipReady}
               onClick={() => setConfirming(true)}
             >
-              {t("detail.sponsor.action")}
+              {t(
+                actionType === "claim"
+                  ? "detail.sponsor.action"
+                  : "detail.sponsor.reviewAction",
+              )}
             </Button>
           )}
         </>
@@ -413,9 +503,9 @@ function SponsoredClaimPanel({
         </Button>
       )}
       {error && <p className="text-xs text-destructive">{error}</p>}
-      <p className="text-xs leading-5 text-muted-foreground">
+      {!compact && <p className="text-xs leading-5 text-muted-foreground">
         {t("detail.sponsor.manualFallback")}
-      </p>
+      </p>}
     </section>
   );
 }
@@ -902,14 +992,29 @@ export function GrantDetail({ address }: { address: Address }) {
                               {t("detail.milestone.lockedByRevocation")}
                             </span>
                           ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={!canWrite}
-                              onClick={() => void approve(index)}
-                            >
-                              {t("detail.milestone.approveAction")}
-                            </Button>
+                            <>
+                              {grantContext.data?.organization.id && (
+                                <SponsoredActionPanel
+                                  actionType="review"
+                                  address={address}
+                                  canWrite={canWrite}
+                                  grant={g}
+                                  key={`review-${index}-${g.sponsoredActions.reviewNonce}`}
+                                  milestoneIndex={index}
+                                  organizationId={
+                                    grantContext.data.organization.id
+                                  }
+                                />
+                              )}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={!canWrite}
+                                onClick={() => void approve(index)}
+                              >
+                                {t("detail.milestone.approveAction")}
+                              </Button>
+                            </>
                           ))}
                       </div>
                     </li>
@@ -1003,11 +1108,13 @@ export function GrantDetail({ address }: { address: Address }) {
                 {claimReason}
               </p>
               {isBeneficiary && grantContext.data?.organization.id && (
-                <SponsoredClaimPanel
+                <SponsoredActionPanel
+                  actionType="claim"
                   address={address}
                   organizationId={grantContext.data.organization.id}
                   grant={g}
                   canWrite={canWrite}
+                  key={`claim-${g.sponsoredActions.claimNonce}`}
                 />
               )}
               {isBeneficiary && (

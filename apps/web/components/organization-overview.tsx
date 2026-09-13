@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { useAccount } from "wagmi";
-import type { Address } from "viem";
+import { formatEther, parseEther, type Address } from "viem";
 import { hskTestnet } from "@hashvest/web3";
 
 import {
@@ -26,7 +26,8 @@ import { appRoutes } from "@/lib/shared/routes";
 import type {
   OrganizationGrant,
   OrganizationMember,
-  SponsoredClaimPolicy,
+  SponsoredActionType,
+  SponsorshipPolicy,
 } from "@/lib/cloud/organizations/types";
 
 import { GrantCard } from "./grant-card";
@@ -37,7 +38,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { MetricCard } from "./ui/metric-card";
 import { FundingHealthSummary, GrantLifecycleBadge, Notice } from "./grant-ui";
 import { deriveGrantState } from "@/lib/protocol/grant-state";
-import { MAX_ORGANIZATION_SPONSORED_CLAIMS } from "@/lib/shared/sponsored-claims";
+import {
+  MAX_ORGANIZATION_SPONSORED_ACTIONS,
+  MAX_SPONSORSHIP_VAULTS,
+  MAX_SPONSORED_ACTIONS_PER_WALLET_PER_DAY,
+} from "@/lib/shared/sponsored-claims";
 
 const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
@@ -299,7 +304,7 @@ function LinkExistingGrant({ organizationId }: { organizationId: string }) {
   );
 }
 
-type SponsorshipPolicyData = SponsoredClaimPolicy & {
+type SponsorshipPolicyData = SponsorshipPolicy & {
   relayerAddress: string | null;
   relayerConfigured: boolean;
 };
@@ -314,14 +319,46 @@ function SponsorshipPolicyForm({
   const t = useTranslations();
   const update = useUpdateOrganizationSponsorshipPolicy(organizationId);
   const [enabled, setEnabled] = useState(policy.enabled);
-  const [maxClaims, setMaxClaims] = useState(policy.maxClaims.toString());
+  const [allowedActions, setAllowedActions] = useState(
+    policy.allowedActions,
+  );
+  const [allowedVaults, setAllowedVaults] = useState(
+    policy.allowedVaults.join("\n"),
+  );
+  const [maxActions, setMaxActions] = useState(policy.maxActions.toString());
+  const [dailyLimit, setDailyLimit] = useState(
+    policy.maxActionsPerWalletPerDay.toString(),
+  );
+  const [gasBudget, setGasBudget] = useState(
+    formatEther(BigInt(policy.maxGasBudgetWei)),
+  );
+  const [validationError, setValidationError] = useState("");
+
+  function toggleAction(action: SponsoredActionType, checked: boolean) {
+    setAllowedActions((current) =>
+      checked
+        ? Array.from(new Set([...current, action]))
+        : current.filter((item) => item !== action),
+    );
+  }
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setValidationError("");
     try {
-      await update.mutateAsync({ enabled, maxClaims: Number(maxClaims) });
+      await update.mutateAsync({
+        enabled,
+        allowedActions,
+        allowedVaults: allowedVaults
+          .split(/[\s,]+/)
+          .map((vault) => vault.trim())
+          .filter(Boolean),
+        maxActions: Number(maxActions),
+        maxActionsPerWalletPerDay: Number(dailyLimit),
+        maxGasBudgetWei: parseEther(gasBudget || "0").toString(),
+      });
     } catch {
-      // The localized status below is sufficient; the API keeps the raw cause server-side.
+      setValidationError(t("overview.sponsorship.updateError"));
     }
   }
 
@@ -343,37 +380,114 @@ function SponsorshipPolicyForm({
           </span>
         </span>
       </label>
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-medium">
+          {t("overview.sponsorship.allowedActions")}
+        </legend>
+        <div className="flex flex-wrap gap-4 text-sm">
+          {(["claim", "review"] as const).map((action) => (
+            <label className="flex min-h-11 items-center gap-2" key={action}>
+              <input
+                checked={allowedActions.includes(action)}
+                type="checkbox"
+                onChange={(event) =>
+                  toggleAction(action, event.target.checked)
+                }
+              />
+              {t(`overview.sponsorship.action.${action}`)}
+            </label>
+          ))}
+        </div>
+      </fieldset>
       <label className="block space-y-2">
         <span className="text-sm font-medium">
-          {t("overview.sponsorship.maxClaims")}
+          {t("overview.sponsorship.allowedVaults")}
+        </span>
+        <textarea
+          className="field min-h-24 resize-y font-mono text-xs"
+          placeholder="0x…"
+          value={allowedVaults}
+          onChange={(event) => setAllowedVaults(event.target.value)}
+        />
+        <span className="block text-xs leading-5 text-muted-foreground">
+          {t("overview.sponsorship.allowedVaultsHint", {
+            max: MAX_SPONSORSHIP_VAULTS,
+          })}
+        </span>
+      </label>
+      <label className="block space-y-2">
+        <span className="text-sm font-medium">
+          {t("overview.sponsorship.maxActions")}
         </span>
         <input
           className="field"
           inputMode="numeric"
-          max={MAX_ORGANIZATION_SPONSORED_CLAIMS}
+          max={MAX_ORGANIZATION_SPONSORED_ACTIONS}
           min={0}
           type="number"
-          value={maxClaims}
-          onChange={(event) => setMaxClaims(event.target.value)}
+          value={maxActions}
+          onChange={(event) => setMaxActions(event.target.value)}
         />
         <span className="block text-xs leading-5 text-muted-foreground">
-          {t("overview.sponsorship.maxClaimsHint", {
-            max: MAX_ORGANIZATION_SPONSORED_CLAIMS,
+          {t("overview.sponsorship.maxActionsHint", {
+            max: MAX_ORGANIZATION_SPONSORED_ACTIONS,
           })}
         </span>
       </label>
-      <div className="space-y-1 rounded-card border border-border bg-surface-1 p-3 text-xs">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="block space-y-2">
+          <span className="text-sm font-medium">
+            {t("overview.sponsorship.dailyLimit")}
+          </span>
+          <input
+            className="field"
+            inputMode="numeric"
+            max={MAX_SPONSORED_ACTIONS_PER_WALLET_PER_DAY}
+            min={1}
+            type="number"
+            value={dailyLimit}
+            onChange={(event) => setDailyLimit(event.target.value)}
+          />
+        </label>
+        <label className="block space-y-2">
+          <span className="text-sm font-medium">
+            {t("overview.sponsorship.gasBudget")}
+          </span>
+          <input
+            className="field"
+            inputMode="decimal"
+            min="0"
+            step="0.000001"
+            type="number"
+            value={gasBudget}
+            onChange={(event) => setGasBudget(event.target.value)}
+          />
+        </label>
+      </div>
+      <div className="grid gap-2 rounded-card border border-border bg-surface-1 p-3 text-xs sm:grid-cols-2">
         <p>
           <span className="text-muted-foreground">
             {t("overview.sponsorship.usage")}:
           </span>{" "}
-          {policy.usedClaims} / {policy.maxClaims}
+          {policy.usedActions} / {policy.maxActions}
         </p>
         <p>
           <span className="text-muted-foreground">
             {t("overview.sponsorship.remaining")}:
           </span>{" "}
-          {policy.remainingClaims}
+          {policy.remainingActions}
+        </p>
+        <p>
+          <span className="text-muted-foreground">
+            {t("overview.sponsorship.gasSpent")}:
+          </span>{" "}
+          {formatEther(BigInt(policy.spentGasWei))} HSK
+        </p>
+        <p>
+          <span className="text-muted-foreground">
+            {t("overview.sponsorship.gasReserved")}:
+          </span>{" "}
+          {formatEther(BigInt(policy.reservedGasWei))} HSK
         </p>
         <p>
           <span className="text-muted-foreground">
@@ -397,6 +511,11 @@ function SponsorshipPolicyForm({
       {update.isError && (
         <p className="text-xs text-destructive" role="alert">
           {t("overview.sponsorship.updateError")}
+        </p>
+      )}
+      {validationError && !update.isError && (
+        <p className="text-xs text-destructive" role="alert">
+          {validationError}
         </p>
       )}
       {update.isSuccess && (

@@ -303,25 +303,35 @@ export const es: TranslationDictionary = {
   "overview.claim.item.fallbackDescription": "Subvención de la organización",
   "overview.claim.item.amount": "{amount} reclamables",
   "overview.claim.item.action": "Abrir subvención",
-  "overview.sponsorship.title": "Primeros reclamos patrocinados",
+  "overview.sponsorship.title": "Acciones de protocolo patrocinadas",
   "overview.sponsorship.lede":
-    "Las subvenciones de la organización pueden pagar la comisión HSK de un primer reclamo autorizado por el beneficiario.",
+    "Define una política explícita de gas HSK para reclamos de beneficiarios y aprobaciones de reviewers.",
   "overview.sponsorship.loading": "Leyendo la política de patrocinio…",
   "overview.sponsorship.error":
     "La política de patrocinio no está disponible temporalmente.",
-  "overview.sponsorship.enabled": "Activar primeros reclamos patrocinados",
+  "overview.sponsorship.enabled": "Activar acciones patrocinadas",
   "overview.sponsorship.enabledHint":
-    "El beneficiario sigue firmando el reclamo exacto del vault; la organización solo paga la comisión del relayer.",
-  "overview.sponsorship.maxClaims": "Límite de reclamos de la organización",
-  "overview.sponsorship.maxClaimsHint":
-    "Los reclamos reservados cuentan para este límite. Máximo: {max}.",
+    "Cada actor firma la acción exacta. La política de la organización solo autoriza al relayer a pagar gas.",
+  "overview.sponsorship.allowedActions": "Acciones permitidas",
+  "overview.sponsorship.action.claim": "Reclamos del beneficiario",
+  "overview.sponsorship.action.review": "Aprobaciones del reviewer",
+  "overview.sponsorship.allowedVaults": "Allowlist de vaults",
+  "overview.sponsorship.allowedVaultsHint":
+    "Introduce una dirección de GrantVault asociado por línea. Máximo: {max}.",
+  "overview.sponsorship.maxActions": "Límite de acciones de la organización",
+  "overview.sponsorship.maxActionsHint":
+    "Las acciones reservadas cuentan para este límite acumulado. Máximo: {max}.",
+  "overview.sponsorship.dailyLimit": "Acciones diarias por wallet",
+  "overview.sponsorship.gasBudget": "Presupuesto máximo de gas (HSK)",
   "overview.sponsorship.usage": "Reservados",
   "overview.sponsorship.remaining": "Restantes",
+  "overview.sponsorship.gasSpent": "Gas gastado",
+  "overview.sponsorship.gasReserved": "Gas reservado",
   "overview.sponsorship.relayer": "Relayer",
   "overview.sponsorship.relayerReady": "Configurado",
   "overview.sponsorship.relayerMissing": "No configurado",
   "overview.sponsorship.manualFallback":
-    "El beneficiario siempre puede usar el reclamo normal pagado por su wallet si el patrocinio no está disponible.",
+    "Beneficiarios y reviewers siempre pueden usar las acciones normales pagadas por su wallet si el patrocinio no está disponible.",
   "overview.sponsorship.save": "Guardar política",
   "overview.sponsorship.saving": "Guardando política…",
   "overview.sponsorship.saved": "Política de patrocinio guardada.",
@@ -774,13 +784,17 @@ export const es: TranslationDictionary = {
   "detail.claim.pending": "Transacción en curso…",
   "detail.claim.action": "Reclamar {amount}",
   "detail.claim.beneficiaryBalance": "Saldo de tokens del beneficiario",
-  "detail.sponsor.title": "Primer reclamo pagado por la organización",
+  "detail.sponsor.title": "Reclamo pagado por la organización",
   "detail.sponsor.lede":
-    "Autorizas este vault, importe y relayer exactos con la firma de tu wallet. La organización paga la comisión HSK; nunca puede elegir otro beneficiario o importe.",
-  "detail.sponsor.action": "Patrocinar mi primer reclamo",
-  "detail.sponsor.confirmTitle": "Confirma el primer reclamo patrocinado",
+    "Autorizas el vault, importe, nonce, vencimiento y relayer exactos. La organización paga la comisión HSK; nunca elige el beneficiario ni el importe.",
+  "detail.sponsor.action": "Patrocinar este reclamo",
+  "detail.sponsor.reviewAction": "Patrocinar aprobación",
+  "detail.sponsor.confirmTitle": "Confirma el reclamo patrocinado",
   "detail.sponsor.confirmBody":
-    "Tu firma autoriza un único reclamo de {amount} desde este vault. El relayer de la organización pagará la comisión de la transacción HSK.",
+    "Tu firma autoriza un reclamo de {amount} desde este vault. El relayer de la organización pagará la comisión HSK.",
+  "detail.sponsor.reviewConfirmTitle": "Confirma la aprobación patrocinada",
+  "detail.sponsor.reviewConfirmBody":
+    "Tu firma de reviewer autoriza únicamente la aprobación de «{milestone}». El relayer de la organización pagará la comisión HSK.",
   "detail.sponsor.confirm": "Firmar y enviar",
   "detail.sponsor.cancel": "Cancelar",
   "detail.sponsor.signing": "Esperando la firma de tu wallet…",
@@ -792,34 +806,35 @@ export const es: TranslationDictionary = {
   "detail.sponsor.status.processing":
     "El relayer está preparando la transacción…",
   "detail.sponsor.status.submitted": "Transacción patrocinada enviada",
-  "detail.sponsor.status.confirmed": "Primer reclamo patrocinado confirmado",
-  "detail.sponsor.status.failed": "El reclamo patrocinado falló",
+  "detail.sponsor.status.confirmed": "Acción patrocinada confirmada",
+  "detail.sponsor.status.failed": "La acción patrocinada falló",
+  "detail.sponsor.status.abandoned": "El intent firmado expiró antes del envío",
   "detail.sponsor.statusUnavailable":
-    "No se pudo actualizar el estado del reclamo patrocinado. La solicitud sigue registrada; el reclamo normal continúa disponible.",
+    "No se pudo actualizar el estado de la acción patrocinada. La solicitud sigue registrada; la acción pagada por la wallet continúa disponible.",
   "detail.sponsor.expired":
-    "Esta solicitud firmada expiró. Inicia un nuevo reclamo patrocinado o usa el reclamo normal.",
+    "Esta solicitud firmada expiró. Inicia una nueva acción patrocinada o usa la acción pagada por tu wallet.",
   "detail.sponsor.failedFallback":
-    "El relayer no pudo completar esta solicitud. Usa el reclamo normal pagado por tu wallet o reintenta mientras la solicitud siga vigente.",
+    "El relayer no pudo completar esta solicitud. Usa la acción pagada por tu wallet o reintenta el mismo intent mientras siga vigente.",
   "detail.sponsor.manualFallback":
     "El reclamo normal pagado por tu wallet siempre continúa disponible.",
   "detail.sponsor.error":
-    "No se pudo completar el reclamo patrocinado. HashVest no cobró tu wallet; usa el reclamo normal o reintenta.",
+    "No se pudo completar la acción patrocinada. HashVest no cobró tu wallet; usa la acción normal o reintenta.",
   "detail.sponsor.unavailable":
-    "Los reclamos patrocinados no están disponibles temporalmente. El reclamo normal continúa disponible.",
+    "Las acciones patrocinadas no están disponibles temporalmente. La acción pagada por tu wallet continúa disponible.",
   "detail.sponsor.legacy":
-    "Este GrantVault usa el contrato legacy de reclamo manual. Usa el reclamo normal de abajo.",
-  "detail.sponsor.firstClaimOnly":
-    "El patrocinio está limitado al primer reclamo. Usa el reclamo normal para esta subvención.",
+    "Este GrantVault es anterior a las acciones patrocinadas. Usa la acción pagada por tu wallet.",
   "detail.sponsor.noClaimable":
     "No hay un importe reclamable actualmente para patrocinar.",
   "detail.sponsor.checking":
     "Comprobando la política de patrocinio de la organización…",
   "detail.sponsor.policyDisabled":
-    "La organización no activó los reclamos patrocinados. El reclamo normal continúa disponible.",
+    "La política de la organización no permite esta acción patrocinada. La acción normal continúa disponible.",
+  "detail.sponsor.vaultNotAllowed":
+    "Este GrantVault no está en la allowlist de patrocinio de la organización.",
   "detail.sponsor.limitReached":
-    "Se alcanzó el límite de patrocinio de la organización. El reclamo normal continúa disponible.",
+    "Se alcanzó el límite de acciones o el presupuesto de gas HSK. La acción normal continúa disponible.",
   "detail.sponsor.relayerMissing":
-    "El relayer de la organización aún no está configurado o financiado. Usa el reclamo normal.",
+    "El relayer de la organización aún no está configurado o financiado. Usa la acción pagada por tu wallet.",
   "detail.eligibility.title": "Elegibilidad",
   "detail.eligibility.none":
     "No hay proveedor configurado. Los reclamos no requieren comprobación de elegibilidad.",

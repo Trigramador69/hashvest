@@ -4,22 +4,28 @@ import {
   readJson,
 } from "@/lib/cloud/api-server";
 import {
-  getSponsoredClaimStatus,
-  getSponsoredClaimStatusByNonce,
-  submitSponsoredClaim,
+  getSponsoredActionStatus,
+  getSponsoredActionStatusByNonce,
+  submitSponsoredAction,
 } from "@/lib/cloud/sponsored-claims/server";
 import {
-  parseSponsoredClaimInput,
-  parseSponsoredClaimNonce,
-  parseSponsoredClaimRequestId,
+  parseSponsoredActionInput,
+  parseSponsoredActionNonce,
+  parseSponsoredActionRequestId,
 } from "@/lib/cloud/sponsored-claims/validation";
 import {
   InputValidationError,
   normalizeWalletAddress,
   validateUuid,
 } from "@/lib/cloud/organizations/validation";
+import type { SponsoredActionType } from "@/lib/cloud/organizations/types";
 
 export const runtime = "nodejs";
+
+function parseActionType(value: string | null): SponsoredActionType {
+  if (value === "claim" || value === "review") return value;
+  throw new InputValidationError("Action type must be claim or review.");
+}
 
 export async function POST(
   request: Request,
@@ -31,10 +37,10 @@ export async function POST(
     assertSameOrigin(request);
     const { organizationId, vaultAddress } = await context.params;
     return Response.json({
-      request: await submitSponsoredClaim(
+      request: await submitSponsoredAction(
         validateUuid(organizationId),
         normalizeWalletAddress(vaultAddress, "GrantVault address"),
-        parseSponsoredClaimInput(await readJson(request)),
+        parseSponsoredActionInput(await readJson(request)),
       ),
     });
   } catch (error) {
@@ -55,21 +61,22 @@ export async function GET(
     const nonce = searchParams.get("nonce");
     if (!requestId && !nonce)
       throw new InputValidationError(
-        "A sponsored claim request ID or nonce is required.",
+        "A sponsored action request ID or nonce is required.",
       );
-    const claimRequest = requestId
-      ? await getSponsoredClaimStatus(
+    const actionRequest = requestId
+      ? await getSponsoredActionStatus(
           validateUuid(organizationId),
           normalizeWalletAddress(vaultAddress, "GrantVault address"),
-          parseSponsoredClaimRequestId(requestId),
+          parseSponsoredActionRequestId(requestId),
         )
-      : await getSponsoredClaimStatusByNonce(
+      : await getSponsoredActionStatusByNonce(
           validateUuid(organizationId),
           normalizeWalletAddress(vaultAddress, "GrantVault address"),
-          parseSponsoredClaimNonce(nonce),
+          parseActionType(searchParams.get("actionType")),
+          parseSponsoredActionNonce(nonce),
         );
     return Response.json(
-      { request: claimRequest },
+      { request: actionRequest },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {
