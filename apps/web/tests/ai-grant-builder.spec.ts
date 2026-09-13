@@ -173,6 +173,74 @@ test.describe("AI grant draft panel", () => {
     );
   });
 
+  test("drafts on Enter and writes a new line on Shift+Enter", async ({
+    page,
+  }) => {
+    let requests = 0;
+    await page.route("**/api/ai/grant-draft", (route) => {
+      requests += 1;
+      return route.fulfill({ json: { draft: DRAFT } });
+    });
+    await openPanel(page);
+
+    const prompt = page.getByLabel("What should this grant do?");
+    await prompt.fill("A six-month developer grant for 500 tokens");
+    await prompt.press("Enter");
+
+    await expect(page.getByText("Protocol integration grant")).toBeVisible();
+    expect(requests).toBe(1);
+    expect(await prompt.inputValue()).not.toContain("\n");
+
+    // Shift+Enter is still a new line, not a second request.
+    await page.getByRole("button", { name: "Discard" }).click();
+    await prompt.fill("first line");
+    await prompt.press("Shift+Enter");
+    expect(await prompt.inputValue()).toContain("\n");
+    expect(requests).toBe(1);
+  });
+
+  test("keeps every control legible", async ({ page }) => {
+    // `--secondary` is `--surface-2`, a near-black background. Used as a text
+    // colour it rendered the ghost button at a 1.04:1 contrast ratio, which is
+    // invisible; nothing but a computed-style check catches that. Each control
+    // is measured against whatever it actually sits on — the panel for a
+    // transparent one, its own fill for a solid one.
+    await openPanel(page);
+
+    const luminance = (css: string) => {
+      const [r, g, b] = css.match(/\d+/g)!.map(Number);
+      const channel = (v: number) =>
+        v / 255 <= 0.03928
+          ? v / 255 / 12.92
+          : ((v / 255 + 0.055) / 1.055) ** 2.4;
+      return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+    };
+    const ratio = (a: number, b: number) => {
+      const [light, dark] = [a, b].sort((x, y) => y - x);
+      return (light + 0.05) / (dark + 0.05);
+    };
+
+    const panel = luminance(
+      await page
+        .getByRole("dialog")
+        .evaluate((node) => getComputedStyle(node).backgroundColor),
+    );
+
+    for (const name of ["Close the draft panel", "Draft it"]) {
+      const { color, background } = await page
+        .getByRole("button", { name })
+        .evaluate((node) => {
+          const style = getComputedStyle(node);
+          return { color: style.color, background: style.backgroundColor };
+        });
+      // A transparent fill means the control is read against the panel itself.
+      const behind = /rgba?\([^)]*,\s*0\s*\)/.test(background)
+        ? panel
+        : luminance(background);
+      expect(ratio(luminance(color), behind)).toBeGreaterThan(4.5);
+    }
+  });
+
   test("matches the panel reference", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.route("**/api/ai/grant-draft", (route) =>

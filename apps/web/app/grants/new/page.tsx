@@ -167,7 +167,7 @@ function PresetPicker({
         </p>
       </div>
       {selected === GENERATED_PRESET_KEY && appliedPreset && (
-        <p className="flex flex-wrap items-baseline gap-x-2 rounded-control border border-[rgba(77,106,217,.3)] bg-[rgba(77,106,217,.08)] px-3 py-2 text-xs text-secondary">
+        <p className="flex flex-wrap items-baseline gap-x-2 rounded-control border border-[rgba(77,106,217,.3)] bg-[rgba(77,106,217,.08)] px-3 py-2 text-xs text-muted-foreground">
           <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#4d6ad9]">
             {t("ai.preset.applied")}
           </span>

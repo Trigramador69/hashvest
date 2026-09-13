@@ -71,7 +71,7 @@ function Section({
             key={index}
             className={cn(
               "flex gap-2 text-xs leading-5",
-              tone === "warning" ? "text-[#e9832d]" : "text-secondary",
+              tone === "warning" ? "text-[#e9832d]" : "text-muted-foreground",
             )}
           >
             <span aria-hidden="true" className="select-none opacity-60">
@@ -253,17 +253,28 @@ export function AiGrantBuilder({
               placeholder={t("ai.field.prompt.placeholder")}
               value={prompt}
               onChange={(event) => setPrompt(event.target.value)}
+              onKeyDown={(event) => {
+                // Enter drafts; Shift+Enter still writes a new line. A one-line
+                // description is the common case, and reaching for the mouse to
+                // submit it is the kind of friction this panel exists to remove.
+                if (event.key !== "Enter" || event.shiftKey) return;
+                event.preventDefault();
+                if (canDraft) mutation.mutate();
+              }}
             />
-            <p className="mt-1.5 font-mono text-[10px] text-muted-foreground">
-              {t("ai.field.prompt.counter", {
-                count: trimmed.length,
-                max: AI_PROMPT_MAX_LENGTH,
-              })}
+            <p className="mt-1.5 flex flex-wrap justify-between gap-x-3 font-mono text-[10px] text-muted-foreground">
+              <span>{t("ai.field.prompt.hint")}</span>
+              <span>
+                {t("ai.field.prompt.counter", {
+                  count: trimmed.length,
+                  max: AI_PROMPT_MAX_LENGTH,
+                })}
+              </span>
             </p>
 
             <div
               aria-live="polite"
-              className="mt-3 min-h-5 font-mono text-[11px] text-secondary"
+              className="mt-3 min-h-5 font-mono text-[11px] text-muted-foreground"
             >
               {mutation.isPending && `${t(PROGRESS_KEYS[progress])}…`}
             </div>

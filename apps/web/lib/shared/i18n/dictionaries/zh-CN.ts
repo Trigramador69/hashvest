@@ -928,6 +928,7 @@ export const zhCN: TranslationDictionary = {
   "ai.field.prompt.placeholder":
     "给一位开发者的六个月赠款，500 代币，按三个里程碑释放。",
   "ai.field.prompt.counter": "{count} / {max} 个字符",
+  "ai.field.prompt.hint": "按 Enter 生成草稿 · Shift+Enter 换行",
   "ai.action.draft": "生成草稿",
   "ai.action.drafting": "正在起草",
   "ai.action.apply": "应用到向导",

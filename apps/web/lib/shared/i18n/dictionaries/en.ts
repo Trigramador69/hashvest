@@ -1028,6 +1028,7 @@ export const en = {
   "ai.field.prompt.placeholder":
     "A six-month grant for a developer, 500 tokens, released against three milestones.",
   "ai.field.prompt.counter": "{count} of {max} characters",
+  "ai.field.prompt.hint": "Enter to draft · Shift+Enter for a new line",
   "ai.action.draft": "Draft it",
   "ai.action.drafting": "Drafting",
   "ai.action.apply": "Apply to the wizard",

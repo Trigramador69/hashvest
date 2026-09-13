@@ -14,8 +14,11 @@ const buttonVariants = cva(
           "border border-border bg-transparent text-foreground hover:border-[rgba(245,245,241,.16)] hover:bg-secondary",
         secondary:
           "border border-border-soft bg-secondary text-secondary-foreground hover:bg-surface-3",
+        // `text-muted-foreground`, not `text-secondary`: `--secondary` is
+        // `--surface-2`, a near-black *background*, so using it as a text
+        // colour rendered ghost labels at a 1.04:1 contrast ratio.
         ghost:
-          "border border-transparent bg-transparent text-secondary hover:bg-surface-2 hover:text-foreground",
+          "border border-transparent bg-transparent text-muted-foreground hover:bg-surface-2 hover:text-foreground",
       },
       size: {
         default: "min-h-11 px-4 py-2",
