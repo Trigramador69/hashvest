@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import {
   Building2,
   FileText,
@@ -15,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { RainbowConnectButton } from "@/components/rainbow-connect-button";
 import { SessionControl } from "@/components/session-control";
 import type { TranslationKey } from "@/lib/shared/i18n/dictionaries/en";
 import { useTranslations } from "@/lib/shared/i18n/provider";
@@ -184,11 +184,7 @@ function Topbar({
         >
           <LocaleSwitcher />
           <SessionControl compact />
-          <ConnectButton
-            accountStatus="avatar"
-            chainStatus="icon"
-            showBalance={false}
-          />
+          <RainbowConnectButton compact />
         </div>
       </div>
     </header>

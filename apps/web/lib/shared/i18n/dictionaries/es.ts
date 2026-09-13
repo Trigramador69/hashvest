@@ -116,6 +116,11 @@ export const es: TranslationDictionary = {
   "locale.label": "Idioma",
   "locale.choose": "Elegir idioma",
 
+  "wallet.connect": "Conectar wallet",
+  "wallet.wrongNetwork": "Red incorrecta",
+  "wallet.changeNetwork": "Cambiar red",
+  "wallet.account": "Abrir cuenta de wallet",
+
   "session.enabled": "Acceso al espacio de trabajo activado",
   "session.signOut": "Cerrar sesión del espacio",
   "session.signingOut": "Cerrando sesión…",
@@ -626,7 +631,8 @@ export const es: TranslationDictionary = {
   "dashboard.chart.activity.aria":
     "Actividad de concesiones de los últimos seis meses",
   "dashboard.chart.activity.sr":
-    "Cada punto representa un evento onchain del panel.",
+    "Conteo mensual de eventos onchain creados, aprobados, reclamados y revocados durante los últimos seis meses.",
+  "dashboard.chart.activity.period": "Mes",
   "dashboard.chart.series.created": "Creadas",
   "dashboard.chart.series.approved": "Aprobadas",
   "dashboard.chart.series.claimed": "Reclamadas",

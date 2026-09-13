@@ -314,7 +314,8 @@ test.describe("AI grant draft panel", () => {
     // Nothing to warn about while the draft and the reader still agree.
     await expect(page.getByRole("button", { name: "重新起草" })).toBeHidden();
 
-    await page.locator("select").first().selectOption({ label: "English" });
+    await page.getByRole("combobox").first().click();
+    await page.getByRole("option", { name: "English", exact: true }).click();
 
     const panel = page.getByRole("region");
     await expect(

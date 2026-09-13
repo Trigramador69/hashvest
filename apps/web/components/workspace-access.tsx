@@ -1,9 +1,9 @@
 "use client";
 
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount } from "wagmi";
 
 import { Notice } from "@/components/grant-ui";
+import { RainbowConnectButton } from "@/components/rainbow-connect-button";
 import { SessionControl } from "@/components/session-control";
 import { useSession } from "@/hooks/use-session";
 import { useTranslations } from "@/lib/shared/i18n/provider";
@@ -21,7 +21,7 @@ export function WorkspaceAccessNotice() {
       <Notice title={t("access.connect.title")}>
         <p>{t("access.connect.body")}</p>
         <div className="mt-4">
-          <ConnectButton showBalance={false} />
+          <RainbowConnectButton />
         </div>
       </Notice>
     );

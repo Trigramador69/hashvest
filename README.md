@@ -75,6 +75,14 @@ primary state, cobalt secondary state, restrained borders/radii, and point/data
 art. The reusable primitives live in `apps/web/components/ui/`; the shell is
 responsive from a 192px desktop rail to a mobile drawer.
 
+Dashboard activity and strategy visuals use the shared `ChartContainer` primitive
+over the repository's Recharts dependency, keeping analytics read-only and
+accessible. `DataArt` is limited to sparse deterministic point clouds. The
+header and settings language control uses an accessible Radix Select popup while
+preserving the existing locale cookie and `router.refresh()` provider boundary;
+RainbowKit continues to own wallet/account/network modals through HashVest
+styled triggers.
+
 `apps/web/hooks/use-dashboard-analytics.ts` reads the factory's role-discovery
 arrays, derives grant state from live GrantVault snapshots, and reads only the
 factory/vault lifecycle events needed for the six-month activity view. The pure
