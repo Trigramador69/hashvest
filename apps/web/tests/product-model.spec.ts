@@ -22,7 +22,7 @@ const LOCALES = [
     roadmap: "Hoja de ruta",
     disclaimer:
       "Solo presentación. Esta demo no tiene billing, checkout, medición de uso, asignación de planes ni límites aplicados.",
-    protocolCta: "Crear una subvención del Protocol",
+    protocolCta: "Crear una concesión del Protocol",
     cloudCta: "Abrir el espacio de trabajo",
   },
   {
