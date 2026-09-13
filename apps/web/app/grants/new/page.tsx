@@ -15,6 +15,7 @@ import {
 import {
   grantVaultAbi,
   hashVestFactoryAbi,
+  hskTestnet,
   testnetDeployment,
 } from "@hashvest/web3";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -26,7 +27,9 @@ import {
   PageHeading,
   TransactionStatus,
 } from "@/components/grant-ui";
+import { AiGrantBuilder } from "@/components/ai-grant-builder";
 import { DemoFaucet } from "@/components/demo-faucet";
+import { CohortCreator } from "@/components/cohort-creator";
 import { MemberPicker } from "@/components/organization-ui";
 import { ParticipantIdentity } from "@/components/grant-card";
 import { useToken } from "@/hooks/use-grant";
@@ -36,7 +39,12 @@ import {
   useOrganizationMembers,
 } from "@/hooks/use-organizations";
 import { useSession } from "@/hooks/use-session";
-import { assertTestnetWallet, useTransaction } from "@/hooks/use-transaction";
+import {
+  assertTestnetWallet,
+  getWalletGuardMessages,
+  useTransaction,
+} from "@/hooks/use-transaction";
+import { readRevocationState } from "@/lib/protocol/revocation";
 import {
   calculateVestedByTime,
   dateLabel,
@@ -44,22 +52,40 @@ import {
   normalizeAddress,
   parseAllocation,
   percent,
-  strategies,
-  strategyDescriptions,
   validParty,
 } from "@/lib/protocol/grants";
 import {
-  applyPresetToDraft,
-  splitAllocationByPercent,
-  type AppliedPresetDraft,
-} from "@/lib/shared/grant-presets/apply-preset";
-import {
-  GRANT_PRESETS,
-  getGrantPreset,
+  GENERATED_PRESET_KEY,
+  type AppliedPresetKey,
+  type GrantPreset,
   type GrantPresetKey,
 } from "@/lib/shared/grant-presets/presets";
+import {
+  BLANK_PRESET_FIELDS,
+  clearPreset,
+  resyncMilestoneAmounts,
+  selectPreset,
+  type AppliedPreset,
+} from "@/lib/shared/grant-presets/wizard-state";
+import { useGrantPresets } from "@/lib/shared/grant-presets/use-grant-presets";
+import { useTranslations } from "@/lib/shared/i18n/provider";
+import { appRoutes } from "@/lib/shared/routes";
 
-const steps = ["Grant", "Strategy", "Conditions", "Review"];
+/** Step ids; labels come from the dictionary. */
+const steps = [0, 1, 2, 3, 4] as const;
+/** Strategy ids, in the order the picker lists them. */
+const STRATEGY_INDEXES = [0, 1, 2] as const;
+/** Network name and chain id are protocol literals, never translated. */
+const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
+
+/** Named so the step a block belongs to survives inserting another one. */
+const STEP = {
+  template: 0,
+  grant: 1,
+  strategy: 2,
+  conditions: 3,
+  review: 4,
+} as const;
 type MilestoneInput = { title: string; amount: string };
 type GrantConfiguration = {
   title: string;
@@ -120,7 +146,7 @@ function PresetOption({
 }) {
   return (
     <label
-      className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 ${selected ? "border-primary bg-primary/5" : "bg-card"}`}
+      className={`flex cursor-pointer items-start gap-3 rounded-card border p-4 ${selected ? "border-primary bg-[rgba(87,217,139,.06)]" : "bg-card"}`}
     >
       <input
         className="mt-1 accent-primary"
@@ -147,44 +173,102 @@ function PresetOption({
  */
 function PresetPicker({
   selected,
+  draft,
   onSelect,
 }: {
-  selected: GrantPresetKey | null;
+  selected: AppliedPresetKey | null;
+  /** The applied AI draft (HAS-18), which has no catalog entry to look up. */
+  draft?: GrantPreset;
   onSelect: (key: GrantPresetKey | null) => void;
 }) {
-  const active = selected ? getGrantPreset(selected) : undefined;
+  const t = useTranslations();
+  const { presets, preset: localizedPreset } = useGrantPresets();
+  const active =
+    selected === GENERATED_PRESET_KEY
+      ? draft
+      : selected
+        ? localizedPreset(selected as GrantPresetKey)
+        : undefined;
   return (
     <div className="space-y-3">
       <div>
-        <h3 className="font-semibold">Start from a preset</h3>
+        <h3 className="font-semibold">{t("wizard.preset.title")}</h3>
         <p className="mt-1 text-sm leading-6 text-muted-foreground">
-          Optional. A preset fills in a strategy, schedule, and milestone split
-          that you can edit or clear. It never changes what the vault stores.
+          {t("wizard.preset.lede")}
         </p>
       </div>
+      {selected === GENERATED_PRESET_KEY && draft && (
+        <p className="flex flex-wrap items-baseline gap-x-2 rounded-control border border-[rgba(77,106,217,.3)] bg-[rgba(77,106,217,.08)] px-3 py-2 text-xs text-secondary">
+          <span className="font-mono text-[10px] uppercase tracking-[0.08em] text-[#4d6ad9]">
+            {t("ai.preset.applied")}
+          </span>
+          <span className="min-w-0 text-foreground">
+            {draft.titleSuggestion}
+          </span>
+        </p>
+      )}
       <div className="grid gap-3 sm:grid-cols-2">
-        {GRANT_PRESETS.map((preset) => (
+        {presets.map((preset) => (
           <PresetOption
             key={preset.key}
             name={preset.name}
             tagline={preset.tagline}
-            meta={`${strategies[preset.strategy]}${preset.reviewerRequired ? " · needs a reviewer" : ""} · ${preset.bestFor[0]}`}
+            meta={[
+              t(`strategy.${preset.strategy}.name`),
+              preset.reviewerRequired && t("wizard.preset.needsReviewer"),
+              preset.bestFor[0],
+            ]
+              .filter(Boolean)
+              .join(" · ")}
             selected={selected === preset.key}
-            onSelect={() => onSelect(preset.key)}
+            onSelect={() => onSelect(preset.key as GrantPresetKey)}
           />
         ))}
         <PresetOption
-          name="Custom / blank"
-          tagline="Configure every value yourself, exactly as before."
-          meta="Clears the fields a preset filled in"
+          name={t("wizard.preset.custom.name")}
+          tagline={t("wizard.preset.custom.tagline")}
+          meta={t("wizard.preset.custom.meta")}
           selected={selected === null}
           onSelect={() => onSelect(null)}
         />
       </div>
       {active && (
-        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+        <div className="rounded-card border border-primary/20 bg-[rgba(87,217,139,.05)] p-5">
           <p className="text-sm leading-6">{active.description}</p>
-          <ul className="mt-3 space-y-1 text-xs leading-5 text-muted-foreground">
+          <div className="mt-3 flex flex-wrap gap-2">
+            {active.bestFor.map((audience) => (
+              <span
+                key={audience}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-primary"
+              >
+                <span className="size-1.5 rounded-full bg-current" />
+                {audience}
+              </span>
+            ))}
+          </div>
+          {active.milestones && (
+            <dl className="mt-4 space-y-1 border-t border-primary/20 pt-4 text-xs">
+              {active.milestones.map((milestone) => (
+                <div
+                  className="flex justify-between gap-4"
+                  key={milestone.title}
+                >
+                  <dt className="text-muted-foreground">{milestone.title}</dt>
+                  <dd>
+                    {t("wizard.preset.allocationShare", {
+                      percent: milestone.percentOfAllocation,
+                    })}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+          {active.timing && (
+            <p className="mt-4 border-t border-primary/20 pt-4 text-xs leading-5 text-muted-foreground">
+              {active.timing.realWorldNote}
+            </p>
+          )}
+          <ul className="mt-4 space-y-1 border-t border-primary/20 pt-4 text-xs leading-5 text-muted-foreground">
             {active.assumptions.map((assumption) => (
               <li key={assumption}>· {assumption}</li>
             ))}
@@ -200,6 +284,15 @@ export type NewGrantProps = {
 };
 
 export function NewGrant({ organizationId }: NewGrantProps) {
+  const t = useTranslations();
+  const walletMessages = getWalletGuardMessages(t);
+  const { preset: localizedPreset } = useGrantPresets();
+  /** Translated rejection messages for the pure parseAllocation helper. */
+  const allocationErrors = (decimals: number) => ({
+    format: t("wizard.error.amountFormat"),
+    decimals: t("grants.error.decimals", { decimals }),
+    range: t("wizard.error.amountRange"),
+  });
   const { address, chainId } = useAccount();
   const client = usePublicClient({ chainId: 133 });
   const { writeContractAsync } = useWriteContract();
@@ -208,6 +301,9 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   const organization = useOrganization(organizationId);
   const organizationMembers = useOrganizationMembers(organizationId);
   const linkGrant = useLinkOrganizationGrant(organizationId ?? "direct");
+  const [creationMode, setCreationMode] = useState<"single" | "cohort">(
+    "single",
+  );
   const [step, setStep] = useState(0);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -231,8 +327,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   ]);
   const [provider, setProvider] = useState("");
   const [revocable, setRevocable] = useState(false);
-  const [presetKey, setPresetKey] = useState<GrantPresetKey | null>(null);
-  const [appliedPreset, setAppliedPreset] = useState<AppliedPresetDraft>();
+  const [applied, setApplied] = useState<AppliedPreset>();
   const [validationError, setValidationError] = useState("");
   const [prepared, setPrepared] = useState<PreparedGrant>();
   const [createdAddress, setCreatedAddress] = useState<Address>();
@@ -251,63 +346,88 @@ export function NewGrant({ organizationId }: NewGrantProps) {
       (session.walletMatches && organization.data?.membership.isOwner)),
   );
 
-  function sameMilestones(items: MilestoneInput[], other: MilestoneInput[]) {
-    return (
-      items.length === other.length &&
-      items.every(
-        (item, index) =>
-          item.title === other[index].title &&
-          item.amount === other[index].amount,
-      )
-    );
+  /**
+   * The applied preset's name for the review step.
+   *
+   * A generated draft (HAS-18) carries an English placeholder name, because
+   * its user-facing chrome is rendered from the `ai.*` dictionary rather than
+   * from the preset itself.
+   */
+  const appliedPresetName = !applied
+    ? ""
+    : applied.key === GENERATED_PRESET_KEY
+      ? t("ai.draft.name")
+      : applied.preset.name;
+
+  /** The subset of form state a preset may write, in the shape the rules use. */
+  function presetFields() {
+    return {
+      title,
+      description,
+      allocation,
+      strategy,
+      unit,
+      cliff,
+      duration,
+      milestones,
+      reviewerRequired: applied?.fields.reviewerRequired ?? false,
+    };
   }
 
   /**
-   * Applies a preset to the fields below. Everything it writes stays editable,
-   * and an allocation the user already typed always wins over the suggestion.
+   * Applies a preset to the fields below, or returns to a blank form.
+   *
+   * Everything a preset writes stays editable, and anything the user typed
+   * themselves survives both switching presets and choosing Custom / blank.
+   * `wizard-state.ts` owns that distinction and is tested there.
    */
-  function selectPreset(key: GrantPresetKey | null) {
+  function choosePreset(key: GrantPresetKey | null) {
     setValidationError("");
     if (!key) {
-      clearPreset();
+      writePresetFields(clearPreset(presetFields(), applied));
+      setApplied(undefined);
       return;
     }
-    const draft = applyPresetToDraft(getGrantPreset(key), {
-      allocationDecimal: allocation,
+    const next = selectPreset(key, presetFields(), applied, {
       decimals: tokenMetadata.data?.decimals,
-      title,
+      applyDescription: Boolean(organizationId),
+      preset: localizedPreset(key),
     });
-    setTitle(draft.title);
-    if (organizationId) setDescription(draft.description);
-    setAllocation(draft.allocation);
-    setStrategy(draft.strategy);
-    setUnit(draft.unit);
-    setCliff(draft.cliff);
-    setDuration(draft.duration);
-    setMilestones(
-      draft.milestones.length ? draft.milestones : [{ title: "", amount: "" }],
-    );
-    setPresetKey(key);
-    setAppliedPreset(draft);
+    writePresetFields(next.fields);
+    setApplied(next);
   }
 
-  /** Clears only the values still holding what the preset wrote; edits survive. */
-  function clearPreset() {
-    const draft = appliedPreset;
-    if (draft) {
-      if (title === draft.title) setTitle("");
-      if (description === draft.description) setDescription("");
-      if (allocation === draft.allocation) setAllocation("");
-      if (strategy === draft.strategy) setStrategy(0);
-      if (unit === draft.unit) setUnit("60");
-      if (cliff === draft.cliff) setCliff("0");
-      if (duration === draft.duration) setDuration("5");
-      setInitialUnlock("");
-      if (sameMilestones(milestones, draft.milestones))
-        setMilestones([{ title: "", amount: "" }]);
-    }
-    setPresetKey(null);
-    setAppliedPreset(undefined);
+  /**
+   * Applies an AI draft (HAS-18) through the preset path above.
+   *
+   * The draft is a validated preset, so nothing here is new: the same
+   * ownership rules decide which of the user's values survive, and the same
+   * `validateGrant`/`prepare` still gate submission. Moving to the Grant step
+   * is only what pressing Next would have done — it skips no validation,
+   * because leaving the Template step never had any.
+   */
+  function applyAiDraft(preset: GrantPreset) {
+    setValidationError("");
+    const next = selectPreset(GENERATED_PRESET_KEY, presetFields(), applied, {
+      decimals: tokenMetadata.data?.decimals,
+      applyDescription: Boolean(organizationId),
+      preset,
+    });
+    writePresetFields(next.fields);
+    setApplied(next);
+    if (step === STEP.template) setStep(STEP.grant);
+  }
+
+  function writePresetFields(fields: typeof BLANK_PRESET_FIELDS) {
+    setTitle(fields.title);
+    setDescription(fields.description);
+    setAllocation(fields.allocation);
+    setStrategy(fields.strategy);
+    setUnit(fields.unit);
+    setCliff(fields.cliff);
+    setDuration(fields.duration);
+    setMilestones(fields.milestones);
+    if (fields.strategy === 1) setInitialUnlock("");
   }
 
   /**
@@ -316,33 +436,24 @@ export function NewGrant({ organizationId }: NewGrantProps) {
    */
   function changeAllocation(value: string) {
     setAllocation(value);
-    const draft = appliedPreset;
-    if (
-      !presetKey ||
-      !draft?.milestones.length ||
-      !sameMilestones(milestones, draft.milestones)
-    )
-      return;
-    const amounts = splitAllocationByPercent(
+    const resynced = resyncMilestoneAmounts(
       value,
-      tokenMetadata.data?.decimals ?? 18,
-      getGrantPreset(presetKey).milestones?.map(
-        (milestone) => milestone.percentOfAllocation,
-      ) ?? [],
+      milestones,
+      applied,
+      tokenMetadata.data?.decimals,
     );
-    const updated = draft.milestones.map((milestone, index) => ({
-      title: milestone.title,
-      amount: amounts[index] ?? "",
-    }));
-    setMilestones(updated);
-    setAppliedPreset({ ...draft, allocation: value, milestones: updated });
+    if (!resynced) return;
+    setMilestones(resynced.fields.milestones);
+    setApplied(resynced);
   }
 
   function validateMemberSelection(
     memberId: string,
     selectedAddress: string,
     external: boolean,
-    label: string,
+    // The message arrives translated: "Choose a ${label}" only builds a
+    // grammatical sentence in English.
+    mismatchMessage: string,
   ) {
     if (!organizationId || external) return;
     const member = organizationMembers.data?.find(
@@ -352,113 +463,110 @@ export function NewGrant({ organizationId }: NewGrantProps) {
       !member ||
       member.walletAddress.toLowerCase() !== selectedAddress.toLowerCase()
     )
-      throw new Error(
-        `Choose a ${label} from the organization directory or use an external wallet.`,
-      );
+      throw new Error(mismatchMessage);
   }
 
   function validateGrant() {
-    if (!title.trim()) throw new Error("Give your grant a title.");
+    if (!title.trim()) throw new Error(t("wizard.error.title"));
     if (organizationId && !beneficiaryExternal && !beneficiaryMemberId)
-      throw new Error("Choose a beneficiary member or use an external wallet.");
+      throw new Error(t("wizard.error.beneficiaryMember"));
     validateMemberSelection(
       beneficiaryMemberId,
       beneficiary,
       beneficiaryExternal,
-      "beneficiary",
+      t("wizard.error.memberMismatch.beneficiary"),
     );
     if (!validParty(beneficiary))
-      throw new Error("Enter a valid, nonzero beneficiary address.");
-    if (!validParty(token))
-      throw new Error(
-        "Enter a valid ERC20 contract address. Native HSK is not supported.",
-      );
+      throw new Error(t("wizard.error.beneficiaryAddress"));
+    if (!validParty(token)) throw new Error(t("wizard.error.token"));
     if (!tokenMetadata.data || tokenMetadata.isError)
-      throw new Error(
-        "Wait for the ERC20 symbol and decimals to load. Check that the token is deployed on HSK Testnet.",
-      );
-    return parseAllocation(allocation, tokenMetadata.data.decimals);
+      throw new Error(t("wizard.error.tokenMetadata", NETWORK));
+    return parseAllocation(
+      allocation,
+      tokenMetadata.data.decimals,
+      allocationErrors(tokenMetadata.data.decimals),
+    );
   }
 
   function prepare(): PreparedGrant {
     const totalAllocation = validateGrant();
     if (!tokenMetadata.data || !address)
-      throw new Error("Connect the issuer wallet before reviewing.");
+      throw new Error(t("wizard.error.issuerWallet"));
     let startTimestamp = 0n;
     let cliffSeconds = 0n;
     let durationSeconds = 0n;
     let initialUnlockAmount = 0n;
     if (strategy !== 1) {
       if (!/^\d+$/.test(duration) || BigInt(duration) === 0n)
-        throw new Error("Duration must be a positive whole number.");
-      if (!/^\d+$/.test(cliff))
-        throw new Error("Cliff must be a nonnegative whole number.");
+        throw new Error(t("wizard.error.duration"));
+      if (!/^\d+$/.test(cliff)) throw new Error(t("wizard.error.cliff"));
       durationSeconds = BigInt(duration) * BigInt(unit);
       cliffSeconds = BigInt(cliff) * BigInt(unit);
       if (cliffSeconds > durationSeconds)
-        throw new Error("Cliff cannot be longer than the total duration.");
+        throw new Error(t("wizard.error.cliffTooLong"));
       if (durationSeconds > BigInt(Number.MAX_SAFE_INTEGER))
-        throw new Error("Duration is too large.");
+        throw new Error(t("wizard.error.durationTooLarge"));
       if (start) {
         const parsed = new Date(start).getTime();
         if (!Number.isFinite(parsed) || parsed < 0)
-          throw new Error("Enter a valid start date.");
+          throw new Error(t("wizard.error.startDate"));
         startTimestamp = BigInt(Math.floor(parsed / 1000));
       }
       if (initialUnlock.trim()) {
         initialUnlockAmount = parseAllocation(
           initialUnlock,
           tokenMetadata.data.decimals,
+          allocationErrors(tokenMetadata.data.decimals),
         );
         if (initialUnlockAmount > totalAllocation)
-          throw new Error(
-            "Initial unlock cannot exceed the total grant allocation.",
-          );
+          throw new Error(t("wizard.error.initialUnlockExceeds"));
       }
     } else {
       if (
         initialUnlock.trim() &&
-        parseAllocation(initialUnlock, tokenMetadata.data.decimals) > 0n
+        parseAllocation(
+          initialUnlock,
+          tokenMetadata.data.decimals,
+          allocationErrors(tokenMetadata.data.decimals),
+        ) > 0n
       ) {
-        throw new Error(
-          "Milestone-only grants cannot have an initial unlock. Use Time or Hybrid strategy.",
-        );
+        throw new Error(t("wizard.error.initialUnlockMilestone"));
       }
     }
     if (provider && !validParty(provider))
-      throw new Error(
-        "Enter a valid eligibility provider address or leave it empty.",
-      );
+      throw new Error(t("wizard.error.eligibility"));
     const items =
       strategy === 0
         ? []
         : milestones.map((item, index) => {
             if (!item.title.trim())
-              throw new Error(`Milestone ${index + 1} needs a title.`);
+              throw new Error(
+                t("wizard.error.milestoneTitle", { index: index + 1 }),
+              );
             return {
               title: item.title.trim(),
-              amount: parseAllocation(item.amount, tokenMetadata.data.decimals),
+              amount: parseAllocation(
+                item.amount,
+                tokenMetadata.data.decimals,
+                allocationErrors(tokenMetadata.data.decimals),
+              ),
             };
           });
     if (strategy !== 0) {
       if (organizationId && !reviewerExternal && !reviewerMemberId)
-        throw new Error("Choose a reviewer member or use an external wallet.");
+        throw new Error(t("wizard.error.reviewerMember"));
       validateMemberSelection(
         reviewerMemberId,
         reviewer,
         reviewerExternal,
-        "reviewer",
+        t("wizard.error.memberMismatch.reviewer"),
       );
       if (!validParty(reviewer))
-        throw new Error(
-          "Milestone and hybrid grants require a reviewer address.",
-        );
+        throw new Error(t("wizard.error.reviewerRequired"));
       if (!items.length || items.length > 20)
-        throw new Error("Add between 1 and 20 milestones.");
+        throw new Error(t("wizard.error.milestoneCount", { max: 20 }));
       if (strategy === 2 && initialUnlockAmount === totalAllocation) {
-        throw new Error(
-          "In Hybrid grants, initial unlock cannot equal the entire allocation because milestones must cover the remainder.",
-        );
+        throw new Error(t("wizard.error.hybridInitialUnlockFull"));
       }
       const expectedMilestoneSum =
         strategy === 2
@@ -468,13 +576,10 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         items.reduce((sum, item) => sum + item.amount, 0n) !==
         expectedMilestoneSum
       ) {
-        if (strategy === 2 && initialUnlockAmount > 0n) {
-          throw new Error(
-            "Milestone amounts must add up exactly to the remaining allocation (total allocation minus initial unlock).",
-          );
-        }
         throw new Error(
-          "Milestone amounts must add up exactly to the total allocation.",
+          strategy === 2 && initialUnlockAmount > 0n
+            ? t("wizard.error.milestoneSumRemaining")
+            : t("wizard.error.milestoneSum"),
         );
       }
     }
@@ -503,9 +608,9 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   function next() {
     setValidationError("");
     try {
-      if (step === 0) validateGrant();
-      if (step === 2) setPrepared(prepare());
-      setStep((current) => Math.min(current + 1, 3));
+      if (step === STEP.grant) validateGrant();
+      if (step === STEP.conditions) setPrepared(prepare());
+      setStep((current) => Math.min(current + 1, STEP.review));
     } catch (error) {
       setValidationError(errorMessage(error));
     }
@@ -514,10 +619,8 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   async function createGrant() {
     await tx.run(async () => {
       if (!prepared || !client || !factory)
-        throw new Error(
-          "Review the grant and check the Testnet deployment before continuing.",
-        );
-      const account = assertTestnetWallet(prepared.issuer);
+        throw new Error(t("wizard.error.reviewFirst"));
+      const account = assertTestnetWallet(prepared.issuer, walletMessages);
       const { config, milestones: items } = prepared;
       const balance = await client.readContract({
         address: config.token,
@@ -527,16 +630,14 @@ export function NewGrant({ organizationId }: NewGrantProps) {
       });
       if (balance < config.totalAllocation)
         throw new Error(
-          `Insufficient ${prepared.symbol}. The full allocation must be funded at creation.`,
+          t("wizard.error.insufficientBalance", { symbol: prepared.symbol }),
         );
       if (config.eligibilityProvider !== zeroAddress) {
         const code = await client.getCode({
           address: config.eligibilityProvider,
         });
         if (!code || code === "0x")
-          throw new Error(
-            "Eligibility provider has no contract code on HSK Testnet.",
-          );
+          throw new Error(t("wizard.error.eligibilityNoCode", NETWORK));
       }
       const allowance = await client.readContract({
         address: config.token,
@@ -546,46 +647,49 @@ export function NewGrant({ organizationId }: NewGrantProps) {
       });
       if (allowance < config.totalAllocation) {
         if (allowance > 0n) {
-          await tx.confirm("Reset token allowance", () =>
+          await tx.confirm(t("wizard.tx.resetAllowance"), () =>
             writeContractAsync({
               address: config.token,
               abi: erc20Abi,
               functionName: "approve",
               args: [factory, 0n],
               chainId: 133,
-              account: assertTestnetWallet(account),
+              account: assertTestnetWallet(account, walletMessages),
               gas: 60_000n,
             }),
           );
         }
-        await tx.confirm("Approve token spending", () =>
+        await tx.confirm(t("wizard.tx.approve"), () =>
           writeContractAsync({
             address: config.token,
             abi: erc20Abi,
             functionName: "approve",
             args: [factory, config.totalAllocation],
             chainId: 133,
-            account: assertTestnetWallet(account),
+            account: assertTestnetWallet(account, walletMessages),
             gas: 80_000n,
           }),
         );
       }
-      assertTestnetWallet(account);
+      assertTestnetWallet(account, walletMessages);
+      const createFunction = organizationId
+        ? "createSponsoredGrant"
+        : "createGrant";
       const simulation = await client.simulateContract({
         address: factory,
         abi: hashVestFactoryAbi,
-        functionName: "createGrant",
+        functionName: createFunction,
         args: [config, items],
         account,
       });
-      const receipt = await tx.confirm("Create and fund grant", () =>
+      const receipt = await tx.confirm(t("wizard.tx.create"), () =>
         writeContractAsync({
           address: factory,
           abi: hashVestFactoryAbi,
-          functionName: "createGrant",
+          functionName: createFunction,
           args: [config, items],
           chainId: 133,
-          account: assertTestnetWallet(account),
+          account: assertTestnetWallet(account, walletMessages),
           gas: simulation.request.gas
             ? (simulation.request.gas * 130n) / 100n
             : undefined,
@@ -622,7 +726,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             candidateProvider,
             candidateMilestones,
             candidateInitialUnlock,
-            candidateRevocable,
+            candidateRevocation,
           ] = await Promise.all([
             client.readContract({
               address: candidate,
@@ -684,18 +788,39 @@ export function NewGrant({ organizationId }: NewGrantProps) {
               abi: grantVaultAbi,
               functionName: "getMilestones",
             }),
-            client.readContract({
-              address: candidate,
-              abi: grantVaultAbi,
-              functionName: "initialUnlock",
-            }),
             client
               .readContract({
                 address: candidate,
                 abi: grantVaultAbi,
-                functionName: "revocable",
+                functionName: "initialUnlock",
               })
-              .catch(() => false),
+              .catch(() => 0n),
+            readRevocationState({
+              revocable: () =>
+                client.readContract({
+                  address: candidate,
+                  abi: grantVaultAbi,
+                  functionName: "revocable",
+                }),
+              revoked: () =>
+                client.readContract({
+                  address: candidate,
+                  abi: grantVaultAbi,
+                  functionName: "revoked",
+                }),
+              revokedAt: () =>
+                client.readContract({
+                  address: candidate,
+                  abi: grantVaultAbi,
+                  functionName: "revokedAt",
+                }),
+              revocationEarnedAmount: () =>
+                client.readContract({
+                  address: candidate,
+                  abi: grantVaultAbi,
+                  functionName: "revocationEarnedAmount",
+                }),
+            }),
           ]);
           return (
             candidateTitle === config.title &&
@@ -712,7 +837,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
             candidateProvider.toLowerCase() ===
               config.eligibilityProvider.toLowerCase() &&
             candidateInitialUnlock === config.initialUnlock &&
-            candidateRevocable === config.revocable &&
+            candidateRevocation.revocable === config.revocable &&
             candidateMilestones.length === items.length &&
             candidateMilestones.every(
               (milestone, index) =>
@@ -766,31 +891,34 @@ export function NewGrant({ organizationId }: NewGrantProps) {
     setMetadataSync("pending");
     setMetadataError("");
     try {
-      if (!prepared)
-        throw new Error(
-          "Review the grant again before syncing workspace metadata.",
-        );
-      const currentWallet = assertTestnetWallet(prepared.issuer);
+      if (!prepared) throw new Error(t("wizard.error.reviewAgain"));
+      const currentWallet = assertTestnetWallet(
+        prepared.issuer,
+        walletMessages,
+      );
       if (
         !session.walletMatches ||
         session.session?.walletAddress.toLowerCase() !==
           currentWallet.toLowerCase()
       )
-        throw new Error(
-          "Wallet changed. Sign in again with the issuing wallet before syncing workspace metadata.",
-        );
+        throw new Error(t("wizard.error.walletChangedSync"));
       await linkGrant.mutateAsync({
         chainId: 133,
         vaultAddress,
         description: description.trim() || null,
         // Optional product metadata: which preset this grant started from. It
         // carries no onchain authority and never changes the vault's terms.
-        templateKey: presetKey,
+        templateKey: applied?.key ?? null,
       });
       setMetadataSync("saved");
     } catch (error) {
       setMetadataSync("failed");
-      setMetadataError(errorMessage(error));
+      setMetadataError(
+        errorMessage(error, {
+          fallback: t("ui.error.requestFailed"),
+          rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+        }),
+      );
     }
   }
 
@@ -809,64 +937,90 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   return (
     <div className="mx-auto max-w-4xl space-y-7">
       <PageHeading
-        eyebrow="New allocation"
-        title={creationConfirmed ? "Your grant is live." : "Create a grant."}
+        eyebrow={t("wizard.eyebrow")}
+        title={
+          creationConfirmed
+            ? t("wizard.title.created")
+            : t("wizard.title.create")
+        }
       >
         <p>
           {creationConfirmed
-            ? "The full token allocation is in its own vault on HSK Testnet."
-            : "Set the terms once. Fund the full allocation. Let the conditions do the rest."}
+            ? t("wizard.lede.created", NETWORK)
+            : t("wizard.lede.create")}
         </p>
       </PageHeading>
       <NetworkNotice />
       {organizationId && organization.data && (
-        <Notice title={`Creating for ${organization.data.organization.name}`}>
-          <p>
-            Onchain title, allocation, participants, and permissions remain in
-            the GrantVault. The optional description is saved as workspace
-            metadata after the confirmed transaction.
-          </p>
+        <Notice
+          title={t("wizard.notice.organization.title", {
+            organization: organization.data.organization.name,
+          })}
+        >
+          <p>{t("wizard.notice.organization.body")}</p>
         </Notice>
       )}
       {!factory && (
-        <Notice title="Testnet deployment is not configured">
-          <p>
-            Grant creation will be available after the HashVest contracts are
-            deployed and synchronized.
-          </p>
+        <Notice title={t("wizard.notice.noDeployment.title")}>
+          <p>{t("wizard.notice.noDeployment.body")}</p>
         </Notice>
       )}
-      {creationConfirmed ? (
+      {!creationConfirmed && (
+        <div className="flex rounded-lg border bg-secondary/30 p-1 w-fit">
+          <button
+            type="button"
+            onClick={() => setCreationMode("single")}
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+              creationMode === "single"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Single Grant
+          </button>
+          <button
+            type="button"
+            onClick={() => setCreationMode("cohort")}
+            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
+              creationMode === "cohort"
+                ? "bg-primary text-primary-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Cohort Distribution (Batch)
+          </button>
+        </div>
+      )}
+      {creationMode === "cohort" ? (
+        <CohortCreator
+          organizationId={organizationId}
+          onSwitchToSingle={() => setCreationMode("single")}
+        />
+      ) : creationConfirmed ? (
         <Card>
           <CardContent className="space-y-6 p-7">
             <div className="grid size-12 place-items-center rounded-full bg-primary/10 text-2xl text-primary">
               ✓
             </div>
-            <h2 className="text-2xl font-semibold">{prepared?.config.title}</h2>
+            <h2 className="font-mono text-[22px] font-normal">
+              {prepared?.config.title}
+            </h2>
             {createdAddress ? (
               <>
                 <AddressDisplay address={createdAddress} full />
                 {organizationId && metadataSync === "pending" && (
-                  <Notice title="Saving workspace metadata">
-                    <p>
-                      The HSK transaction is confirmed. Linking this grant to
-                      the workspace…
-                    </p>
+                  <Notice title={t("wizard.sync.pending.title")}>
+                    <p>{t("wizard.sync.pending.body")}</p>
                   </Notice>
                 )}
                 {organizationId && metadataSync === "saved" && (
                   <p className="text-sm text-primary">
-                    Workspace metadata saved. The grant is now visible in this
-                    organization.
+                    {t("wizard.sync.saved")}
                   </p>
                 )}
                 {organizationId && metadataSync === "failed" && (
-                  <Notice title="Grant created successfully onchain" error>
-                    <p>
-                      Workspace metadata could not be saved. The GrantVault and
-                      its funds remain live; retry the workspace sync without
-                      creating another grant.
-                    </p>
+                  <Notice title={t("wizard.sync.failed.title")} error>
+                    <p>{t("wizard.sync.failed.body")}</p>
                     <p className="mt-2 break-words">{metadataError}</p>
                     <Button
                       className="mt-4"
@@ -875,8 +1029,8 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                       onClick={() => void syncWorkspaceGrant(createdAddress)}
                     >
                       {linkGrant.isPending
-                        ? "Retrying sync…"
-                        : "Retry workspace sync"}
+                        ? t("wizard.sync.retrying")
+                        : t("wizard.sync.retry")}
                     </Button>
                   </Notice>
                 )}
@@ -885,17 +1039,20 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                     className={buttonVariants()}
                     href={`/grants/${createdAddress}`}
                   >
-                    Open grant →
+                    {t("wizard.openGrant")} <span aria-hidden>→</span>
                   </Link>
                 </div>
               </>
             ) : (
               <p>
-                The transaction confirmed. Find your new grant on the{" "}
-                <Link href="/app" className="text-primary underline">
-                  Issued dashboard
+                {t("wizard.confirmed.before")}
+                <Link
+                  href={appRoutes.grants}
+                  className="text-primary underline"
+                >
+                  {t("wizard.confirmed.link")}
                 </Link>
-                .
+                {t("wizard.confirmed.after")}
               </p>
             )}
             <TransactionStatus {...tx} />
@@ -903,65 +1060,69 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         </Card>
       ) : (
         <>
-          <ol aria-label="Creation progress" className="grid grid-cols-4 gap-2">
-            {steps.map((label, index) => (
+          <ol
+            aria-label={t("wizard.progress")}
+            className="grid grid-cols-2 gap-2 sm:grid-cols-5"
+          >
+            {steps.map((id, index) => (
               <li
-                key={label}
+                key={id}
                 aria-current={step === index ? "step" : undefined}
                 className={`border-b-2 pb-3 text-sm ${index <= step ? "border-primary text-primary" : "border-border text-muted-foreground"}`}
               >
                 <span className="mr-2 inline-grid size-6 place-items-center rounded-full bg-secondary text-xs">
                   {index + 1}
                 </span>
-                {label}
+                {t(`wizard.step.${id}`)}
               </li>
             ))}
           </ol>
           <Card>
             <CardHeader>
               <CardTitle className="text-xl">
-                {
-                  [
-                    "Who is this grant for?",
-                    "Choose how tokens unlock",
-                    "Set the conditions",
-                    "Review before funding",
-                  ][step]
-                }
+                {t(`wizard.stepTitle.${steps[step]}`)}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <form
                 onSubmit={(event) => {
                   event.preventDefault();
-                  if (step < 3) next();
+                  if (step < STEP.review) next();
                 }}
                 className="space-y-6"
               >
                 <fieldset className="min-w-0 space-y-6" disabled={tx.pending}>
-                  {step === 0 && (
+                  {step === STEP.template && (
+                    <PresetPicker
+                      selected={applied?.key ?? null}
+                      draft={
+                        applied?.key === GENERATED_PRESET_KEY
+                          ? applied.preset
+                          : undefined
+                      }
+                      onSelect={choosePreset}
+                    />
+                  )}
+                  {step === STEP.grant && (
                     <>
-                      <PresetPicker
-                        selected={presetKey}
-                        onSelect={selectPreset}
-                      />
                       <Field
-                        label="Grant title"
-                        hint="For example: Ecosystem builder grant or Contributor allocation."
+                        label={t("wizard.field.title.label")}
+                        hint={t("wizard.field.title.hint")}
                       >
                         <input
                           className="field"
                           value={title}
                           onChange={(event) => setTitle(event.target.value)}
                           maxLength={120}
-                          placeholder="Ecosystem builder grant"
+                          placeholder={t("wizard.field.title.placeholder")}
                           autoComplete="off"
                         />
                       </Field>
                       {organizationId ? (
                         <MemberPicker
-                          label="Beneficiary"
-                          hint="The selected member's exact wallet becomes the onchain beneficiary. Only that wallet can claim."
+                          label={t("wizard.field.beneficiary.label")}
+                          hint={t("wizard.field.beneficiary.hint")}
+                          choosePlaceholder={t("picker.chooseBeneficiary")}
                           members={organizationMembers.data}
                           memberId={beneficiaryMemberId}
                           addressValue={beneficiary}
@@ -972,8 +1133,8 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                         />
                       ) : (
                         <Field
-                          label="Beneficiary wallet"
-                          hint="Only this address can claim unlocked tokens. Double-check it."
+                          label={t("wizard.field.beneficiaryWallet.label")}
+                          hint={t("wizard.field.beneficiaryWallet.hint")}
                         >
                           <input
                             className="field font-mono"
@@ -989,14 +1150,13 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                       )}
                       {organizationId && organizationMembers.isError && (
                         <p className="text-xs text-destructive">
-                          The member directory is unavailable. You can still use
-                          an external wallet while workspace metadata recovers.
+                          {t("wizard.members.unavailable")}
                         </p>
                       )}
                       {organizationId && (
                         <Field
-                          label="Workspace description"
-                          hint="Optional product context. It does not replace the onchain title."
+                          label={t("wizard.field.description.label")}
+                          hint={t("wizard.field.description.hint")}
                         >
                           <textarea
                             className="field min-h-24 resize-y"
@@ -1005,13 +1165,15 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                               setDescription(event.target.value)
                             }
                             maxLength={1000}
-                            placeholder="Support for the HSK developer ecosystem."
+                            placeholder={t(
+                              "wizard.field.description.placeholder",
+                            )}
                           />
                         </Field>
                       )}
                       <Field
-                        label="ERC20 token address"
-                        hint="Use a normal ERC20 on HSK Testnet. Native HSK and fee-on-transfer tokens are unsupported."
+                        label={t("wizard.field.token.label")}
+                        hint={t("wizard.field.token.hint", NETWORK)}
                       >
                         <input
                           className="field font-mono"
@@ -1033,21 +1195,24 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             setToken(testnetDeployment.demoToken ?? "")
                           }
                         >
-                          Use demo hvUSD
+                          {t("wizard.token.useDemo", { symbol: "hvUSD" })}
                         </Button>
                       )}
                       {isAddress(token) && (
                         <p className="text-xs text-muted-foreground">
                           {tokenMetadata.isPending
-                            ? "Reading token metadata on HSK Testnet…"
+                            ? t("wizard.token.reading", NETWORK)
                             : tokenMetadata.isError
-                              ? "Could not read this token. Confirm the address and network."
-                              : `${tokenMetadata.data?.symbol} · ${tokenMetadata.data?.decimals} decimals`}
+                              ? t("wizard.token.error")
+                              : t("wizard.token.decimals", {
+                                  symbol: tokenMetadata.data?.symbol ?? "",
+                                  decimals: tokenMetadata.data?.decimals ?? 0,
+                                })}
                         </p>
                       )}
                       <Field
-                        label="Total allocation"
-                        hint="Enter token units, not base units. The full amount is transferred into the vault."
+                        label={t("wizard.field.allocation.label")}
+                        hint={t("wizard.field.allocation.hint")}
                       >
                         <input
                           className="field"
@@ -1062,46 +1227,52 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                       </Field>
                     </>
                   )}
-                  {step === 1 && (
+                  {step === STEP.strategy && (
                     <div className="space-y-3">
-                      {strategies.map((name, index) => (
+                      {STRATEGY_INDEXES.map((index) => (
                         <label
-                          key={name}
-                          className={`flex cursor-pointer items-start gap-4 rounded-xl border p-5 ${strategy === index ? "border-primary bg-primary/5" : "bg-card"}`}
+                          key={index}
+                          className={`flex cursor-pointer items-start gap-4 rounded-card border p-5 ${strategy === index ? "border-primary bg-[rgba(87,217,139,.06)]" : "bg-card"}`}
                         >
                           <input
                             className="mt-1 accent-primary"
                             type="radio"
                             name="strategy"
                             checked={strategy === index}
-                            onChange={() =>
-                              setStrategy(index === 0 ? 0 : index === 1 ? 1 : 2)
-                            }
+                            onChange={() => {
+                              const next =
+                                index === 0 ? 0 : index === 1 ? 1 : 2;
+                              setStrategy(next);
+                              if (next === 1) setInitialUnlock("");
+                            }}
                           />
                           <span>
-                            <span className="block font-semibold">{name}</span>
+                            <span className="block font-semibold">
+                              {t(`strategy.${index}.name`)}
+                            </span>
                             <span className="mt-2 block text-sm leading-6 text-muted-foreground">
-                              {strategyDescriptions[index]}
+                              {t(`strategy.${index}.description`)}
                             </span>
                           </span>
                         </label>
                       ))}
                     </div>
                   )}
-                  {step === 2 && (
+                  {step === STEP.conditions && (
                     <>
                       {strategy !== 1 && (
                         <div className="space-y-5">
                           <div>
-                            <h3 className="font-semibold">Vesting schedule</h3>
+                            <h3 className="font-semibold">
+                              {t("wizard.schedule.title")}
+                            </h3>
                             <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                              Vesting is linear from the start. At the cliff,
-                              the elapsed portion becomes available.
+                              {t("wizard.schedule.lede")}
                             </p>
                           </div>
                           <Field
-                            label="Start date (optional)"
-                            hint="Your local timezone. Leave empty to start at the creation transaction timestamp. A past start releases its elapsed portion immediately."
+                            label={t("wizard.field.start.label")}
+                            hint={t("wizard.field.start.hint")}
                           >
                             <input
                               className="field"
@@ -1111,8 +1282,8 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             />
                           </Field>
                           <Field
-                            label="Initial unlock / TGE (optional)"
-                            hint="Token amount unlocked immediately at start (before cliff). The remainder vests linearly. Leave empty or 0 for standard cliff vesting."
+                            label={t("wizard.field.initialUnlock.label")}
+                            hint={t("wizard.field.initialUnlock.hint")}
                           >
                             <div className="relative">
                               <input
@@ -1131,7 +1302,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             </div>
                           </Field>
                           <div className="grid gap-4 sm:grid-cols-3">
-                            <Field label="Schedule unit">
+                            <Field label={t("wizard.field.unit.label")}>
                               <select
                                 className="field"
                                 value={unit}
@@ -1139,12 +1310,18 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                                   setUnit(event.target.value)
                                 }
                               >
-                                <option value="60">Minutes</option>
-                                <option value="3600">Hours</option>
-                                <option value="86400">Days</option>
+                                <option value="60">
+                                  {t("wizard.unit.minutes")}
+                                </option>
+                                <option value="3600">
+                                  {t("wizard.unit.hours")}
+                                </option>
+                                <option value="86400">
+                                  {t("wizard.unit.days")}
+                                </option>
                               </select>
                             </Field>
-                            <Field label="Cliff">
+                            <Field label={t("wizard.field.cliff.label")}>
                               <input
                                 className="field"
                                 inputMode="numeric"
@@ -1154,7 +1331,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                                 }
                               />
                             </Field>
-                            <Field label="Total duration">
+                            <Field label={t("wizard.field.duration.label")}>
                               <input
                                 className="field"
                                 inputMode="numeric"
@@ -1166,9 +1343,9 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             </Field>
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {presetKey && getGrantPreset(presetKey).timing
-                              ? getGrantPreset(presetKey).timing?.realWorldNote
-                              : "Demo tip: use a 5-minute duration and a 0-minute cliff."}
+                            {applied?.preset.timing
+                              ? applied.preset.timing.realWorldNote
+                              : t("wizard.schedule.demoTip")}
                           </p>
                         </div>
                       )}
@@ -1176,8 +1353,9 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                         <div className="space-y-5">
                           {organizationId ? (
                             <MemberPicker
-                              label="Reviewer"
-                              hint="The selected member's exact wallet becomes the onchain reviewer for milestone approvals."
+                              label={t("wizard.field.reviewer.label")}
+                              hint={t("wizard.field.reviewer.hint")}
+                              choosePlaceholder={t("picker.chooseReviewer")}
                               members={organizationMembers.data}
                               memberId={reviewerMemberId}
                               addressValue={reviewer}
@@ -1188,8 +1366,8 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             />
                           ) : (
                             <Field
-                              label="Reviewer wallet"
-                              hint="This wallet may approve milestones. Amounts and terms cannot be edited."
+                              label={t("wizard.field.reviewerWallet.label")}
+                              hint={t("wizard.field.reviewerWallet.hint")}
                             >
                               <input
                                 className="field font-mono"
@@ -1203,21 +1381,29 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             </Field>
                           )}
                           <div>
-                            <h3 className="font-semibold">Milestones</h3>
+                            <h3 className="font-semibold">
+                              {t("wizard.milestones.title")}
+                            </h3>
                             <p className="mt-1 text-sm text-muted-foreground">
-                              Amounts must total exactly{" "}
-                              {allocation || "the allocation"}{" "}
-                              {tokenMetadata.data?.symbol}. Up to 20 milestones.
+                              {t("wizard.milestones.lede", {
+                                amount:
+                                  allocation ||
+                                  t("wizard.milestones.theAllocation"),
+                                symbol: tokenMetadata.data?.symbol ?? "",
+                                max: 20,
+                              })}
                             </p>
                           </div>
                           {milestones.map((item, index) => (
                             <div
-                              className="space-y-3 rounded-xl border bg-secondary/30 p-4"
+                              className="space-y-3 rounded-card border bg-secondary/30 p-4"
                               key={index}
                             >
                               <div className="flex justify-between">
                                 <p className="text-xs font-medium text-muted-foreground">
-                                  Milestone {index + 1}
+                                  {t("wizard.milestone.index", {
+                                    index: index + 1,
+                                  })}
                                 </p>
                                 {milestones.length > 1 && (
                                   <button
@@ -1231,12 +1417,14 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                                       )
                                     }
                                   >
-                                    Remove
+                                    {t("wizard.milestone.remove")}
                                   </button>
                                 )}
                               </div>
                               <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">
-                                <Field label="Title">
+                                <Field
+                                  label={t("wizard.field.milestoneTitle.label")}
+                                >
                                   <input
                                     className="field"
                                     value={item.title}
@@ -1248,11 +1436,22 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                                       )
                                     }
                                     maxLength={120}
-                                    placeholder="Deliver working prototype"
+                                    placeholder={t(
+                                      "wizard.field.milestoneTitle.placeholder",
+                                    )}
                                   />
                                 </Field>
                                 <Field
-                                  label={`Amount (${tokenMetadata.data?.symbol ?? "tokens"})`}
+                                  label={t(
+                                    "wizard.field.milestoneAmount.label",
+                                    {
+                                      symbol:
+                                        tokenMetadata.data?.symbol ??
+                                        t(
+                                          "wizard.field.milestoneAmount.fallbackSymbol",
+                                        ),
+                                    },
+                                  )}
                                 >
                                   <input
                                     className="field"
@@ -1282,18 +1481,18 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                               ])
                             }
                           >
-                            Add milestone +
+                            {t("wizard.milestones.add")}
                           </Button>
                         </div>
                       )}
-                      <details className="rounded-xl border p-4">
+                      <details className="rounded-card border border-border p-4">
                         <summary className="cursor-pointer text-sm font-medium">
-                          Advanced · optional eligibility provider
+                          {t("wizard.advanced.summary")}
                         </summary>
                         <div className="mt-4">
                           <Field
-                            label="Eligibility provider address"
-                            hint="Leave empty for no eligibility check. The provider must implement isEligible(address). This demo adapter is not KYC or compliance."
+                            label={t("wizard.field.eligibility.label")}
+                            hint={t("wizard.field.eligibility.hint")}
                           >
                             <input
                               className="field font-mono"
@@ -1301,13 +1500,15 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                               onChange={(event) =>
                                 setProvider(event.target.value.trim())
                               }
-                              placeholder="None"
+                              placeholder={t(
+                                "wizard.field.eligibility.placeholder",
+                              )}
                               spellCheck={false}
                             />
                           </Field>
                         </div>
                       </details>
-                      <div className="rounded-xl border p-4">
+                      <div className="rounded-card border border-border p-4">
                         <label className="flex items-start gap-3 cursor-pointer">
                           <input
                             type="checkbox"
@@ -1319,28 +1520,26 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                           />
                           <div>
                             <span className="text-sm font-medium">
-                              Revocable grant
+                              {t("wizard.field.revocable.label")}
                             </span>
                             <span className="block text-xs leading-5 text-muted-foreground mt-0.5">
-                              Enables issuer clawback of unearned tokens. Tokens
-                              already earned or claimed by the beneficiary
-                              remain strictly preserved and protected.
+                              {t("wizard.field.revocable.hint")}
                             </span>
                           </div>
                         </label>
                       </div>
                     </>
                   )}
-                  {step === 3 && prepared && (
+                  {step === STEP.review && prepared && (
                     <>
-                      <div className="rounded-xl border border-primary/20 bg-primary/5 p-5">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-                          {strategies[prepared.config.strategy]}
+                      <div className="rounded-card border border-primary/20 bg-[rgba(87,217,139,.05)] p-5">
+                        <p className="font-mono text-[10px] font-medium uppercase tracking-[.08em] text-primary">
+                          {t(`strategy.${prepared.config.strategy}.name`)}
                         </p>
-                        <h3 className="mt-2 text-xl font-semibold">
+                        <h3 className="mt-2 font-mono text-[18px] font-normal">
                           {prepared.config.title}
                         </h3>
-                        <p className="mt-4 break-all text-3xl font-semibold">
+                        <p className="mt-4 break-all font-mono text-[28px] font-medium tabular-nums">
                           {formatUnits(
                             prepared.config.totalAllocation,
                             prepared.decimals,
@@ -1350,32 +1549,38 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                           </span>
                         </p>
                         <p className="mt-2 text-sm text-muted-foreground">
-                          {strategyDescriptions[prepared.config.strategy]}
+                          {t(
+                            `strategy.${prepared.config.strategy}.description`,
+                          )}
                         </p>
-                        {presetKey && (
+                        {applied && (
                           <p className="mt-3 text-xs text-muted-foreground">
-                            Started from the {getGrantPreset(presetKey).name}{" "}
-                            preset. That is workspace metadata only — the terms
-                            below are what goes onchain.
+                            {t("wizard.review.fromPreset", {
+                              preset: appliedPresetName,
+                            })}
                           </p>
                         )}
                       </div>
                       <dl className="space-y-4 text-sm">
                         {[
-                          ["Issuer", prepared.issuer],
-                          ["Beneficiary", prepared.config.beneficiary],
-                          ["Token", prepared.config.token],
+                          ["issuer", prepared.issuer],
+                          ["beneficiary", prepared.config.beneficiary],
+                          ["token", prepared.config.token],
                           ...(strategy !== 0
-                            ? [["Reviewer", prepared.config.reviewer]]
+                            ? [["reviewer", prepared.config.reviewer]]
                             : []),
-                        ].map(([label, party]) => (
+                        ].map(([field, party]) => (
                           <div
-                            key={label}
+                            key={field}
                             className="flex flex-wrap justify-between gap-2"
                           >
-                            <dt className="text-muted-foreground">{label}</dt>
+                            <dt className="text-muted-foreground">
+                              {t(
+                                `wizard.review.${field as "issuer" | "beneficiary" | "token" | "reviewer"}`,
+                              )}
+                            </dt>
                             <dd>
-                              {organizationId && label !== "Token" ? (
+                              {organizationId && field !== "token" ? (
                                 <ParticipantIdentity
                                   label=""
                                   address={getAddress(party)}
@@ -1393,26 +1598,38 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                         {strategy !== 1 && (
                           <>
                             <div className="flex justify-between gap-4">
-                              <dt className="text-muted-foreground">Start</dt>
+                              <dt className="text-muted-foreground">
+                                {t("wizard.review.start")}
+                              </dt>
                               <dd>
                                 {prepared.config.start === 0n
-                                  ? "Creation timestamp"
+                                  ? t("wizard.review.startCreation")
                                   : dateLabel(prepared.config.start)}
                               </dd>
                             </div>
                             <div className="flex justify-between gap-4">
                               <dt className="text-muted-foreground">
-                                Initial unlock (TGE)
+                                {t("wizard.review.initialUnlock")}
                               </dt>
                               <dd>
                                 {prepared.config.initialUnlock > 0n
-                                  ? `${formatUnits(prepared.config.initialUnlock, prepared.decimals)} ${prepared.symbol} (${percent(prepared.config.initialUnlock, prepared.config.totalAllocation)}%)`
-                                  : "None (0%)"}
+                                  ? t("wizard.review.initialUnlockValue", {
+                                      amount: formatUnits(
+                                        prepared.config.initialUnlock,
+                                        prepared.decimals,
+                                      ),
+                                      symbol: prepared.symbol,
+                                      percent: percent(
+                                        prepared.config.initialUnlock,
+                                        prepared.config.totalAllocation,
+                                      ),
+                                    })
+                                  : t("wizard.review.initialUnlockNone")}
                               </dd>
                             </div>
                             <div className="flex justify-between gap-4">
                               <dt className="text-muted-foreground">
-                                Cliff / total duration
+                                {t("wizard.review.cliffDuration")}
                               </dt>
                               <dd>
                                 {prepared.config.cliff.toString()}s /{" "}
@@ -1422,21 +1639,19 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                             {prepared.config.initialUnlock > 0n && (
                               <div className="rounded-lg bg-secondary/50 p-3 text-xs leading-5">
                                 <p className="font-semibold text-foreground">
-                                  Schedule preview:
+                                  {t("wizard.review.schedulePreview")}
                                 </p>
                                 <p className="mt-1 text-muted-foreground">
-                                  • At start:{" "}
-                                  <strong>
-                                    {formatUnits(
+                                  {t("wizard.review.scheduleAtStart", {
+                                    amount: formatUnits(
                                       prepared.config.initialUnlock,
                                       prepared.decimals,
-                                    )}{" "}
-                                    {prepared.symbol}
-                                  </strong>{" "}
-                                  unlocked immediately
-                                  <br />• At cliff end:{" "}
-                                  <strong>
-                                    {formatUnits(
+                                    ),
+                                    symbol: prepared.symbol,
+                                  })}
+                                  <br />
+                                  {t("wizard.review.scheduleAtCliff", {
+                                    amount: formatUnits(
                                       calculateVestedByTime({
                                         start: prepared.config.start,
                                         cliff: prepared.config.cliff,
@@ -1450,19 +1665,17 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                                           prepared.config.cliff,
                                       }),
                                       prepared.decimals,
-                                    )}{" "}
-                                    {prepared.symbol}
-                                  </strong>{" "}
-                                  cumulative time vested
-                                  <br />• At completion:{" "}
-                                  <strong>
-                                    {formatUnits(
+                                    ),
+                                    symbol: prepared.symbol,
+                                  })}
+                                  <br />
+                                  {t("wizard.review.scheduleAtCompletion", {
+                                    amount: formatUnits(
                                       prepared.config.totalAllocation,
                                       prepared.decimals,
-                                    )}{" "}
-                                    {prepared.symbol}
-                                  </strong>{" "}
-                                  (100%)
+                                    ),
+                                    symbol: prepared.symbol,
+                                  })}
                                 </p>
                               </div>
                             )}
@@ -1470,12 +1683,12 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                         )}
                         <div className="flex flex-wrap justify-between gap-2">
                           <dt className="text-muted-foreground">
-                            Eligibility provider
+                            {t("wizard.review.eligibility")}
                           </dt>
                           <dd>
                             {prepared.config.eligibilityProvider ===
                             zeroAddress ? (
-                              "None — disabled"
+                              t("wizard.review.eligibilityNone")
                             ) : (
                               <AddressDisplay
                                 address={prepared.config.eligibilityProvider}
@@ -1506,14 +1719,14 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                       <Notice
                         title={
                           prepared.config.revocable
-                            ? "Revocable grant terms"
-                            : "These terms are permanent"
+                            ? t("wizard.review.revocable.title")
+                            : t("wizard.review.permanent.title")
                         }
                       >
                         <p>
                           {prepared.config.revocable
-                            ? "This grant is revocable by the issuer. Revocation claws back unearned funds to your wallet while strictly preserving any value already earned or claimed by the beneficiary."
-                            : "No revocation, withdrawals by the issuer, or changes to grant economics. You will approve token spending if needed, then create and fully fund the vault in one transaction."}
+                            ? t("wizard.review.revocable.body")
+                            : t("wizard.review.permanent.body")}
                         </p>
                       </Notice>
                     </>
@@ -1528,17 +1741,20 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                   <Button
                     type="button"
                     variant="outline"
-                    disabled={step === 0 || tx.pending}
+                    disabled={step === STEP.template || tx.pending}
                     onClick={() => {
                       setStep((current) => current - 1);
                       setValidationError("");
                     }}
                   >
-                    Back
+                    {t("wizard.nav.back")}
                   </Button>
-                  {step < 3 ? (
-                    <Button type="submit" disabled={step === 2 && !address}>
-                      Continue →
+                  {step < STEP.review ? (
+                    <Button
+                      type="submit"
+                      disabled={step === STEP.conditions && !address}
+                    >
+                      {t("wizard.nav.continue")} <span aria-hidden>→</span>
                     </Button>
                   ) : (
                     <Button
@@ -1552,26 +1768,28 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                       onClick={() => void createGrant()}
                     >
                       {tx.pending
-                        ? "Transaction in progress…"
-                        : "Approve & create grant"}
+                        ? t("wizard.nav.pending")
+                        : t("wizard.nav.submit")}
                     </Button>
                   )}
                 </div>
                 {prepared &&
-                  step === 3 &&
+                  step === STEP.review &&
                   address &&
                   address.toLowerCase() !== prepared.issuer.toLowerCase() && (
                     <p role="alert" className="text-sm text-destructive">
-                      Wallet changed. Go back and review with the current
-                      issuer.
+                      {t("wizard.walletChanged")}
                     </p>
                   )}
                 <TransactionStatus {...tx} />
               </form>
             </CardContent>
           </Card>
-          {step === 0 && <DemoFaucet />}
+          {step === STEP.grant && <DemoFaucet />}
         </>
+      )}
+      {!creationConfirmed && (
+        <AiGrantBuilder onApply={applyAiDraft} disabled={tx.pending} />
       )}
     </div>
   );

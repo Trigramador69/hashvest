@@ -176,3 +176,33 @@ export function getGrantPreset(key: GrantPresetKey): GrantPreset {
   if (!preset) throw new Error(`Unknown grant preset: ${key}`);
   return preset;
 }
+
+/**
+ * Resolves a stored `organization_grants.template_key` back to its preset.
+ *
+ * Unlike `getGrantPreset` this never throws: the column accepts any trimmed
+ * text, a grant may have been created from a preset that has since been
+ * renamed or removed, and organization-owned templates (HAS-13) will use the
+ * same column. A key that resolves to nothing is not an error — the grant is
+ * simply displayed without a template.
+ */
+export function findGrantPreset(
+  key: string | null | undefined,
+): GrantPreset | undefined {
+  if (!key) return undefined;
+  return GRANT_PRESETS.find((candidate) => candidate.key === key);
+}
+
+/**
+ * The key reserved for a draft generated from natural language (HAS-16/HAS-18).
+ *
+ * It is deliberately not a catalog entry: an AI draft is built per request and
+ * has no stable definition to look up. Reserving the string here keeps
+ * `assertValidCatalog` able to reject a catalog that tries to claim it, and
+ * gives `organization_grants.template_key` an honest value for grants that
+ * started from a generated draft.
+ */
+export const GENERATED_PRESET_KEY = "ai-draft";
+
+/** Any key the wizard may report as applied: a catalog preset or a generated draft. */
+export type AppliedPresetKey = GrantPresetKey | typeof GENERATED_PRESET_KEY;

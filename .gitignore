@@ -3,6 +3,10 @@ node_modules/
 
 # Next.js
 .next/
+.next-visual/
+.playwright-browsers/
+.tmp/
+apps/web/test-results/
 out/
 
 # Build output

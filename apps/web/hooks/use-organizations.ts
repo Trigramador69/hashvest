@@ -8,11 +8,13 @@ import {
 } from "@tanstack/react-query";
 import { useAccount, usePublicClient } from "wagmi";
 import { type Address } from "viem";
-import { grantVaultAbi } from "@hashvest/web3";
+import { grantVaultAbi, hskTestnet } from "@hashvest/web3";
 
 import { organizationApi } from "@/lib/cloud/organizations/client";
 import { deriveGrantLifecycle } from "@/lib/protocol/grant-state";
+import { readRevocationState } from "@/lib/protocol/revocation";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
+import { useTranslations } from "@/lib/shared/i18n/provider";
 
 import { useSession } from "./use-session";
 
@@ -22,8 +24,12 @@ export const membersQueryKey = (organizationId: string) =>
   ["organization-members", organizationId] as const;
 export const grantsQueryKey = (organizationId: string) =>
   ["organization-grants", organizationId] as const;
+export const sponsorshipPolicyQueryKey = (organizationId: string) =>
+  ["organization-sponsorship-policy", organizationId] as const;
 export const grantContextQueryKey = (vaultAddress: string) =>
   ["grant-context", 133, vaultAddress] as const;
+
+const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
 export function useOrganizations() {
   const { walletMatches } = useSession();
@@ -69,6 +75,21 @@ export function useOrganizationGrants(organizationId: string | undefined) {
       : ["organization-grants", "missing"],
     queryFn: async () =>
       (await organizationApi.getGrants(organizationId as string)).grants,
+    enabled: Boolean(organizationId && walletMatches),
+    staleTime: 15_000,
+  });
+}
+
+export function useOrganizationSponsorshipPolicy(
+  organizationId: string | undefined,
+) {
+  const { walletMatches } = useSession();
+  return useQuery({
+    queryKey: organizationId
+      ? sponsorshipPolicyQueryKey(organizationId)
+      : ["organization-sponsorship-policy", "missing"],
+    queryFn: () =>
+      organizationApi.getSponsorshipPolicy(organizationId as string),
     enabled: Boolean(organizationId && walletMatches),
     staleTime: 15_000,
   });
@@ -158,6 +179,20 @@ export function useLinkOrganizationGrant(organizationId: string) {
   });
 }
 
+export function useUpdateOrganizationSponsorshipPolicy(organizationId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: organizationApi.updateSponsorshipPolicy.bind(
+      null,
+      organizationId,
+    ),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: sponsorshipPolicyQueryKey(organizationId),
+      }),
+  });
+}
+
 type GrantSummary = {
   vaultAddress: Address;
   issuer: Address;
@@ -167,11 +202,13 @@ type GrantSummary = {
   beneficiary: Address;
   reviewer: Address;
   milestones: readonly { approved: boolean }[];
+  revoked: boolean;
 };
 
 export function useOrganizationGrantStats(
   grants: { vaultAddress: string }[] | undefined,
 ) {
+  const t = useTranslations();
   const { address: walletAddress } = useAccount();
   const client = usePublicClient({ chainId: 133 });
   const queries = useQueries({
@@ -180,7 +217,7 @@ export function useOrganizationGrantStats(
       enabled: Boolean(client),
       staleTime: 7_000,
       queryFn: async (): Promise<GrantSummary> => {
-        if (!client) throw new Error("HSK Testnet RPC is unavailable.");
+        if (!client) throw new Error(t("tx.error.rpcUnavailable", NETWORK));
         const address = grant.vaultAddress as Address;
         const blockNumber = await client.getBlockNumber();
         const contract = { address, abi: grantVaultAbi, blockNumber };
@@ -192,6 +229,7 @@ export function useOrganizationGrantStats(
           beneficiary,
           reviewer,
           milestones,
+          revocationState,
         ] = await Promise.all([
           client.readContract({ ...contract, functionName: "issuer" }),
           client.readContract({ ...contract, functionName: "totalAllocation" }),
@@ -200,6 +238,19 @@ export function useOrganizationGrantStats(
           client.readContract({ ...contract, functionName: "beneficiary" }),
           client.readContract({ ...contract, functionName: "reviewer" }),
           client.readContract({ ...contract, functionName: "getMilestones" }),
+          readRevocationState({
+            revocable: () =>
+              client.readContract({ ...contract, functionName: "revocable" }),
+            revoked: () =>
+              client.readContract({ ...contract, functionName: "revoked" }),
+            revokedAt: () =>
+              client.readContract({ ...contract, functionName: "revokedAt" }),
+            revocationEarnedAmount: () =>
+              client.readContract({
+                ...contract,
+                functionName: "revocationEarnedAmount",
+              }),
+          }),
         ]);
         return {
           vaultAddress: address,
@@ -210,6 +261,7 @@ export function useOrganizationGrantStats(
           beneficiary,
           reviewer,
           milestones,
+          revoked: revocationState.revoked,
         };
       },
     })),
@@ -227,11 +279,13 @@ export function useOrganizationGrantStats(
         deriveGrantLifecycle({
           totalAllocation: summary.totalAllocation,
           claimedAmount: summary.claimedAmount,
+          revoked: summary.revoked,
         }) === "ACTIVE",
     ).length,
     pendingReviews: summaries.filter(
       (summary) =>
         resolveProtocolRoles(wallet, summary).isReviewer &&
+        !summary.revoked &&
         summary.milestones.some((milestone) => !milestone.approved),
     ).length,
     claimableGrants: summaries.filter(

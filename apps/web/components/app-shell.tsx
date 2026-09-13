@@ -1,119 +1,206 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useState, type ReactNode } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import type { ReactNode } from "react";
+import { FileText, LayoutDashboard, Menu, Settings2, X } from "lucide-react";
 
-import { hskTestnet } from "@hashvest/web3";
-import { cn } from "@/lib/shared/utils";
-import { useTranslations } from "@/lib/shared/i18n/provider";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { SessionControl } from "@/components/session-control";
-import { useOrganizations } from "@/hooks/use-organizations";
-import { useSession } from "@/hooks/use-session";
+import type { TranslationKey } from "@/lib/shared/i18n/dictionaries/en";
+import { useTranslations } from "@/lib/shared/i18n/provider";
+import { appRoutes } from "@/lib/shared/routes";
+import { cn } from "@/lib/shared/utils";
 
-function OrganizationSwitcher() {
+type Icon = typeof LayoutDashboard;
+
+const NAV_ITEMS: Array<{
+  href: string;
+  label: Extract<TranslationKey, `shell.nav.${string}`>;
+  icon: Icon;
+}> = [
+  {
+    href: appRoutes.overview,
+    label: "shell.nav.overview",
+    icon: LayoutDashboard,
+  },
+  { href: appRoutes.grants, label: "shell.nav.grants", icon: FileText },
+  { href: appRoutes.settings, label: "shell.nav.settings", icon: Settings2 },
+];
+
+function ShellNav({ onNavigate }: { onNavigate: () => void }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const session = useSession();
-  const organizations = useOrganizations();
   const t = useTranslations();
-  if (!session.walletMatches || !organizations.data?.length) return null;
-  const activeId = pathname.match(/^\/app\/organizations\/([^/]+)/)?.[1] ?? "";
-  const value = organizations.data.some((item) => item.id === activeId)
-    ? activeId
-    : "";
+
+  function isActive(href: string) {
+    if (href === appRoutes.overview) return pathname === href;
+    if (href === appRoutes.grants) {
+      return pathname === href || pathname.startsWith("/grants/");
+    }
+    return pathname.startsWith(appRoutes.settings);
+  }
+
   return (
-    <label className="flex items-center gap-2 text-xs text-muted-foreground">
-      <span className="hidden sm:inline">{t("shell.workspace.label")}</span>
-      <select
-        className="field h-9 min-w-36 py-1 text-xs sm:min-w-48"
-        value={value}
-        aria-label={t("shell.workspace.choose")}
-        onChange={(event) => {
-          if (event.target.value === "create")
-            router.push("/app/organizations/new");
-          else if (event.target.value)
-            router.push(`/app/organizations/${event.target.value}`);
-        }}
+    <nav aria-label={t("shell.nav.label")} className="space-y-1">
+      {NAV_ITEMS.map(({ href, label, icon: IconComponent }) => {
+        const active = isActive(href);
+        return (
+          <Link
+            key={href}
+            href={href}
+            onClick={onNavigate}
+            className={cn(
+              "flex min-h-11 items-center gap-3 rounded-control px-4 font-mono text-xs text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground",
+              active && "bg-[rgba(87,217,139,.10)] text-primary",
+            )}
+            aria-current={active ? "page" : undefined}
+          >
+            <IconComponent className="size-4" strokeWidth={1.25} />
+            <span>{t(label)}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useTranslations();
+  return (
+    <>
+      {open && (
+        <button
+          type="button"
+          aria-label={t("shell.navigation.close")}
+          className="fixed inset-0 z-30 bg-black/60 md:hidden"
+          onClick={onClose}
+        />
+      )}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 flex w-[192px] -translate-x-full flex-col border-r border-border-soft bg-canvas px-[10px] py-5 transition-transform duration-180 md:translate-x-0",
+          open && "translate-x-0",
+        )}
       >
-        <option value="">{t("shell.workspace.yours")}</option>
-        {organizations.data.map((organization) => (
-          <option key={organization.id} value={organization.id}>
-            {organization.name}
-          </option>
-        ))}
-        <option value="create">{t("shell.workspace.create")}</option>
-      </select>
-    </label>
+        <div className="mb-10 flex items-center justify-between px-3">
+          <Link
+            href="/"
+            className="font-mono text-[25px] font-medium tracking-[-0.06em] text-foreground"
+            aria-label={t("shell.home")}
+          >
+            HashVest
+          </Link>
+          <button
+            type="button"
+            className="grid size-11 place-items-center rounded-control text-muted-foreground hover:bg-surface-2 hover:text-foreground md:hidden"
+            onClick={onClose}
+            aria-label={t("shell.navigation.close")}
+          >
+            <X className="size-4" strokeWidth={1.25} />
+          </button>
+        </div>
+        <ShellNav onNavigate={onClose} />
+        <div className="mt-auto border-t border-border-soft px-3 pt-4">
+          <p className="font-mono text-[10px] text-muted-foreground">
+            {t("shell.appTagline")}
+          </p>
+          <p className="mt-2 font-mono text-[10px] text-[#50524F]">
+            {t("shell.appDisclaimer")}
+          </p>
+        </div>
+      </aside>
+    </>
+  );
+}
+
+function Topbar({
+  menuOpen,
+  onMenu,
+}: {
+  menuOpen: boolean;
+  onMenu: () => void;
+}) {
+  const t = useTranslations();
+  return (
+    <header className="sticky top-0 z-20 min-h-[64px] border-b border-border-soft bg-[rgba(7,8,8,.96)] md:ml-[192px] md:min-h-[84px]">
+      <div className="mx-auto flex min-h-[64px] max-w-[1440px] items-center gap-3 px-3 md:min-h-[84px] md:px-5">
+        <button
+          type="button"
+          className={cn(
+            "grid size-11 place-items-center rounded-control text-muted-foreground hover:bg-surface-2 hover:text-foreground md:hidden",
+            menuOpen && "invisible",
+          )}
+          onClick={onMenu}
+          aria-label={t("shell.navigation.open")}
+        >
+          <Menu className="size-5" strokeWidth={1.25} />
+        </button>
+        <div
+          className={cn(
+            "ml-auto flex shrink-0 items-center gap-2 md:gap-4",
+            menuOpen && "invisible md:visible",
+          )}
+        >
+          <LocaleSwitcher />
+          <SessionControl compact />
+          <ConnectButton
+            accountStatus="avatar"
+            chainStatus="icon"
+            showBalance={false}
+          />
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function MarketingShell({ children }: { children: ReactNode }) {
+  const t = useTranslations();
+  return (
+    <div className="min-h-screen bg-canvas">
+      <header className="border-b border-border-soft bg-[rgba(7,8,8,.96)]">
+        <div className="mx-auto flex min-h-16 max-w-[1440px] items-center justify-between gap-4 px-5 sm:px-8">
+          <Link href="/" className="font-mono text-xl tracking-[-0.05em]">
+            HashVest
+          </Link>
+          <div className="flex items-center gap-3">
+            <LocaleSwitcher />
+            <Link
+              href={appRoutes.overview}
+              className="rounded-control border border-border px-3 py-2 font-mono text-xs text-foreground hover:bg-surface-2"
+            >
+              {t("home.cta.openApp")}
+            </Link>
+          </div>
+        </div>
+      </header>
+      <main className="mx-auto max-w-[1440px] px-5 py-8 sm:px-8 sm:py-12">
+        {children}
+      </main>
+      <footer className="mx-auto flex max-w-[1440px] flex-wrap justify-between gap-3 border-t border-border-soft px-5 py-6 font-mono text-[10px] text-muted-foreground sm:px-8">
+        <span>{t("shell.footer.tagline")}</span>
+        <span>{t("shell.footer.disclaimer")}</span>
+      </footer>
+    </div>
   );
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const t = useTranslations();
+  const [menuOpen, setMenuOpen] = useState(false);
+  if (pathname === "/") return <MarketingShell>{children}</MarketingShell>;
   return (
-    <div className="min-h-screen">
-      <header className="border-b bg-card/90">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-5 sm:px-8">
-          <Link
-            href="/"
-            className="flex items-center gap-2.5 text-xl font-semibold tracking-tight"
-            aria-label={t("shell.home")}
-          >
-            <span className="grid size-8 place-items-center rounded-lg bg-primary text-lg text-primary-foreground">
-              H
-            </span>
-            HashVest
-          </Link>
-          <nav
-            aria-label={t("shell.nav.label")}
-            className="order-3 flex w-full gap-6 text-sm font-medium sm:order-none sm:w-auto"
-          >
-            <Link
-              href="/app"
-              className={cn(
-                "nav-link",
-                (pathname === "/app" ||
-                  pathname.startsWith("/app/organizations")) &&
-                  "text-primary",
-              )}
-            >
-              {t("shell.nav.organizations")}
-            </Link>
-            <Link
-              href="/grants/new"
-              className={cn(
-                "nav-link",
-                pathname === "/grants/new" && "text-primary",
-              )}
-            >
-              {t("shell.nav.createGrant")}
-            </Link>
-          </nav>
-          <div className="flex max-w-full flex-wrap items-center justify-end gap-3">
-            <OrganizationSwitcher />
-            <LocaleSwitcher />
-            {/* Network name and chain id are protocol literals, never translated. */}
-            <span className="hidden rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary lg:block">
-              {hskTestnet.name} · {hskTestnet.id}
-            </span>
-            <SessionControl compact />
-            <ConnectButton
-              accountStatus="address"
-              chainStatus="icon"
-              showBalance={false}
-            />
-          </div>
-        </div>
-      </header>
-      <main className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-14">
+    <div className="min-h-screen bg-canvas">
+      <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <Topbar menuOpen={menuOpen} onMenu={() => setMenuOpen(true)} />
+      <main className="mx-auto min-h-[calc(100vh-84px)] max-w-[1440px] px-3 py-5 sm:px-5 sm:py-8 md:ml-[192px] md:px-5 md:py-8">
         {children}
       </main>
-      <footer className="mx-auto mt-10 flex max-w-7xl flex-wrap justify-between gap-3 border-t px-5 py-6 text-xs text-muted-foreground sm:px-8">
-        <span>HashVest · {t("shell.footer.tagline")}</span>
-        <span>{t("shell.footer.disclaimer")}</span>
+      <footer className="mx-auto flex max-w-[1440px] flex-wrap justify-between gap-3 border-t border-border-soft px-3 py-6 font-mono text-[10px] text-muted-foreground sm:px-5 md:ml-[192px] md:px-5">
+        <span>{t("shell.appTagline")}</span>
+        <span>{t("shell.appDisclaimer")}</span>
       </footer>
     </div>
   );

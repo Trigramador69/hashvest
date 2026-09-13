@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { hskTestnet } from "@hashvest/web3";
 
 import {
   useOrganization,
@@ -9,11 +10,15 @@ import {
 } from "@/hooks/use-organizations";
 import { useSession } from "@/hooks/use-session";
 import { errorMessage, shortAddress } from "@/lib/protocol/grants";
+import { useTranslations } from "@/lib/shared/i18n/provider";
+import { appRoutes } from "@/lib/shared/routes";
 import type { OrganizationMember } from "@/lib/cloud/organizations/types";
 
 import { Notice, PageHeading } from "./grant-ui";
-import { Button } from "./ui/button";
+import { Button, buttonVariants } from "./ui/button";
 import { WorkspaceAccessNotice } from "./workspace-access";
+
+const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
 export function initials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -25,15 +30,16 @@ export function initials(name: string) {
 }
 
 export function MemberIdentity({ member }: { member: OrganizationMember }) {
+  const t = useTranslations();
   return (
     <div className="flex min-w-0 items-center gap-3">
-      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+      <span className="grid size-9 shrink-0 place-items-center rounded-full border border-primary/30 bg-[rgba(87,217,139,.08)] font-mono text-xs text-primary">
         {initials(member.displayName)}
       </span>
       <div className="min-w-0">
         <p className="truncate font-medium">{member.displayName}</p>
         <p className="truncate text-xs text-muted-foreground">
-          {member.roleLabel ?? "Member"}
+          {member.roleLabel ?? t("member.defaultRole")}
         </p>
         <p className="font-mono text-xs text-muted-foreground">
           {shortAddress(member.walletAddress)}
@@ -46,6 +52,7 @@ export function MemberIdentity({ member }: { member: OrganizationMember }) {
 export function MemberPicker({
   label,
   hint,
+  choosePlaceholder,
   members,
   memberId,
   addressValue,
@@ -56,6 +63,9 @@ export function MemberPicker({
 }: {
   label: string;
   hint: string;
+  /** Empty-option text. Passed in because it cannot be derived from `label`
+   *  in every language. */
+  choosePlaceholder: string;
   members: OrganizationMember[] | undefined;
   memberId: string;
   addressValue: string;
@@ -64,6 +74,7 @@ export function MemberPicker({
   external: boolean;
   onExternalChange: (external: boolean) => void;
 }) {
+  const t = useTranslations();
   return (
     <div className="space-y-2">
       <label className="block space-y-2">
@@ -81,9 +92,7 @@ export function MemberPicker({
             disabled={!members?.length}
           >
             <option value="">
-              {members?.length
-                ? `Choose a ${label.toLowerCase()}`
-                : "No members available"}
+              {members?.length ? choosePlaceholder : t("picker.noMembers")}
             </option>
             {members?.map((member) => (
               <option key={member.id} value={member.id}>
@@ -117,7 +126,7 @@ export function MemberPicker({
           }
         }}
       >
-        {external ? "Choose from organization members" : "Use external wallet"}
+        {external ? t("picker.useMembers") : t("picker.useExternal")}
       </button>
     </div>
   );
@@ -125,23 +134,24 @@ export function MemberPicker({
 
 export function WorkspaceTabs({ organizationId }: { organizationId: string }) {
   const pathname = usePathname();
+  const t = useTranslations();
   const tabs = [
-    ["Overview", `/app/organizations/${organizationId}`],
-    ["Grants", `/app/organizations/${organizationId}/grants`],
-    ["Members", `/app/organizations/${organizationId}/members`],
+    ["overview", appRoutes.organization(organizationId)],
+    ["grants", appRoutes.organizationGrants(organizationId)],
+    ["members", appRoutes.organizationMembers(organizationId)],
   ] as const;
   return (
     <nav
-      aria-label="Organization navigation"
-      className="flex flex-wrap gap-2 border-b pb-3"
+      aria-label={t("workspace.nav.label")}
+      className="flex flex-wrap gap-1 border-b border-border-soft pb-3"
     >
-      {tabs.map(([label, href]) => (
+      {tabs.map(([id, href]) => (
         <Link
-          key={label}
+          key={id}
           href={href}
-          className={`rounded-md px-3 py-2 text-sm font-medium ${pathname === href ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
+          className={`flex min-h-11 items-center rounded-control px-3 font-mono text-xs ${pathname === href ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}
         >
-          {label}
+          {t(`workspace.tab.${id}`)}
         </Link>
       ))}
     </nav>
@@ -150,52 +160,76 @@ export function WorkspaceTabs({ organizationId }: { organizationId: string }) {
 
 export function OrganizationHeader({
   organizationId,
+  showCreateAction = true,
 }: {
   organizationId: string;
+  showCreateAction?: boolean;
 }) {
+  const t = useTranslations();
   const session = useSession();
   const organization = useOrganization(organizationId);
   if (!session.walletMatches) return <WorkspaceAccessNotice />;
   if (organization.isPending)
     return (
-      <Notice title="Loading workspace">
-        <p>Reading organization context…</p>
+      <Notice title={t("workspace.loading.title")}>
+        <p>{t("workspace.loading.body")}</p>
       </Notice>
     );
   if (organization.isError || !organization.data)
     return (
-      <Notice title="Workspace could not be loaded" error>
-        <p>{errorMessage(organization.error)}</p>
+      <Notice title={t("workspace.error.title")} error>
+        <p>
+          {errorMessage(organization.error, {
+            fallback: t("ui.error.requestFailed"),
+            rpcUnavailable: t("tx.error.rpcUnavailable", NETWORK),
+          })}
+        </p>
         <Button
           className="mt-3"
           variant="outline"
           onClick={() => void organization.refetch()}
         >
-          Retry
+          {t("workspace.retry")}
         </Button>
       </Notice>
     );
   const { organization: data } = organization.data;
   return (
     <div className="space-y-5">
-      <Link className="text-sm font-medium text-primary" href="/app">
-        ← Organizations
+      <Link
+        className="font-mono text-xs text-primary hover:underline"
+        href={appRoutes.settings}
+      >
+        <span aria-hidden>←</span> {t("workspace.backToOrganizations")}
       </Link>
       <PageHeading
-        eyebrow="HashVest organization"
+        eyebrow={t("workspace.eyebrow")}
         title={data.name}
         action={
-          <Link
-            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
-            href={`/app/organizations/${organizationId}/grants/new`}
-          >
-            Create grant <span aria-hidden>+</span>
-          </Link>
+          showCreateAction ? (
+            <Link
+              className={buttonVariants({ size: "sm" })}
+              href={appRoutes.organizationNewGrant(organizationId)}
+            >
+              {t("workspace.createGrant")} <span aria-hidden>+</span>
+            </Link>
+          ) : undefined
         }
       >
         <p>
-          {data.memberCount} {data.memberCount === 1 ? "member" : "members"} ·{" "}
-          {data.grantCount} {data.grantCount === 1 ? "grant" : "grants"}
+          {t(
+            data.memberCount === 1
+              ? "workspace.counts.member"
+              : "workspace.counts.members",
+            { count: data.memberCount },
+          )}{" "}
+          ·{" "}
+          {t(
+            data.grantCount === 1
+              ? "workspace.counts.grant"
+              : "workspace.counts.grants",
+            { count: data.grantCount },
+          )}
         </p>
       </PageHeading>
       <WorkspaceTabs organizationId={organizationId} />
@@ -204,15 +238,24 @@ export function OrganizationHeader({
 }
 
 export function MembersPreview({ organizationId }: { organizationId: string }) {
+  const t = useTranslations();
   const members = useOrganizationMembers(organizationId);
   if (members.isPending)
-    return <p className="text-sm text-muted-foreground">Loading members…</p>;
+    return (
+      <p className="text-sm text-muted-foreground">
+        {t("workspace.members.loading")}
+      </p>
+    );
   if (members.isError)
     return (
-      <p className="text-sm text-destructive">Members could not be loaded.</p>
+      <p className="text-sm text-destructive">{t("workspace.members.error")}</p>
     );
   if (!members.data?.length)
-    return <p className="text-sm text-muted-foreground">No members yet.</p>;
+    return (
+      <p className="text-sm text-muted-foreground">
+        {t("workspace.members.empty")}
+      </p>
+    );
   return (
     <div className="space-y-4">
       {members.data.slice(0, 4).map((member) => (
@@ -220,7 +263,9 @@ export function MembersPreview({ organizationId }: { organizationId: string }) {
       ))}
       {members.data.length > 4 && (
         <p className="text-xs text-muted-foreground">
-          +{members.data.length - 4} more members
+          {t("workspace.members.more", {
+            count: members.data.length - 4,
+          })}
         </p>
       )}
     </div>

@@ -62,6 +62,17 @@ describe("grant state derivation", () => {
     });
   });
 
+  it("prioritizes the onchain revoked state over claimed completion", () => {
+    expect(
+      deriveGrantState({
+        totalAllocation: allocation,
+        claimedAmount: allocation,
+        vaultBalance: 0n,
+        revoked: true,
+      }).lifecycle,
+    ).toBe("REVOKED");
+  });
+
   it("reports underfunding against the unclaimed allocation", () => {
     expect(
       deriveGrantState({

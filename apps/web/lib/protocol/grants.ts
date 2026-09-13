@@ -16,7 +16,7 @@ export const strategies = [
 export const strategyDescriptions = [
   "Unlock linearly over time. A cliff delays access without restarting the schedule.",
   "Unlock fixed allocations as your reviewer approves each milestone.",
-  "Unlock the smaller of time vested and approved milestone amounts. Both conditions apply.",
+  "Unlock any initial amount at start, then the smaller of remaining time-vested and approved milestone amounts. Both conditions apply to the remainder.",
 ] as const;
 
 export function shortAddress(address: string) {
@@ -49,7 +49,19 @@ export function dateLabel(timestamp: bigint) {
   });
 }
 
-export function errorMessage(error: unknown) {
+export type ErrorMessageOptions = {
+  /** Localized fallback for an error with no safe user-facing message. */
+  fallback?: string;
+  /** Localized replacement for the known wallet-RPC diagnostic. */
+  rpcUnavailable?: string;
+  /** Messages already translated by the caller and therefore worth keeping. */
+  preserve?: readonly string[];
+};
+
+export function errorMessage(
+  error: unknown,
+  options: ErrorMessageOptions = {},
+) {
   const message =
     error instanceof BaseError
       ? [error.shortMessage, error.details, error.message]
@@ -67,8 +79,12 @@ export function errorMessage(error: unknown) {
   if (
     /eth_getBlockByNumber|thirdweb support|custom eth_getblock/i.test(message)
   )
-    return "Your wallet's HSK Testnet RPC could not read a block. The token contract did not reject this request. Set the wallet RPC to https://testnet.hsk.xyz on chain 133, or use the canonical RPC repair button, then retry.";
-  return fallback;
+    return (
+      options.rpcUnavailable ??
+      "Your wallet's HSK Testnet RPC could not read a block. The token contract did not reject this request. Set the wallet RPC to https://testnet.hsk.xyz on chain 133, or use the canonical RPC repair button, then retry."
+    );
+  if (options.preserve?.includes(fallback)) return fallback;
+  return options.fallback ?? fallback;
 }
 
 export function validParty(value: string) {
@@ -84,14 +100,36 @@ export function normalizeAddress(value: string): Address | undefined {
   }
 }
 
-export function parseAllocation(value: string, decimals: number): bigint {
+/**
+ * Messages for the three ways an allocation can be rejected.
+ *
+ * Passed in rather than imported so this stays a pure protocol helper with
+ * no dependency on the i18n layer; callers supply already-translated text.
+ * The English defaults keep non-UI callers working unchanged.
+ */
+export type AllocationErrors = {
+  format: string;
+  decimals: string;
+  range: string;
+};
+
+export function parseAllocation(
+  value: string,
+  decimals: number,
+  errors?: Partial<AllocationErrors>,
+): bigint {
   if (!/^\d+(\.\d+)?$/.test(value))
-    throw new Error("Enter a positive decimal token amount.");
+    throw new Error(errors?.format ?? "Enter a positive decimal token amount.");
   if ((value.split(".")[1]?.length ?? 0) > decimals)
-    throw new Error(`This token supports at most ${decimals} decimal places.`);
+    throw new Error(
+      errors?.decimals ??
+        `This token supports at most ${decimals} decimal places.`,
+    );
   const amount = parseUnits(value, decimals);
   if (amount <= 0n || amount > 2n ** 256n - 1n)
-    throw new Error("Token amount is outside the supported range.");
+    throw new Error(
+      errors?.range ?? "Token amount is outside the supported range.",
+    );
   return amount;
 }
 

@@ -1,4 +1,4 @@
-# HashVest Revocable Grants: State-Transition & Accounting Specification (HAS-5)
+# HashVest Revocable Grants: State-Transition & Accounting Specification (HAS-25 / HAS-26)
 
 ## 1. Problem & Executive Summary
 
@@ -39,9 +39,10 @@ Upon `revoke()` by the issuer:
 #### A. TIME Vesting Strategy
 
 - **Calculation at Revocation ($t_{\text{rev}}$)**:
-  - If $t_{\text{rev}} < \text{start} + \text{cliff}$: $\text{earned} = 0$. Issuer recovers $100\%$; beneficiary entitlement is $0$.
+  - If $t_{\text{rev}} < \text{start}$: $\text{earned} = 0$. Issuer recovers $100\%$; beneficiary entitlement is $0$.
+  - If $t_{\text{rev}} < \text{start} + \text{cliff}$: $\text{earned} = \text{initialUnlock}$. Issuer recovers the remainder; the TGE amount is already earned.
   - If $t_{\text{rev}} \ge \text{start} + \text{duration}$: $\text{earned} = \text{totalAllocation}$. Issuer recovers $0$; beneficiary preserves $100\%$.
-  - Otherwise: $\text{earned} = \lfloor \frac{\text{totalAllocation} \times (t_{\text{rev}} - \text{start})}{\text{duration}} \rfloor$.
+  - Otherwise: $\text{earned} = \text{initialUnlock} + \lfloor \frac{(\text{totalAllocation} - \text{initialUnlock}) \times (t_{\text{rev}} - \text{start})}{\text{duration}} \rfloor$.
 - **Post-Revocation Time Behavior**: Time advancement ceases permanently for this grant. The linear curve is frozen at $t_{\text{rev}}$.
 
 #### B. MILESTONE Strategy
@@ -55,10 +56,11 @@ Upon `revoke()` by the issuer:
 #### C. HYBRID Strategy
 
 - **Calculation at Revocation**:
-  - $\text{earned} = \min(\text{vestedByTime}(t_{\text{rev}}), \text{milestoneUnlockedAmount})$.
-  - Both time and milestone criteria must be satisfied at or prior to $t_{\text{rev}}$.
-  - _Pending reviewer-approved unlocks_: If reviewer approved milestones totaling 50,000, but time vested is only 40,000, earned is $\min(40,000, 50,000) = 40,000$. The extra 10,000 unvested time capacity expires permanently because vesting terminates.
-  - If time vested is 60,000 but approved milestones total 40,000, earned is $\min(60,000, 40,000) = 40,000$. Unapproved milestones cannot be approved post-revocation.
+  - $\text{earned} = \text{initialUnlock} + \min(\text{vestedByTime}(t_{\text{rev}}) - \text{initialUnlock}, \text{milestoneUnlockedAmount})$ after `start`; $0$ before `start`.
+  - `initialUnlock` is earned at start even if no milestone is approved. The remaining allocation is still dual-capped by time and milestones.
+  - Both time and milestone criteria must be satisfied at or prior to $t_{\text{rev}}$ for the remainder.
+  - _Pending reviewer-approved unlocks_: If `initialUnlock` is 10,000, reviewer-approved milestones total 50,000, but remaining time vested is only 30,000, earned is $10,000 + \min(30,000, 50,000) = 40,000$. The extra 20,000 unvested time capacity expires permanently because vesting terminates.
+  - If remaining time vested is 50,000 but approved milestones total 30,000, earned is $10,000 + 30,000 = 40,000$. Unapproved milestones cannot be approved post-revocation.
 
 ---
 
@@ -126,11 +128,14 @@ Upon `revoke()` by the issuer:
 1. **Old Deployed Vaults**:
    - Deployed vaults lack `revoke()`, `revocable()`, `revoked()`, and `revokedAt()`.
    - Any external call to `revoke()` on old vaults will revert via Solidity EVM fallback rejection.
-   - Off-chain clients and web UI query `revocable` with graceful error catching: if function call reverts, default to `revocable: false`, `revoked: false`, `revokedAt: 0`, `revocationEarnedAmount: 0`.
+   - Off-chain clients probe `revocable` as the capability boundary. Only an unsupported selector/zero-data legacy response maps to `revocable: false`, `revoked: false`, `revokedAt: 0`, `revocationEarnedAmount: 0`; transport or current-vault read failures remain errors and hide stale lifecycle state.
    - Existing workflows (time claims, reviewer approvals, beneficiary claims) on old vaults remain 100% operational.
 2. **New Non-Revocable Grants**:
    - Can be created by setting `config.revocable = false`.
    - Calling `revoke()` on these vaults reverts with `GrantNotRevocable()`.
+3. **Creation Readability**:
+   - The factory `GrantCreated` event includes the `revocable` flag, while the
+     vault's `revocable()` getter remains the authoritative mode read.
 
 ---
 

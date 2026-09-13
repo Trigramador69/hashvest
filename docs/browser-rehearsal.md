@@ -29,8 +29,8 @@ extension interaction has been executed.
 | Canonical RPC    | `https://testnet.hsk.xyz`                                                                                                                           |
 | Native gas token | HSK                                                                                                                                                 |
 | Explorer         | [HSK Testnet Explorer](https://testnet-explorer.hskchain.net)                                                                                       |
-| HashVestFactory  | [`0xD854A966Bb680710Ae31a834AEC527D3A5d074e7`](https://testnet-explorer.hskchain.net/address/0xD854A966Bb680710Ae31a834AEC527D3A5d074e7)            |
-| Demo token       | [`hvUSD` at `0x757DDb21F99B9E949a62127603F94B1AAe80d600`](https://testnet-explorer.hskchain.net/address/0x757DDb21F99B9E949a62127603F94B1AAe80d600) |
+| HashVestFactory  | [`0x7a1cB78CDE03f85a3d42A2D8a93014173Afc1461`](https://testnet-explorer.hskchain.net/address/0x7a1cB78CDE03f85a3d42A2D8a93014173Afc1461)            |
+| Demo token       | [`hvUSD` at `0x61764AE7fa269CC77Aa9C4f905FD7421459687C9`](https://testnet-explorer.hskchain.net/address/0x61764AE7fa269CC77Aa9C4f905FD7421459687C9) |
 | Faucet           | **Get demo hvUSD** in the app; it calls `DemoToken.faucet()` and mints 1,000 hvUSD to the connected wallet                                          |
 
 Every transaction writer pays its own HSK gas: the issuer pays the token
@@ -92,7 +92,8 @@ was actually automated and observed.
 - [ ] Connect the issuer wallet and verify the displayed address matches the
       fixture.
 - [ ] Click **Sign in to workspace** and approve one SIWE message on chain 133.
-- [ ] Create the organization `HAS-9 Controlled Wallet Rehearsal`; set the
+- [ ] Open **Settings**, create the organization `HAS-9 Controlled Wallet
+Rehearsal`; set the
       issuer display name to `Issuer / workspace owner` and role/title to
       `Workspace Owner`. The issuer is its sole owner/member.
 - [ ] Add the reviewer address with the display name `Treasury Reviewer`.
@@ -102,7 +103,7 @@ was actually automated and observed.
 
 ### Create the HYBRID grant
 
-- [ ] Open **Create grant** from the organization workspace.
+- [ ] Open **Create grant** from the organization workspace under **Settings**.
 - [ ] Enter the title `HAS-9 controlled-wallet HYBRID rehearsal YYYY-MM-DD-NN`,
       replacing the suffix with the UTC date and run number.
 - [ ] Select the named beneficiary member and the demo `hvUSD` token.
@@ -113,8 +114,8 @@ was actually automated and observed.
       of `40` and `60` hvUSD.
 - [ ] Leave eligibility disabled.
 - [ ] Select the organization member `Treasury Reviewer` in **Reviewer**; do
-      not replace it with an external address. Confirm the terms are permanent
-      before submitting.
+      not replace it with an external address. Leave **Revocable grant**
+      unchecked and confirm the terms are permanent before submitting.
 - [ ] Approve token spending if prompted, then submit **Approve & create
       grant** from the issuer wallet.
 - [ ] Wait for the receipt. Record the GrantVault address and the public
@@ -130,7 +131,8 @@ metadata request is still pending.
 - [ ] Switch to the reviewer account in the browser wallet.
 - [ ] Reconnect if necessary and click **Sign in to workspace** again; a SIWE
       session belongs to one wallet and is not silently transferred.
-- [ ] Open the organization review queue and the existing grant.
+- [ ] Open the organization review queue under **Settings** and open the
+      existing grant.
 - [ ] Verify the reviewer role comes from the GrantVault reviewer address, then
       approve `Prototype accepted`. Record its explorer link.
 - [ ] Switch to the beneficiary account, reconnect, and explicitly sign in.

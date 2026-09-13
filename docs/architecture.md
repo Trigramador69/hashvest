@@ -1,6 +1,6 @@
 # HashVest architecture: Protocol and Cloud
 
-This document defines the boundary between the two product layers in this monorepo, the integration path between them, and the scope rules for the hackathon. It is a **scope gate**, not a feature: it introduces no protocol functionality and no contract change.
+This document defines the boundary between the two product layers in this monorepo, the integration path between them, and the scope rules for the hackathon. Protocol revocation semantics are defined by HAS-25/HAS-26; this document records how that functionality crosses the boundary without moving authority into Cloud.
 
 It exists because the repository holds two layers that are easy to confuse. Without an explicit boundary, later work can reimplement protocol behavior in the application, push product metadata onchain, or attempt a repository split under time pressure. Each of those is a demo-breaking mistake.
 
@@ -12,17 +12,18 @@ The single rule everything else follows:
 
 The Protocol is the trust boundary. It holds funds, enforces unlock math, and decides who may approve and who may claim. It runs entirely onchain and works without any part of the Cloud layer.
 
-| Path                                                 | Role                                                                        |
-| ---------------------------------------------------- | --------------------------------------------------------------------------- |
-| `packages/contracts/src/HashVestFactory.sol`         | Creates vaults; keeps role discovery arrays                                 |
-| `packages/contracts/src/GrantVault.sol`              | Immutable grant terms, milestone approval, claims                           |
-| `packages/contracts/src/GrantTypes.sol`              | Shared strategy and schedule types                                          |
-| `packages/contracts/src/IEligibilityProvider.sol`    | Optional eligibility adapter interface                                      |
-| `packages/contracts/src/DemoToken.sol`               | Faucet-mintable demo ERC20 (`hvUSD`); demo only                             |
-| `packages/contracts/src/DemoEligibilityProvider.sol` | Administrator-controlled demo allowlist; demo only                          |
-| `packages/contracts/script/DeployHashVest.s.sol`     | Chain-guarded deployment (aborts unless `block.chainid == 133`)             |
-| `packages/web3/src/protocol.ts`                      | The protocol-facing export surface (chains, ABIs, addresses, explorer URLs) |
-| `packages/web3/scripts/`                             | Deployment, ABI/address synchronization, smoke, verification                |
+| Path                                                 | Role                                                                                |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `packages/contracts/src/HashVestFactory.sol`         | Creates vaults; keeps role discovery arrays                                         |
+| `packages/contracts/src/GrantVault.sol`              | Immutable terms, milestone approval, beneficiary claims, optional issuer revocation |
+| `packages/contracts/src/SponsoredGrantVault.sol`     | Versioned beneficiary-signed first claim with an exact relayer binding              |
+| `packages/contracts/src/GrantTypes.sol`              | Shared strategy and schedule types                                                  |
+| `packages/contracts/src/IEligibilityProvider.sol`    | Optional eligibility adapter interface                                              |
+| `packages/contracts/src/DemoToken.sol`               | Faucet-mintable demo ERC20 (`hvUSD`); demo only                                     |
+| `packages/contracts/src/DemoEligibilityProvider.sol` | Administrator-controlled demo allowlist; demo only                                  |
+| `packages/contracts/script/DeployHashVest.s.sol`     | Chain-guarded deployment (aborts unless `block.chainid == 133`)                     |
+| `packages/web3/src/protocol.ts`                      | The protocol-facing export surface (chains, ABIs, addresses, explorer URLs)         |
+| `packages/web3/scripts/`                             | Deployment, ABI/address synchronization, smoke, verification                        |
 
 `packages/web3` is the **integration layer**, not a second protocol. It carries no business logic: it re-exports generated ABIs, the chain definitions, the confirmed deployment addresses, and explorer URL helpers. Its exports are generated from Foundry artifacts by `pnpm contracts:sync` and held in step by `pnpm contracts:sync:check`.
 
@@ -32,14 +33,39 @@ The Protocol is the trust boundary. It holds funds, enforces unlock math, and de
 
 The Cloud is the product layer. It makes the Protocol usable — workspaces, named participants, review queues, and role-aware navigation — and it is **optional to every protocol operation**. A grant created through `/grants/new` with raw addresses never touches it. If Supabase is unavailable, `/grants/<address>` still renders from live chain reads; `app/api/grants/[address]/context/route.ts` deliberately returns a null context rather than an error.
 
-| Path                                    | Role                                                        |
-| --------------------------------------- | ----------------------------------------------------------- |
-| `apps/web/app/**`                       | Next.js routes, pages, and Route Handlers                   |
-| `apps/web/lib/cloud/auth/**`            | SIWE challenge, one-time nonce, signed session cookie       |
-| `apps/web/lib/cloud/organizations/**`   | Validation, server authorization, browser API client, types |
-| `apps/web/lib/cloud/supabase-server.ts` | The only service-role Supabase client; server-only          |
-| `apps/web/lib/shared/i18n/**`           | Locale selection and the typed translation boundary         |
-| `supabase/migrations/**`                | Organizations, members, grant associations, auth nonces     |
+| Path                                    | Role                                                                                                           |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `apps/web/app/**`                       | Next.js routes, pages, and Route Handlers                                                                      |
+| `apps/web/lib/cloud/auth/**`            | SIWE challenge, one-time nonce, signed session cookie                                                          |
+| `apps/web/lib/cloud/organizations/**`   | Validation, server authorization, template and sponsorship data access, browser API client, types              |
+| `apps/web/lib/cloud/supabase-server.ts` | The only service-role Supabase client; server-only                                                             |
+| `apps/web/lib/shared/i18n/**`           | Locale selection and the typed translation boundary                                                            |
+| `apps/web/lib/shared/grant-presets/**`  | Grant preset catalog, organization template rules, `template_key` linkage, wizard mapping, and field ownership |
+| `supabase/migrations/**`                | Organizations, members, grant associations, organization templates, auth nonces, sponsorship policy and state  |
+
+### Dashboard presentation projection
+
+The redesign in [`design.md`](../design.md) changes presentation structure,
+not authority. `apps/web/hooks/use-dashboard-analytics.ts` discovers vaults
+from the factory's issuer/beneficiary/reviewer arrays, reads each GrantVault's
+current snapshot, and fetches the factory/vault lifecycle logs for the activity
+timeline. `apps/web/lib/dashboard/analytics.ts` is a pure reducer that derives
+roles, lifecycle counts, claimable/pending queues, strategy distribution, and
+six monthly buckets from those reads.
+
+The analytics object is intentionally ephemeral and read-only. It is not stored
+in Supabase, does not aggregate token units into a currency, and never grants a
+permission. If a log range or optional workspace enrichment fails, the UI marks
+the timeline partial while retaining the live snapshot. The guarded
+`/visual/dashboard` route supplies deterministic fixture data only to local
+Playwright snapshots and returns 404 in production.
+
+The application shell keeps this projection easy to find without inventing
+product surfaces: `/app` is the overview, `/app/grants` is the direct role-based
+grant list, and `/app/settings` owns organization context. Organization detail
+and management live under `/app/settings/organizations/<uuid>`. The legacy
+`/app/organizations/...` paths only redirect to those canonical routes; they do
+not define a second UI or data boundary.
 
 Cloud authority stops at workspace access. The SIWE statement in `apps/web/lib/cloud/auth/constants.ts` says so explicitly: the signature _"authenticates workspace access only; it does not authorize onchain actions."_
 
@@ -57,11 +83,12 @@ HashVest Cloud
         v
 HashVest Protocol
   HashVestFactory   role discovery arrays
-  GrantVault        immutable terms, milestone approval, claims
+  GrantVault        immutable terms, approvals, claims, optional revocation
   GrantTypes, IEligibilityProvider
         |
         v
 HSK Testnet (chain 133)
+  SponsoredGrantVault  signed first claim + native HSK gas
 ```
 
 Inside `apps/web/lib`, the same direction holds between three trees:
@@ -70,32 +97,49 @@ Inside `apps/web/lib`, the same direction holds between three trees:
 - `lib/cloud/**` — Supabase, sessions, organizations. May import `lib/protocol/**`.
 - `lib/shared/**` — layer-neutral utilities, including the i18n boundary. Imported by both, imports neither.
 
-Localization is presentation state, so it lives in `lib/shared/i18n/**` and imports neither layer. English is the source of truth: `dictionaries/en.ts` defines `TranslationKey`, and every other locale is typed as a subset of it, so a missing or blank string falls back to English instead of surfacing a raw key. The locale is a cookie, not a route segment — no URL carries a language, and `router.refresh()` applies a change without remounting the wallet providers. Technical literals (addresses, hashes, token symbols, chain ids, explorer URLs) are never written into a message; they arrive through `{placeholder}` substitution so they stay identical in all three locales.
+AI assistance follows the same direction. The draft contract, its parser, its normalizer and the offline drafter are pure and live in `lib/shared/ai-grant-draft/**`; the provider call, the rate limiter and the pipeline live in `lib/cloud/ai/**` behind `app/api/ai/grant-draft/route.ts`. Nothing AI-shaped enters `packages/web3` or `packages/contracts`. See [`ai-grant-builder.md`](ai-grant-builder.md).
+
+Localization is presentation state, so it lives in `lib/shared/i18n/**` and imports neither layer. English is the source of truth: `dictionaries/en.ts` defines `TranslationKey`, and every other locale is typed as a subset of it, so a missing or blank string falls back to English instead of surfacing a raw key. The locale is a cookie, not a route segment — no URL carries a language, and `router.refresh()` applies a change without remounting the wallet providers. User-visible generic and HSK RPC errors use localized `errorMessage` options; already-translated validation and wallet-guard errors are preserved. Technical literals (addresses, hashes, token symbols, chain ids, explorer URLs) are never written into a message; they arrive through `{placeholder}` substitution so they stay identical in all three locales.
 
 ## Authority: which layer owns which field
 
-| Owned by HSK (authoritative)                 | Owned by Supabase (product context)             |
-| -------------------------------------------- | ----------------------------------------------- |
-| Issuer, beneficiary, reviewer                | Organization name and description               |
-| Token, allocation, strategy                  | Membership and workspace ownership (`is_owner`) |
-| Vesting start, cliff, duration               | Display names and presentation role labels      |
-| Milestone titles, amounts, approval state    | Organization ↔ GrantVault associations          |
-| Vested, unlocked, claimable, claimed amounts | Grant descriptions, template metadata           |
-| Eligibility, balances, funds                 | —                                               |
+| Owned by HSK (authoritative)                          | Owned by Supabase (product context)                          |
+| ----------------------------------------------------- | ------------------------------------------------------------ |
+| Issuer, beneficiary, reviewer                         | Organization name and description                            |
+| Token, allocation, strategy                           | Membership and workspace ownership (`is_owner`)              |
+| Vesting start, cliff, duration, initial unlock        | Display names and presentation role labels                   |
+| Milestone titles, amounts, approval state             | Organization ↔ GrantVault associations                       |
+| Revocable mode, revoked state, revocation time        | Grant descriptions and organization templates                |
+| Vested, unlocked, claimable, claimed amounts          | —                                                            |
+| Eligibility, balances, funds, signed claim settlement | Sponsorship policy, reservations, and request/receipt status |
 
 Two consequences that have already shaped the code:
 
 - **Presentation labels are not permissions.** A member labeled `Treasury Reviewer` cannot approve anything. `resolveProtocolRoles` in `apps/web/lib/protocol/roles.ts` derives issuer/beneficiary/reviewer by comparing the connected wallet to onchain addresses only. The migration says the same at the column level: `role_label` is _"Presentation metadata only; it has no onchain authority."_
+- **Templates are suggestions, not state.** An organization template stores milestone percentages rather than amounts and a reviewer default as a member reference rather than an address; applying one only fills editable wizard fields. See [`organization-templates.md`](organization-templates.md).
 - **Workspace owner is not issuer.** The `Owner` badge in the members view means "owns this Supabase organization." Linking a vault requires both: `requireOrganizationOwner` gates who may attempt it, and an onchain `issuer()` read gates whether it is accepted.
 
 Amounts are never cached in Supabase. Dashboard counts in `apps/web/hooks/use-organizations.ts` come from live vault reads.
+
+Sponsored first claims split authority deliberately. `SponsoredGrantVault`
+owns the beneficiary, exact amount, nonce, deadline, relayer binding, and
+one-time settlement. Cloud owns only the organization opt-in, reservation
+limit, request lease, and receipt projection. `apps/web/lib/cloud/sponsored-claims/relayer.ts`
+is the only module allowed to read `SPONSORED_CLAIM_RELAYER_PRIVATE_KEY`.
+Organization-created grants call `HashVestFactory.createSponsoredGrant`; the
+direct wizard calls `createGrant` and retains the legacy manual-claim surface.
+The complete threat model and deployment gate are in
+[`sponsored-claims.md`](sponsored-claims.md).
+
+- **An AI draft owns nothing.** It is a suggestion shaped as an editable preset, so it reaches the wizard through the same `assertValidPreset` gate a hand-written preset passes and `prepare()` remains the only source of truth for what is submitted. Its draft type has no field for a beneficiary, reviewer, token, eligibility provider, start timestamp, or revocability, so it cannot suggest an identity or a transaction at all. The only trace a grant keeps of one is `organization_grants.template_key = "ai-draft"`, which is presentation metadata like every other template key. Prompts are never retained.
 
 ## Public integration surface and extension points
 
 The Protocol is usable without this application. Anyone integrating should depend on the contract ABIs and the factory's role discovery arrays, not on the Cloud API.
 
 - **Alternative frontends** — consume `@hashvest/web3`'s protocol surface (or the raw ABIs) and read role discovery from `HashVestFactory`. No Supabase, no session, no Route Handler required.
-- **Grant workflows** — build vaults through `HashVestFactory` directly. The wizard at `/grants/new` is one client, not the interface.
+- **Grant workflows** — build vaults through `HashVestFactory` directly. The shared five-step wizard at `/grants/new` is one client, not the interface; its template choice and localized suggestions are Cloud presentation metadata, while submitted terms remain onchain truth.
+- **Sponsored first claims** — integrations may use `SponsoredGrantVault.claimWithSignature` with the published EIP-712 field set. The beneficiary signature must bind the exact vault, beneficiary, amount, nonce, deadline, and relayer; organization policy and request tracking are optional Cloud behavior, not protocol authority.
 - **Eligibility and compliance adapters** — implement `IEligibilityProvider` and pass the address at creation. `DemoEligibilityProvider` is a reference implementation, not KYC.
 - **Third-party integrations** — read-only indexing, reporting, and notification services can be built entirely from chain state and explorer data.
 
@@ -118,12 +162,12 @@ Nothing outside that list is extractable today. Anything added to `packages/web3
 
 The boundary was previously enforced by convention alone. It is now checked. `pnpm boundary:check` runs in CI and fails with a readable message and exit code 1:
 
-| Check                  | Fails when                                                                                                                                                                                         |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Secret containment     | `SUPABASE_SERVICE_ROLE_KEY` or `AUTH_SECRET` is referenced outside the server-only allowlist, is prefixed `NEXT_PUBLIC_`, or a module importing `createSupabaseAdmin` lacks `import "server-only"` |
-| Layer import direction | `packages/web3` or `packages/contracts` references `apps/web`, Supabase, or Next; or `lib/protocol/**` imports `lib/cloud/**`                                                                      |
-| Protocol export drift  | The real protocol export surface no longer matches `packages/web3/protocol-surface.json`                                                                                                           |
-| Documentation links    | A relative link or in-repo file reference in `README.md` or `docs/*.md` is dead                                                                                                                    |
+| Check                  | Fails when                                                                                                                                                                                                                                               |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Secret containment     | `SUPABASE_SERVICE_ROLE_KEY`, `AUTH_SECRET`, `SPONSORED_CLAIM_RELAYER_PRIVATE_KEY`, or `AI_API_KEY` is referenced outside the server-only allowlist, is prefixed `NEXT_PUBLIC_`, or a module importing `createSupabaseAdmin` lacks `import "server-only"` |
+| Layer import direction | `packages/web3` or `packages/contracts` references `apps/web`, Supabase, or Next; or `lib/protocol/**` imports `lib/cloud/**`                                                                                                                            |
+| Protocol export drift  | The real protocol export surface no longer matches `packages/web3/protocol-surface.json`                                                                                                                                                                 |
+| Documentation links    | A relative link or in-repo file reference in `README.md` or `docs/*.md` is dead                                                                                                                                                                          |
 
 These complement guards that already existed: `import "server-only"` on every service-role path, Postgres RLS revoking all access from `public`/`anon`/`authenticated` with no policies granted, `chain_id = 133` check constraints and TypeScript literal types, and the onchain issuer verification before grant association.
 
@@ -135,7 +179,7 @@ P0 work only. Everything else is post-hackathon.
 | --------------------------------------- | -------------------------------------------- | ------ |
 | M0 — Protocol/Cloud boundary & baseline | HAS-5                                        | 1      |
 | M1 — Global grant templates             | HAS-8, HAS-11                                | 8      |
-| M2 — Revocation & protocol safety       | HAS-25, HAS-26 _(blocked)_                   | 13     |
+| M2 — Revocation & protocol safety       | HAS-25, HAS-26                               | 13     |
 | M3 — Lifecycle & funding health         | HAS-6                                        | 3      |
 | M4 — i18n, browser E2E & submission     | HAS-7, HAS-9, HAS-10, HAS-20, HAS-21, HAS-22 | 15     |
 | **Total**                               |                                              | **40** |
@@ -147,9 +191,9 @@ P0 work only. Everything else is post-hackathon.
 In force from the moment this document merges until submission:
 
 1. **Nothing enters hackathon scope without something leaving it.** Scope is a swap, never an addition.
-2. **No new protocol functionality.** M2 is the only milestone permitted to change Solidity, and only through HAS-25 then HAS-26.
+2. **No untracked protocol functionality.** The explicitly requested Linear P1 slice HAS-23/HAS-24 is the recorded exception; any other protocol change still needs its own issue and scope decision.
 3. **No repository split.** Deferred to HAS-38.
-4. **P1/P2/P3 stay in M5–M7.** A good idea during the hackathon is a Linear issue, not a commit.
+4. **Unrequested P1/P2/P3 stay in M5–M7.** HAS-23/HAS-24 are the active requested P1 exception; other ideas remain Linear issues, not commits.
 5. **M4 is reserved.** Demo, regression, and submission work is not a source of slack for feature work.
 
 ## Roadmap ownership
@@ -167,6 +211,6 @@ In force from the moment this document merges until submission:
 
 ## Security boundary
 
-HashVest MVP is unaudited, targets HSK Testnet only, and uses a faucet-mintable demo token. It is not production custody software. The contracts have no revocation or emergency issuer withdrawal path by design; adding revocation is the explicit subject of HAS-25 and HAS-26 and must preserve earned-entitlement invariants.
+HashVest MVP is unaudited, targets HSK Testnet only, and uses a faucet-mintable demo token. It is not production custody software. Explicitly revocable new vaults permit only issuer-triggered, one-way recovery of unearned allocation; earned and claimed beneficiary value is preserved. Non-revocable and previously deployed vaults retain their permanent terms.
 
 Compromising the Cloud layer must not put funds at risk. That property follows from this boundary: Supabase holds no key material, no signing authority, and no amount that any claim depends on.

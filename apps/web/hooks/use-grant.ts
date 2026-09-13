@@ -3,16 +3,28 @@
 import { useQuery } from "@tanstack/react-query";
 import { usePublicClient } from "wagmi";
 import { erc20Abi, zeroAddress, type Address } from "viem";
-import { grantVaultAbi, eligibilityProviderAbi } from "@hashvest/web3";
+import {
+  grantVaultAbi,
+  eligibilityProviderAbi,
+  hskTestnet,
+  sponsoredGrantVaultAbi,
+} from "@hashvest/web3";
+
+import { readRevocationState } from "@/lib/protocol/revocation";
+import { useTranslations } from "@/lib/shared/i18n/provider";
+
+const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
 export function useToken(address: Address | undefined) {
+  const t = useTranslations();
   const client = usePublicClient({ chainId: 133 });
   return useQuery({
     queryKey: ["token", 133, address],
     enabled: Boolean(address && client),
     staleTime: 60000,
     queryFn: async () => {
-      if (!client || !address) throw new Error("Token address is required.");
+      if (!client || !address)
+        throw new Error(t("tx.error.tokenAddressRequired"));
       const [decimals, symbol] = await Promise.all([
         client.readContract({
           address,
@@ -27,13 +39,14 @@ export function useToken(address: Address | undefined) {
 }
 
 export function useGrant(address: Address) {
+  const t = useTranslations();
   const client = usePublicClient({ chainId: 133 });
   return useQuery({
     queryKey: ["grant", 133, address],
     enabled: Boolean(client),
     refetchInterval: 7000,
     queryFn: async () => {
-      if (!client) throw new Error("HSK Testnet RPC is unavailable.");
+      if (!client) throw new Error(t("tx.error.rpcUnavailable", NETWORK));
       // One block snapshot keeps related metrics consistent as time advances.
       const blockNumber = await client.getBlockNumber();
       const contract = { address, abi: grantVaultAbi, blockNumber };
@@ -56,10 +69,7 @@ export function useGrant(address: Address) {
         claimableAmount,
         milestones,
         initialUnlock,
-        revocable,
-        revoked,
-        revokedAt,
-        revocationEarnedAmount,
+        revocationState,
       ] = await Promise.all([
         client.readContract({ ...contract, functionName: "title" }),
         client.readContract({ ...contract, functionName: "issuer" }),
@@ -87,18 +97,19 @@ export function useGrant(address: Address) {
         client
           .readContract({ ...contract, functionName: "initialUnlock" })
           .catch(() => 0n),
-        client
-          .readContract({ ...contract, functionName: "revocable" })
-          .catch(() => false),
-        client
-          .readContract({ ...contract, functionName: "revoked" })
-          .catch(() => false),
-        client
-          .readContract({ ...contract, functionName: "revokedAt" })
-          .catch(() => 0n),
-        client
-          .readContract({ ...contract, functionName: "revocationEarnedAmount" })
-          .catch(() => 0n),
+        readRevocationState({
+          revocable: () =>
+            client.readContract({ ...contract, functionName: "revocable" }),
+          revoked: () =>
+            client.readContract({ ...contract, functionName: "revoked" }),
+          revokedAt: () =>
+            client.readContract({ ...contract, functionName: "revokedAt" }),
+          revocationEarnedAmount: () =>
+            client.readContract({
+              ...contract,
+              functionName: "revocationEarnedAmount",
+            }),
+        }),
       ]);
       const tokenContract = { address: token, abi: erc20Abi, blockNumber };
       const [decimals, symbol, balance, beneficiaryBalance, eligibility] =
@@ -130,6 +141,36 @@ export function useGrant(address: Address) {
                   () => ({ enabled: true, eligible: false, error: true }),
                 ),
         ]);
+      const sponsoredClaim = await (async () => {
+        try {
+          const supported = await client.readContract({
+            address,
+            abi: sponsoredGrantVaultAbi,
+            functionName: "supportsSponsoredClaims",
+            blockNumber,
+          });
+          if (!supported)
+            return { supported: false as const, nonce: 0n, used: false };
+          const [nonce, used] = await Promise.all([
+            client.readContract({
+              address,
+              abi: sponsoredGrantVaultAbi,
+              functionName: "sponsoredClaimNonce",
+              blockNumber,
+            }),
+            client.readContract({
+              address,
+              abi: sponsoredGrantVaultAbi,
+              functionName: "sponsoredClaimUsed",
+              blockNumber,
+            }),
+          ]);
+          return { supported: true as const, nonce, used };
+        } catch {
+          // Legacy GrantVaults do not expose the sponsored-claim extension.
+          return { supported: false as const, nonce: 0n, used: false };
+        }
+      })();
       return {
         title,
         issuer,
@@ -149,15 +190,16 @@ export function useGrant(address: Address) {
         claimableAmount,
         milestones,
         initialUnlock,
-        revocable,
-        revoked,
-        revokedAt,
-        revocationEarnedAmount,
+        revocable: revocationState.revocable,
+        revoked: revocationState.revoked,
+        revokedAt: revocationState.revokedAt,
+        revocationEarnedAmount: revocationState.revocationEarnedAmount,
         decimals,
         symbol,
         balance,
         beneficiaryBalance,
         eligibility,
+        sponsoredClaim,
         blockNumber,
       };
     },

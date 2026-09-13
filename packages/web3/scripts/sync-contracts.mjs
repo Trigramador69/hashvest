@@ -8,6 +8,7 @@ import { artifactPath, broadcastPath, deploymentPath, root } from "./paths.mjs";
 const contracts = [
   ["HashVestFactory", "hashVestFactoryAbi"],
   ["GrantVault", "grantVaultAbi"],
+  ["SponsoredGrantVault", "sponsoredGrantVaultAbi"],
   ["DemoToken", "demoTokenAbi"],
   ["DemoEligibilityProvider", "demoEligibilityProviderAbi"],
   ["IEligibilityProvider", "eligibilityProviderAbi"],
@@ -119,7 +120,7 @@ async function main() {
     console.log("Generated ABIs match Foundry artifacts.");
   } else {
     await writeFile(target, output);
-    console.log("Synchronized five contract ABIs.");
+    console.log("Synchronized six contract ABIs.");
   }
 }
 

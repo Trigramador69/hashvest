@@ -310,4 +310,31 @@ contract InitialUnlockTest is HashVestTestBase {
         assertGe(u1, initialUnlock);
         assertGe(u2, initialUnlock);
     }
+
+    function test_revocationDuringCliffPreservesInitialUnlock() public {
+        GrantConfig memory grant = configWithInitial(UnlockStrategy.TIME, TEN_PERCENT);
+        grant.revocable = true;
+        vm.prank(issuer);
+        GrantVault vault = GrantVault(factory.createGrant(grant, new MilestoneInput[](0)));
+
+        vm.warp(START + 30 days);
+        assertEq(vault.unlockedAmount(), TEN_PERCENT);
+
+        uint256 issuerBalanceBefore = token.balanceOf(issuer);
+        vm.prank(issuer);
+        vault.revoke();
+
+        assertTrue(vault.revoked());
+        assertEq(vault.revocationEarnedAmount(), TEN_PERCENT);
+        assertEq(vault.claimableAmount(), TEN_PERCENT);
+        assertEq(token.balanceOf(issuer) - issuerBalanceBefore, NINETY_PERCENT);
+
+        vm.prank(beneficiary);
+        vault.claim();
+        assertEq(token.balanceOf(beneficiary), TEN_PERCENT);
+        assertEq(vault.claimableAmount(), 0);
+
+        vm.warp(START + DURATION);
+        assertEq(vault.unlockedAmount(), TEN_PERCENT);
+    }
 }

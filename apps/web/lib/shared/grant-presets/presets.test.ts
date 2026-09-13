@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import { assertValidCatalog } from "./apply-preset";
-import { GRANT_PRESETS, getGrantPreset, type GrantPresetKey } from "./presets";
+import {
+  GENERATED_PRESET_KEY,
+  GRANT_PRESETS,
+  findGrantPreset,
+  getGrantPreset,
+  type GrantPresetKey,
+} from "./presets";
 
 const expectedKeys: GrantPresetKey[] = [
   "builder-grant",
@@ -53,5 +59,22 @@ describe("grant preset catalog", () => {
     expect(() => getGrantPreset("nope" as GrantPresetKey)).toThrow(
       "Unknown grant preset",
     );
+  });
+
+  it("leaves the generated draft key unclaimed by the catalog", () => {
+    // An AI draft (HAS-16/HAS-18) is built per request and has no catalog
+    // entry to look up, so a preset claiming this key would shadow it.
+    expect(GRANT_PRESETS.map((preset) => preset.key)).not.toContain(
+      GENERATED_PRESET_KEY,
+    );
+    expect(findGrantPreset(GENERATED_PRESET_KEY)).toBeUndefined();
+  });
+
+  it("reads a stored template key back without throwing on an unknown one", () => {
+    expect(findGrantPreset("builder-grant")?.name).toBe("Builder Grant");
+    // organization_grants.template_key holds arbitrary text, and a key may be
+    // retired or belong to an organization template (HAS-13).
+    for (const key of ["retired-preset", "", null, undefined])
+      expect(findGrantPreset(key)).toBeUndefined();
   });
 });

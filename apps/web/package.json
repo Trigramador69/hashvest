@@ -7,8 +7,9 @@
     "build": "next build",
     "start": "next start",
     "test": "vitest run",
-    "lint": "eslint .",
-    "typecheck": "next typegen && tsc --noEmit"
+    "lint": "eslint . --ignore-pattern .next --ignore-pattern .next-visual --ignore-pattern test-results",
+    "typecheck": "next typegen && tsc --noEmit",
+    "visual": "playwright test"
   },
   "dependencies": {
     "@hashvest/web3": "workspace:*",
@@ -18,9 +19,11 @@
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "jose": "^6.2.12",
+    "lucide-react": "^1.45.0",
     "next": "16.3.5",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "recharts": "^3.10.1",
     "server-only": "^0.0.1",
     "siwe": "^3.0.0",
     "tailwind-merge": "3.6.0",
@@ -29,6 +32,7 @@
   },
   "devDependencies": {
     "@hashvest/config": "workspace:*",
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "22.20.2",
     "@types/react": "19.2.10",

@@ -85,7 +85,12 @@ describe("interpolation", () => {
   const t = createTranslator(getMessages("en"));
 
   it("substitutes named placeholders", () => {
-    expect(t("wallet.unknownChain", { chainId: 133 })).toBe("Chain 133");
+    expect(
+      t("session.switchNetworkChain", {
+        network: "HSK Testnet",
+        chainId: 133,
+      }),
+    ).toBe("Switch your wallet to HSK Testnet (chain 133) first.");
   });
 
   it("keeps technical literals verbatim", () => {
@@ -114,7 +119,40 @@ describe("interpolation", () => {
   });
 
   it("does not substitute into messages that take no values", () => {
-    expect(t("wallet.label")).toBe(en["wallet.label"]);
+    expect(t("shell.home")).toBe(en["shell.home"]);
+  });
+});
+
+describe("placeholder parity", () => {
+  const slots = (value: string) =>
+    [...value.matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort();
+
+  it("keeps the same {placeholders} in every locale", () => {
+    // A translation that drops a slot renders a sentence with a hole in it and
+    // fails nothing else: no type error, no missing key, no blank string. The
+    // slots carry addresses, amounts and chain ids, so a dropped one is a
+    // demo-visible bug.
+    for (const locale of LOCALE_CODES) {
+      const messages = getMessages(locale) as Record<string, string>;
+      for (const key of KEYS) {
+        expect(slots(messages[key]), `${locale} → ${key}`).toEqual(
+          slots(en[key]),
+        );
+      }
+    }
+  });
+
+  it("never invents a placeholder English does not have", () => {
+    for (const locale of LOCALE_CODES) {
+      const messages = getMessages(locale) as Record<string, string>;
+      for (const key of KEYS) {
+        for (const slot of slots(messages[key])) {
+          expect(slots(en[key]), `${locale} → ${key} → {${slot}}`).toContain(
+            slot,
+          );
+        }
+      }
+    }
   });
 });
 

@@ -8,7 +8,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IEligibilityProvider} from "./IEligibilityProvider.sol";
 
-/// @notice A single grant with immutable terms. No revocation or administrator withdrawals.
+/// @notice A single grant with immutable terms and optional issuer revocation.
 contract GrantVault is ReentrancyGuard {
     using SafeERC20 for IERC20;
 
@@ -149,11 +149,16 @@ contract GrantVault is ReentrancyGuard {
 
     function claim() external nonReentrant {
         if (msg.sender != beneficiary) revert UnauthorizedBeneficiary();
+        _claim(claimableAmount());
+    }
+
+    /// @dev Shared claim settlement for the beneficiary path and versioned
+    /// signed-claim extensions. The caller must authorize the path first.
+    function _claim(uint256 amount) internal {
         if (eligibilityProvider != address(0) && !IEligibilityProvider(eligibilityProvider).isEligible(beneficiary)) {
             revert BeneficiaryNotEligible();
         }
-        uint256 amount = claimableAmount();
-        if (amount == 0) revert NothingToClaim();
+        if (amount == 0 || amount > claimableAmount()) revert NothingToClaim();
         claimedAmount += amount;
         IERC20(token).safeTransfer(beneficiary, amount);
         emit TokensClaimed(beneficiary, token, amount, claimedAmount);
