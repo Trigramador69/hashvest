@@ -139,6 +139,7 @@ export function WorkspaceTabs({ organizationId }: { organizationId: string }) {
     ["overview", appRoutes.organization(organizationId)],
     ["grants", appRoutes.organizationGrants(organizationId)],
     ["members", appRoutes.organizationMembers(organizationId)],
+    ["templates", appRoutes.organizationTemplates(organizationId)],
   ] as const;
   return (
     <nav

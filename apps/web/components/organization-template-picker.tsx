@@ -10,6 +10,7 @@ import {
 } from "@/hooks/use-organizations";
 import type { OrganizationTemplate } from "@/lib/cloud/organizations/types";
 import { strategyKey } from "@/lib/shared/i18n/keys";
+import { appRoutes } from "@/lib/shared/routes";
 import { useTranslations } from "@/lib/shared/i18n/provider";
 
 import { PresetOption } from "./preset-option";
@@ -124,7 +125,7 @@ export function OrganizationTemplatePicker({
       {organizationId && isOwner && (
         <Link
           className="inline-block text-xs font-medium text-primary underline underline-offset-4"
-          href={`/app/organizations/${organizationId}/templates`}
+          href={appRoutes.organizationTemplates(organizationId)}
         >
           {t("wizard.orgTemplates.manage")}
         </Link>
