@@ -701,7 +701,8 @@ export function CohortCreator({
                     <div className="flex-1 w-full sm:w-auto">
                       {organizationId ? (
                         <MemberPicker
-                          label=""
+                          label="Beneficiary"
+                          hint="Select workspace member or enter external address"
                           choosePlaceholder="Select member or external"
                           members={organizationMembers.data}
                           memberId={member.memberId ?? ""}
