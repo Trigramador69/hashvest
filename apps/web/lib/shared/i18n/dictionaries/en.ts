@@ -14,6 +14,19 @@ export const en = {
   "ai.tools.failed":
     "The analysis could not be completed. You can continue manually and try again.",
   "ai.tools.working": "Preparing an advisory suggestion…",
+  "ai.tools.redacted":
+    "Sensitive text was removed before processing or displaying the suggestion.",
+  "ai.tools.replace":
+    "Replace the current template fields with this suggestion? Your edits will be replaced.",
+  "ai.templates.title": "Generate a template with AI",
+  "ai.templates.lede":
+    "Describe a reusable configuration, then review and edit it before saving.",
+  "ai.templates.prompt": "What should this template describe?",
+  "ai.templates.unavailable":
+    "AI generation is unavailable. Continue with the template editor below.",
+  "ai.templates.apply": "Apply to the editor",
+  "ai.templates.disclaimer":
+    "The owner reviews and explicitly saves the template. Applying a suggestion does not save it or request a wallet transaction. Choose any default reviewer yourself.",
   // Shell: header, navigation, footer.
   "shell.home": "HashVest home",
   "shell.nav.label": "Main navigation",

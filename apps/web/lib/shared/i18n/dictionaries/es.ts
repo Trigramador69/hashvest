@@ -14,6 +14,19 @@ export const es: TranslationDictionary = {
   "ai.tools.failed":
     "No se pudo completar el análisis. Puedes continuar manualmente y reintentar.",
   "ai.tools.working": "Preparando una sugerencia orientativa…",
+  "ai.tools.redacted":
+    "Se eliminó texto sensible antes de procesar o mostrar la sugerencia.",
+  "ai.tools.replace":
+    "¿Reemplazar los campos actuales con esta sugerencia? Se reemplazarán tus ediciones.",
+  "ai.templates.title": "Generar plantilla con IA",
+  "ai.templates.lede":
+    "Describe una configuración reutilizable; revísala y edítala antes de guardar.",
+  "ai.templates.prompt": "¿Qué debe definir esta plantilla?",
+  "ai.templates.unavailable":
+    "La generación con IA no está disponible. Continúa con el editor de abajo.",
+  "ai.templates.apply": "Aplicar al editor",
+  "ai.templates.disclaimer":
+    "El propietario revisa y guarda la plantilla explícitamente. Aplicar una sugerencia no la guarda ni solicita transacciones. Elige tú el revisor predeterminado.",
   "shell.home": "Inicio de HashVest",
   "shell.nav.label": "Navegación principal",
   "shell.footer.tagline": "Concesiones programables en HashKey Chain",
