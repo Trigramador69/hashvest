@@ -6,11 +6,13 @@ Submission for the **Ethereum Bolivia Buildathon 2026** (Cochabamba) and the **E
 
 ## Selected tracks
 
-| Portal                 | Track                                                                                        | Why HashVest fits                                                                                       |
-| ---------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Ethereum Bolivia · EAG | **Real World Applications powered by HSK Chain** — DeFi, Payments, Blockchain Infrastructure | Grant and vesting payouts are a real treasury workflow, built on and integrated with HSK Chain.         |
-| EAG Global             | **6. Real-World Ethereum Applications**                                                      | Public goods funding, contribution records, and applications for emerging regions.                      |
-| Ethereum Bolivia · EAG | **Road to ShanhaiWoo**                                                                       | The product is fully localized in English, 简体中文, and Español for Shenzhen and Latin American users. |
+| Portal                 | Track                                                                                        | Why HashVest fits                                                                                                                          |
+| ---------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Ethereum Bolivia · EAG | **Real World Applications powered by HSK Chain** — DeFi, Payments, Blockchain Infrastructure | Grant and vesting payouts are a real treasury workflow, built on and integrated with HSK Chain.                                            |
+| EAG Global             | **6. Real-World Ethereum Applications**                                                      | Public goods funding, contribution records, and applications for emerging regions.                                                         |
+| Ethereum Bolivia · EAG | **Road to ShanhaiWoo**                                                                       | The product is fully localized in English, 简体中文, and Español for Shenzhen and Latin American users.                                    |
+| EAG Global             | **1. AI x Ethereum & Agent Economy**                                                         | Natural-language grant creation where the model drafts and a human signs — a safe spending policy enforced by the schema, not by a prompt. |
+| Ethereum Bolivia · EAG | **AI Agents · AI × Web3** (HSK Chain)                                                        | An AI that turns a sentence into grant terms on HSK Chain, and structurally cannot select a wallet or move value.                          |
 
 All IRL projects select **Bolivia Hackathon** on the EAG portal, and HSK Chain track entries select **HSK Chain** as well.
 
@@ -53,6 +55,7 @@ Verified against the current `main` branch:
 - **Grant presets** — Builder Grant, Employee Vesting, Advisor Vesting, and Ecosystem Grant — chosen in the first step of a five-step creation wizard (Template, Grant, Strategy, Conditions, Review). Every prefilled value stays editable before signing.
 - **Lifecycle and funding health** (Active, Completed, Revoked) computed from live HSK reads, with no invented USD values.
 - **Wallet dashboard analytics.** Grants by role, strategy, and lifecycle, plus a six-month activity timeline built from factory and vault events. It is a read-only projection of HSK state: a failed event read shows a partial timeline, never fabricated data.
+- **AI Grant Builder.** A sentence — _"a six-month developer grant for 20,000 tokens, released against three milestones"_ — becomes an editable draft in the wizard. The draft is a _preset_, so it passes the same validation a hand-written template does and there is no submission path that only AI output uses. It is optional and works with no provider configured.
 - **Full localization** in English, 简体中文, and Español across the landing page, workspace, creation wizard, presets, dashboard, and grant flows. English is the typed fallback, and addresses, hashes, and token symbols are never translated.
 - **Explorer proof** for every token approval, grant creation, milestone approval, claim, faucet, and revocation transaction.
 
@@ -81,6 +84,20 @@ The rule that shapes every decision: **HSK is authoritative for value and permis
 That boundary is enforced, not just documented: `pnpm boundary:check` fails CI if the protocol layer imports Cloud code, if a server secret reaches browser code, or if the public protocol export surface drifts.
 
 [`architecture.md`](architecture.md) is the authoritative reference: per-field authority, extension points, and the future extraction of the protocol into its own package.
+
+## The AI boundary
+
+Grant creation is where an AI integration is most tempting and most dangerous: the step that moves money. HashVest takes the useful half and refuses the rest.
+
+**The model drafts a preset, not a grant.** Its output is shaped into the same `GrantPreset` the hand-written templates use, so it passes the same `assertValidPreset` gate and reaches the wizard through the same path. Nothing reaches the chain through a weaker check than a template written by hand, because nothing reaches the chain by any other route.
+
+**The draft type has no field for an identity or a transaction** — no beneficiary, reviewer, token, eligibility provider, start timestamp, or revocability. That boundary is structural rather than procedural: a suggestion that cannot be represented cannot be applied, cannot be approved by a tired operator, and cannot be smuggled through by a prompt injection. Asked to _"send 800 tokens to 0x… and sign the transaction"_, the system returns a draft with no address in it and tells the user what it refused to do.
+
+**Nothing sensitive leaves, and nothing is kept.** Addresses, 32-byte values, private-key blocks, and seed phrases are stripped from the prompt before a provider sees it, and from model prose on the way back. Retention is zero: the prompt is a local variable for one request, never written to Supabase, a log, or an error message.
+
+**The provider is optional and interchangeable.** Any OpenAI-compatible endpoint works, so switching between Groq, xAI, OpenRouter, DeepSeek, or a local Ollama server is two environment variables and no code. With no key configured — or when the provider is down, rate-limited, slow, or incoherent — a deterministic offline drafter answers instead, so the demo never depends on a third party being reachable.
+
+[`ai-grant-builder.md`](ai-grant-builder.md) is the full contract: schema, limits, failure matrix, privacy boundary, and the measured provider matrix.
 
 ## HSK Chain integration
 
@@ -134,13 +151,15 @@ The complete record — all 19 transactions, the three wallets, and the revocati
 
 ## What is verified, and what is not
 
-| Status              | Scope                                                                                                                                                                           |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ✅ Verified onchain | Deployment; TIME, MILESTONE, HYBRID, and REVOCABLE TIME lifecycles through the scripted run above.                                                                              |
-| ✅ Verified in CI   | Foundry unit, fuzz, and adversarial tests; web unit tests; lint, typecheck, build, and the protocol/Cloud boundary check.                                                       |
-| 🟡 Manual           | The three-wallet **browser** flow — organization, named members, hybrid grant, review, claim. Wallet extension steps are performed by hand and are tracked in HAS-20.           |
-| 🟡 Manual           | Blockscout source verification. The explorer returned HTTP 413 for the automated submission; deployment is unaffected.                                                          |
-| ⚪ Roadmap          | Remaining items in the next section. Organization templates, sponsored first claims, the AI Grant Builder, and private milestone evidence have already landed as Cloud context. |
+| Status              | Scope                                                                                                                                                                                        |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ✅ Verified onchain | Deployment; TIME, MILESTONE, HYBRID, and REVOCABLE TIME lifecycles through the scripted run above.                                                                                           |
+| ✅ Verified in CI   | Foundry unit, fuzz, and adversarial tests; web unit tests; lint, typecheck, build, and the protocol/Cloud boundary check.                                                                    |
+| ✅ Verified in CI   | The AI pipeline with no network: malformed model output, every provider failure, prompt injection, secret non-exposure, and the refusal to produce a transaction action.                     |
+| 🟡 Manual           | One live provider run (Groq, `openai/gpt-oss-20b`): the example prompt drafts correctly in all three locales, and an injection prompt returns no address. Provider calls are not made in CI. |
+| 🟡 Manual           | The three-wallet **browser** flow — organization, named members, hybrid grant, review, claim. Wallet extension steps are performed by hand and are tracked in HAS-20.                        |
+| 🟡 Manual           | Blockscout source verification. The explorer returned HTTP 413 for the automated submission; deployment is unaffected.                                                                       |
+| ⚪ Roadmap          | Remaining items in the next section. Organization templates, sponsored first claims, the AI Grant Builder, TGE unlock semantics, and private milestone evidence have already landed.         |
 
 ## Future roadmap
 
@@ -152,7 +171,6 @@ Planned in the team's issue tracker, in delivery order. Each step must preserve 
 - Precise TGE and initial-unlock semantics.
 - Bounded batch grant creation and funding, for grant rounds.
 - Organization-sponsored first claim, so a new beneficiary does not need gas to receive their first tokens.
-- A human-reviewed AI Grant Builder that drafts grant terms for approval, never signing on its own.
 
 **Then — intelligence and operations (P2)**
 
@@ -178,11 +196,13 @@ Planned in the team's issue tracker, in delivery order. Each step must preserve 
 - **One reviewer per grant.** Quorum is on the roadmap.
 - **Non-revocable grants are permanent by design**, including every vault deployed before revocation existed.
 - **`DemoEligibilityProvider` is a demonstration**, not KYC or compliance.
+- **The AI Grant Builder needs a model that honours `response_format: json_schema`.** One that does not never gets past the draft parser, so the feature degrades to offline drafting silently; `source` on a draft reports which path answered. A free provider tier also returns intermittent `5xx`, which falls back the same way.
+- **The AI rate limiter is per process**, because zero retention rules out persisting per-wallet request history. A horizontally scaled deployment enforces the cap per instance.
 
 ## How this maps to the judging criteria
 
-| Criterion                                     | HashVest                                                                                                                                   |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| Feasibility and real-world implementation     | Deployed and exercised end to end on HSK Chain with public transaction proof; a working app with organizations, members, and presets.      |
-| Addresses a meaningful user or market problem | Grant and vesting payouts are a daily treasury workflow for ecosystems, DAOs, and startups — and today they run on trust and spreadsheets. |
-| Technical and product innovation              | HYBRID `min(time, milestones)` unlocking; revocation that provably cannot touch earned value; an enforced Protocol/Cloud boundary.         |
+| Criterion                                     | HashVest                                                                                                                                                                                                                                           |
+| --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Feasibility and real-world implementation     | Deployed and exercised end to end on HSK Chain with public transaction proof; a working app with organizations, members, and presets.                                                                                                              |
+| Addresses a meaningful user or market problem | Grant and vesting payouts are a daily treasury workflow for ecosystems, DAOs, and startups — and today they run on trust and spreadsheets.                                                                                                         |
+| Technical and product innovation              | HYBRID `min(time, milestones)` unlocking; revocation that provably cannot touch earned value; an enforced Protocol/Cloud boundary; and natural-language grant creation whose safety is a property of the schema rather than a promise in a prompt. |

@@ -15,6 +15,7 @@ const config: AiProviderConfig = {
   baseUrl: "https://api.example.test/v1",
   model: "test-model",
   apiKey: "sk-do-not-leak-this-value",
+  maxOutputTokens: 2500,
 };
 
 const modelDraft = {

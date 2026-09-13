@@ -12,6 +12,8 @@
  * preset, including for an AI-assisted edit.
  */
 
+import type { OrganizationTemplateKey } from "./template-key";
+
 /** A milestone template. Percentages are whole numbers and must sum to 100. */
 export type GrantPresetMilestone = {
   title: string;
@@ -182,9 +184,10 @@ export function getGrantPreset(key: GrantPresetKey): GrantPreset {
  *
  * Unlike `getGrantPreset` this never throws: the column accepts any trimmed
  * text, a grant may have been created from a preset that has since been
- * renamed or removed, and organization-owned templates (HAS-13) will use the
- * same column. A key that resolves to nothing is not an error — the grant is
- * simply displayed without a template.
+ * renamed or removed, and organization-owned templates (HAS-13) use the same
+ * column. A key that resolves to nothing is not an error — the grant is simply
+ * displayed without a template. `resolveTemplateLabel` (./provenance.ts)
+ * resolves every kind of key.
  */
 export function findGrantPreset(
   key: string | null | undefined,
@@ -204,5 +207,10 @@ export function findGrantPreset(
  */
 export const GENERATED_PRESET_KEY = "ai-draft";
 
-/** Any key the wizard may report as applied: a catalog preset or a generated draft. */
-export type AppliedPresetKey = GrantPresetKey | typeof GENERATED_PRESET_KEY;
+/**
+ * Any key the wizard may report as applied: a catalog preset, a generated
+ * draft, or an organization template (HAS-13). Only a catalog key can be
+ * looked up here; the other two arrive with the preset they name.
+ */
+export type AppliedPresetKey =
+  GrantPresetKey | typeof GENERATED_PRESET_KEY | OrganizationTemplateKey;

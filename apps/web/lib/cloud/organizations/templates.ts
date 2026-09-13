@@ -109,19 +109,27 @@ function mapTemplate(row: OrganizationTemplateRow): OrganizationTemplate {
     updatedByWallet: row.updated_by_wallet,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    archivedAt: row.archived_at,
   };
 }
 
-/** Active templates, for any member. Archived templates are never listed. */
+/**
+ * Templates for any member, active only by default.
+ *
+ * `includeArchived` exists for grant provenance: a grant keeps the key of a
+ * template deleted after it was created, and naming it needs the archived row.
+ * Pickers and the management list never ask for it.
+ */
 export async function listOrganizationTemplates(
   access: TemplateAccess,
+  options: { includeArchived?: boolean } = {},
 ): Promise<OrganizationTemplate[]> {
-  const { data, error } = await access.supabase
+  let query = access.supabase
     .from("organization_templates")
     .select("*")
-    .eq("organization_id", access.organizationId)
-    .is("archived_at", null)
-    .order("name", { ascending: true });
+    .eq("organization_id", access.organizationId);
+  if (!options.includeArchived) query = query.is("archived_at", null);
+  const { data, error } = await query.order("name", { ascending: true });
   if (error) throw databaseUnavailable();
   return data.map(mapTemplate);
 }

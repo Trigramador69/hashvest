@@ -40,6 +40,8 @@ export type OrganizationTemplate = OrganizationTemplateDefinition & {
   updatedByWallet: string;
   createdAt: string;
   updatedAt: string;
+  /** Null while active. Archived templates are returned only for provenance. */
+  archivedAt: string | null;
 };
 
 export type SponsoredClaimPolicy = {

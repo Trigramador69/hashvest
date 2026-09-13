@@ -22,8 +22,11 @@ import {
   type AppliedPresetDraft,
   type GrantDraftDefinition,
 } from "./apply-preset";
-import type { GrantPresetMilestone } from "./presets";
-import { formatOrganizationTemplateKey } from "./template-key";
+import type { GrantPreset, GrantPresetMilestone } from "./presets";
+import {
+  formatOrganizationTemplateKey,
+  type OrganizationTemplateKey,
+} from "./template-key";
 
 export const TEMPLATE_NAME_MAX_LENGTH = 80;
 export const TEMPLATE_DESCRIPTION_MAX_LENGTH = 1000;
@@ -69,7 +72,7 @@ export type OrganizationTemplateDefinition = OrganizationTemplateContent & {
 /** What applying a template gives the wizard. */
 export type AppliedOrganizationTemplate = {
   /** The value to record in `organization_grants.template_key`. */
-  templateKey: string;
+  templateKey: OrganizationTemplateKey;
   draft: AppliedPresetDraft;
   /** The member to preselect in the reviewer picker, if any. The user still confirms it. */
   defaultReviewerMemberId: string | null;
@@ -184,6 +187,45 @@ export function assertValidOrganizationTemplate(
 
   // Strategy, schedule presence and ranges, milestone count, split, and titles.
   assertValidPreset(toDraftDefinition(content, "template"));
+}
+
+/**
+ * A template in the shape the wizard's preset rules take (HAS-13).
+ *
+ * The wizard applies it with `selectPreset`, the same call a global preset or
+ * an AI draft goes through, so the field-ownership rules that decide what a
+ * user keeps are shared rather than reimplemented. The preset's key is the
+ * template key a grant records.
+ *
+ * Validates first, with the template-only rules too, so a stored template the
+ * protocol could not accept never reaches the form. There is no display copy
+ * beyond the template's own name and description: no tagline, audiences,
+ * assumptions, or real-world schedule note is invented for user content.
+ */
+export function organizationTemplatePreset(
+  template: OrganizationTemplateDefinition,
+): GrantPreset & { key: OrganizationTemplateKey } {
+  assertValidOrganizationTemplate(template);
+  const key = formatOrganizationTemplateKey(template.id, template.version);
+  const definition = toDraftDefinition(template, key);
+  return {
+    key,
+    name: template.name,
+    tagline: template.description ?? "",
+    description: template.description ?? "",
+    bestFor: [],
+    strategy: definition.strategy,
+    titleSuggestion: definition.titleSuggestion,
+    descriptionSuggestion: definition.descriptionSuggestion,
+    allocationSuggestion: definition.allocationSuggestion,
+    timing: definition.timing
+      ? { ...definition.timing, realWorldNote: "" }
+      : null,
+    milestones:
+      template.milestones?.map((milestone) => ({ ...milestone })) ?? null,
+    reviewerRequired: definition.reviewerRequired,
+    assumptions: [],
+  };
 }
 
 /**

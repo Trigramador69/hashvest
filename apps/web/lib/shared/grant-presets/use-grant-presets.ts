@@ -4,12 +4,8 @@ import { useCallback, useMemo } from "react";
 
 import { useI18n } from "../i18n/provider";
 import { localizeGrantPreset } from "./localize";
-import {
-  findGrantPreset,
-  GENERATED_PRESET_KEY,
-  GRANT_PRESETS,
-  getGrantPreset,
-} from "./presets";
+import { findGrantPreset, GRANT_PRESETS, getGrantPreset } from "./presets";
+import { resolveTemplateLabel } from "./provenance";
 import type { GrantPreset, GrantPresetKey } from "./presets";
 
 /**
@@ -23,7 +19,10 @@ export function useGrantPresets(): {
   presets: GrantPreset[];
   preset: (key: GrantPresetKey) => GrantPreset;
   findPreset: (key: string | null | undefined) => GrantPreset | undefined;
-  templateLabel: (key: string | null | undefined) => string | undefined;
+  templateLabel: (
+    key: string | null | undefined,
+    organizationTemplates?: readonly { id: string; name: string }[],
+  ) => string | undefined;
 } {
   const { tOptional } = useI18n();
   const presets = useMemo(
@@ -43,21 +42,27 @@ export function useGrantPresets(): {
     [tOptional],
   );
   /**
-   * The display name for a stored `organization_grants.template_key`.
+   * The display name for a stored `organization_grants.template_key`, resolved
+   * by `resolveTemplateLabel` (./provenance.ts).
    *
    * A grant created from an AI draft (HAS-18) stores the reserved key, and no
    * catalog entry exists to resolve: the draft was built for that one request.
    * Only its name survives, which is all any caller shows — inventing a
    * strategy or a milestone split to fill a preset shape would put terms on
-   * screen that the vault never agreed to.
+   * screen that the vault never agreed to. An organization template (HAS-13)
+   * resolves only against the templates the caller passes in.
    */
   const templateLabel = useCallback(
-    (key: string | null | undefined) => {
-      if (key === GENERATED_PRESET_KEY)
-        return tOptional("ai.draft.name") ?? "AI draft";
-      return findPreset(key)?.name;
-    },
-    [findPreset, tOptional],
+    (
+      key: string | null | undefined,
+      organizationTemplates?: readonly { id: string; name: string }[],
+    ) =>
+      resolveTemplateLabel(key, {
+        presetName: (found) => localizeGrantPreset(found, tOptional).name,
+        generatedName: tOptional("ai.draft.name") ?? "AI draft",
+        organizationTemplates,
+      }),
+    [tOptional],
   );
 
   return { presets, preset, findPreset, templateLabel };

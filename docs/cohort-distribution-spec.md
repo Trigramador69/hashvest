@@ -46,7 +46,7 @@ All rows must be validated before any transaction is broadcast:
 2. **Distinct Beneficiaries**: No duplicate beneficiary addresses within the same cohort.
 3. **Allocation Validity**: Every allocation must be positive and within token decimal precision.
 4. **Funding Sufficiency**: Total cohort allocation ($\sum \text{allocations}$) must be $\le \text{issuer balance}$.
-5. **Strategy Uniformity**: Cohort shares token, strategy (`TIME`, `MILESTONE`, `HYBRID`), timing schedule (start, cliff, duration), and revocability terms.
+5. **Strategy Uniformity**: Cohort shares token, strategy (`TIME`, `MILESTONE`, `HYBRID`), timing schedule (start, cliff, duration), optional `initialUnlock` percent, and revocability terms. Pure `MILESTONE` cohorts reject a nonzero initial unlock. `HYBRID` milestone amounts sum to the remaining allocation (`totalAllocation - initialUnlock`).
 
 ### Execution & Retry Semantics
 

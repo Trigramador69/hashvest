@@ -19,7 +19,6 @@ import {
 } from "../../shared/ai-grant-draft/prompt";
 import {
   AI_GRANT_DRAFT_JSON_SCHEMA,
-  AI_MAX_OUTPUT_TOKENS,
   AI_REQUEST_TIMEOUT_MS,
   AI_TEMPERATURE,
 } from "../../shared/ai-grant-draft/schema";
@@ -118,7 +117,7 @@ export async function requestAiGrantDraft({
       body: JSON.stringify({
         model: config.model,
         temperature: AI_TEMPERATURE,
-        max_tokens: AI_MAX_OUTPUT_TOKENS,
+        max_tokens: config.maxOutputTokens,
         response_format: {
           type: "json_schema",
           json_schema: AI_GRANT_DRAFT_JSON_SCHEMA,

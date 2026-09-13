@@ -16,7 +16,7 @@ export const strategies = [
 export const strategyDescriptions = [
   "Unlock linearly over time. A cliff delays access without restarting the schedule.",
   "Unlock fixed allocations as your reviewer approves each milestone.",
-  "Unlock the smaller of time vested and approved milestone amounts. Both conditions apply.",
+  "Unlock any initial amount at start, then the smaller of remaining time-vested and approved milestone amounts. Both conditions apply to the remainder.",
 ] as const;
 
 export function shortAddress(address: string) {
@@ -131,4 +131,70 @@ export function parseAllocation(
       errors?.range ?? "Token amount is outside the supported range.",
     );
   return amount;
+}
+
+export function calculateVestedByTime(params: {
+  start: bigint;
+  cliff: bigint;
+  duration: bigint;
+  totalAllocation: bigint;
+  initialUnlock: bigint;
+  timestamp: bigint;
+}): bigint {
+  const { start, cliff, duration, totalAllocation, initialUnlock, timestamp } =
+    params;
+  if (timestamp < start) return 0n;
+  if (timestamp < start + cliff) return initialUnlock;
+  if (timestamp >= start + duration) return totalAllocation;
+  return (
+    initialUnlock +
+    ((totalAllocation - initialUnlock) * (timestamp - start)) / duration
+  );
+}
+
+export function calculateUnlockedAmount(params: {
+  strategy: 0 | 1 | 2;
+  start: bigint;
+  cliff: bigint;
+  duration: bigint;
+  totalAllocation: bigint;
+  initialUnlock: bigint;
+  milestoneUnlockedAmount: bigint;
+  timestamp: bigint;
+}): bigint {
+  const {
+    strategy,
+    start,
+    cliff,
+    duration,
+    totalAllocation,
+    initialUnlock,
+    milestoneUnlockedAmount,
+    timestamp,
+  } = params;
+
+  if (strategy === 1) {
+    return milestoneUnlockedAmount;
+  }
+
+  const timeVested = calculateVestedByTime({
+    start,
+    cliff,
+    duration,
+    totalAllocation,
+    initialUnlock,
+    timestamp,
+  });
+
+  if (strategy === 0) {
+    return timeVested;
+  }
+
+  if (timestamp < start) return 0n;
+  const vestingTimeUnlocked = timeVested - initialUnlock;
+  const cappedMilestone =
+    milestoneUnlockedAmount < vestingTimeUnlocked
+      ? milestoneUnlockedAmount
+      : vestingTimeUnlocked;
+  return initialUnlock + cappedMilestone;
 }

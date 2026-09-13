@@ -442,10 +442,13 @@ function templateAccess(access: WorkspaceAccess): TemplateAccess {
   };
 }
 
-/** Any member may list active templates. See docs/organization-templates.md. */
-export async function listTemplates(organizationId: string) {
+/** Any member may list templates. See docs/organization-templates.md. */
+export async function listTemplates(
+  organizationId: string,
+  options: { includeArchived?: boolean } = {},
+) {
   const access = await requireOrganizationMember(organizationId);
-  return listOrganizationTemplates(templateAccess(access));
+  return listOrganizationTemplates(templateAccess(access), options);
 }
 
 /** Any member may read an active template, to apply it to the wizard. */

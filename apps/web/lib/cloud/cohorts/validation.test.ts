@@ -184,6 +184,76 @@ describe("Cohort distribution validation (HAS-27)", () => {
       expect(result.members[1].milestones[1].amount).toBe(30n * 10n ** 18n);
     });
 
+    it("applies initial unlock on TIME and reduces HYBRID milestone remainder", () => {
+      const members: CohortMemberInput[] = [
+        { id: "1", beneficiary: ALICE, allocation: "100" },
+        { id: "2", beneficiary: BOB, allocation: "50" },
+      ];
+      const timeResult = validateCohort({
+        shared: { ...defaultSharedConfig, initialUnlockPercent: 10 },
+        members,
+        decimals: 18,
+      });
+      expect(timeResult.members[0].initialUnlock).toBe(10n * 10n ** 18n);
+      expect(timeResult.members[1].initialUnlock).toBe(5n * 10n ** 18n);
+      expect(timeResult.members[0].milestones).toEqual([]);
+
+      const hybridResult = validateCohort({
+        shared: {
+          ...defaultSharedConfig,
+          strategy: 2,
+          reviewer: REVIEWER,
+          initialUnlockPercent: 10,
+          milestones: [
+            { title: "Onboarding", percentOfAllocation: 40 },
+            { title: "Delivery", percentOfAllocation: 60 },
+          ],
+        },
+        members,
+        decimals: 18,
+      });
+      expect(hybridResult.members[0].initialUnlock).toBe(10n * 10n ** 18n);
+      expect(hybridResult.members[0].milestones[0].amount).toBe(
+        36n * 10n ** 18n,
+      );
+      expect(hybridResult.members[0].milestones[1].amount).toBe(
+        54n * 10n ** 18n,
+      );
+    });
+
+    it("rejects initial unlock on pure MILESTONE and a 100% HYBRID unlock", () => {
+      const members: CohortMemberInput[] = [
+        { id: "1", beneficiary: ALICE, allocation: "100" },
+        { id: "2", beneficiary: BOB, allocation: "50" },
+      ];
+      expect(() =>
+        validateCohort({
+          shared: {
+            ...defaultSharedConfig,
+            strategy: 1,
+            reviewer: REVIEWER,
+            initialUnlockPercent: 10,
+            milestones: [{ title: "Delivery", percentOfAllocation: 100 }],
+          },
+          members,
+          decimals: 18,
+        }),
+      ).toThrow(/cannot have an initial unlock/i);
+      expect(() =>
+        validateCohort({
+          shared: {
+            ...defaultSharedConfig,
+            strategy: 2,
+            reviewer: REVIEWER,
+            initialUnlockPercent: 100,
+            milestones: [{ title: "Delivery", percentOfAllocation: 100 }],
+          },
+          members,
+          decimals: 18,
+        }),
+      ).toThrow(/cannot equal the entire allocation/i);
+    });
+
     it("rejects milestone percentages that do not sum to 100", () => {
       const shared: CohortSharedConfig = {
         ...defaultSharedConfig,

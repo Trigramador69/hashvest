@@ -7,10 +7,12 @@ import type {
   OrganizationMilestoneEvidence,
   OrganizationMilestoneEvidenceInput,
   OrganizationSummary,
+  OrganizationTemplate,
   SponsoredClaimPolicy,
   SponsoredClaimRequest,
   SessionResponse,
 } from "./types";
+import type { OrganizationTemplateContent } from "../../shared/grant-presets/organization-template";
 
 export class OrganizationApiError extends Error {
   readonly status: number;
@@ -143,6 +145,39 @@ export const organizationApi = {
     request<{ evidence: OrganizationMilestoneEvidence }>(
       `/api/organizations/${organizationId}/grants/${vaultAddress}/milestones/${milestoneIndex}/evidence`,
       { method: "PUT", body: JSON.stringify(input) },
+    ),
+  getTemplates: (
+    organizationId: string,
+    options: { includeArchived?: boolean } = {},
+  ) =>
+    request<{ templates: OrganizationTemplate[] }>(
+      `/api/organizations/${organizationId}/templates${options.includeArchived ? "?include=archived" : ""}`,
+    ),
+  getTemplate: (organizationId: string, templateId: string) =>
+    request<{ template: OrganizationTemplate }>(
+      `/api/organizations/${organizationId}/templates/${templateId}`,
+    ),
+  createTemplate: (
+    organizationId: string,
+    input: OrganizationTemplateContent,
+  ) =>
+    request<{ template: OrganizationTemplate }>(
+      `/api/organizations/${organizationId}/templates`,
+      { method: "POST", body: JSON.stringify(input) },
+    ),
+  updateTemplate: (
+    organizationId: string,
+    templateId: string,
+    input: { template: OrganizationTemplateContent; expectedVersion: number },
+  ) =>
+    request<{ template: OrganizationTemplate }>(
+      `/api/organizations/${organizationId}/templates/${templateId}`,
+      { method: "PATCH", body: JSON.stringify(input) },
+    ),
+  archiveTemplate: (organizationId: string, templateId: string) =>
+    request<{ ok: true }>(
+      `/api/organizations/${organizationId}/templates/${templateId}`,
+      { method: "DELETE" },
     ),
   getGrantContext: (vaultAddress: string) =>
     request<{ context: OrganizationGrantContext | null }>(

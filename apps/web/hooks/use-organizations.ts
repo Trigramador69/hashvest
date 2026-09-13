@@ -14,6 +14,9 @@ import { organizationApi } from "@/lib/cloud/organizations/client";
 import { deriveGrantLifecycle } from "@/lib/protocol/grant-state";
 import { readRevocationState } from "@/lib/protocol/revocation";
 import { resolveProtocolRoles } from "@/lib/protocol/roles";
+import type { OrganizationTemplateContent } from "@/lib/shared/grant-presets/organization-template";
+import { parseTemplateKey } from "@/lib/shared/grant-presets/template-key";
+import { useGrantPresets } from "@/lib/shared/grant-presets/use-grant-presets";
 import { useTranslations } from "@/lib/shared/i18n/provider";
 
 import { useSession } from "./use-session";
@@ -33,6 +36,15 @@ export const grantEvidenceQueryKey = (
   vaultAddress: string,
 ) =>
   ["organization-grant-evidence", 133, organizationId, vaultAddress] as const;
+export const templatesQueryKey = (
+  organizationId: string,
+  includeArchived = false,
+) =>
+  [
+    "organization-templates",
+    organizationId,
+    includeArchived ? "all" : "active",
+  ] as const;
 
 const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
 
@@ -137,6 +149,100 @@ export function useOrganizationGrantEvidence(
     staleTime: 15_000,
   });
   return { ...query, data: walletMatches ? query.data : undefined };
+}
+
+/**
+ * An organization's templates (HAS-13).
+ *
+ * Any member may read them; only the owner's requests may change them, which
+ * the routes enforce. `includeArchived` is for grant provenance only — a grant
+ * can name a template that was deleted after it was created.
+ */
+export function useOrganizationTemplates(
+  organizationId: string | undefined,
+  options: { includeArchived?: boolean } = {},
+) {
+  const { walletMatches } = useSession();
+  const includeArchived = Boolean(options.includeArchived);
+  return useQuery({
+    queryKey: organizationId
+      ? templatesQueryKey(organizationId, includeArchived)
+      : ["organization-templates", "missing"],
+    queryFn: async () =>
+      (
+        await organizationApi.getTemplates(organizationId as string, {
+          includeArchived,
+        })
+      ).templates,
+    enabled: Boolean(organizationId && walletMatches),
+    staleTime: 15_000,
+  });
+}
+
+/**
+ * The template a grant was created from, for provenance (HAS-13).
+ *
+ * Only an organization key needs a request, so a grant from a global preset or
+ * an AI draft fetches nothing. Archived templates are included: deleting a
+ * template must not blank the name on grants already created from it.
+ */
+export function useTemplateLabel(
+  organizationId: string | undefined,
+  templateKey: string | null | undefined,
+) {
+  const { templateLabel } = useGrantPresets();
+  const isOrganizationKey =
+    parseTemplateKey(templateKey)?.kind === "organization";
+  const templates = useOrganizationTemplates(
+    isOrganizationKey ? organizationId : undefined,
+    { includeArchived: true },
+  );
+  return templateLabel(templateKey, templates.data);
+}
+
+function invalidateTemplates(
+  queryClient: ReturnType<typeof useQueryClient>,
+  organizationId: string,
+) {
+  return queryClient.invalidateQueries({
+    queryKey: ["organization-templates", organizationId],
+  });
+}
+
+export function useCreateTemplate(organizationId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: organizationApi.createTemplate.bind(null, organizationId),
+    onSuccess: () => invalidateTemplates(queryClient, organizationId),
+  });
+}
+
+export function useUpdateTemplate(organizationId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      templateId,
+      template,
+      expectedVersion,
+    }: {
+      templateId: string;
+      template: OrganizationTemplateContent;
+      expectedVersion: number;
+    }) =>
+      organizationApi.updateTemplate(organizationId, templateId, {
+        template,
+        expectedVersion,
+      }),
+    onSuccess: () => invalidateTemplates(queryClient, organizationId),
+  });
+}
+
+export function useArchiveTemplate(organizationId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: organizationApi.archiveTemplate.bind(null, organizationId),
+    onSuccess: () => invalidateTemplates(queryClient, organizationId),
+  });
 }
 
 function invalidateOrganization(

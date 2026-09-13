@@ -303,6 +303,7 @@ export function CohortCreator({
           ),
         );
 
+        const member = validated.members.find((row) => row.id === item.id);
         const grantConfig = {
           title: item.title,
           token: shared.token,
@@ -314,18 +315,12 @@ export function CohortCreator({
           cliff: shared.cliff,
           duration: shared.duration,
           eligibilityProvider: shared.eligibilityProvider,
+          initialUnlock: member?.initialUnlock ?? 0n,
           revocable: shared.revocable,
         };
 
         const milestones =
-          shared.strategy === 0
-            ? []
-            : [
-                {
-                  title: `${item.title} Milestone 1`,
-                  amount: item.allocation,
-                },
-              ];
+          shared.strategy === 0 ? [] : (member?.milestones ?? []);
 
         try {
           const simulation = await client.simulateContract({
