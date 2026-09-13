@@ -301,7 +301,21 @@ What a deterministic fixture cannot assert — wallet, SIWE, chain guard, and
 human judgement about language and visual intent — is covered by
 [`docs/e2e-manual-checklist.md`](docs/e2e-manual-checklist.md).
 
-The application is available at `http://localhost:3000`. Routes are `/` (landing), `/plans` (public Protocol / Cloud and Free / Team / Enterprise presentation), `/app` (live overview), `/app/grants` (Issued / Received / Review), `/app/organizations` (organization list), `/app/organizations/new`, `/app/organizations/<uuid>`, `/app/organizations/<uuid>/members`, `/app/organizations/<uuid>/templates`, `/app/organizations/<uuid>/reports`, `/app/organizations/<uuid>/settings`, `/app/organizations/<uuid>/grants`, and `/app/organizations/<uuid>/grants/new`, `/app/settings` (workspace session, language, network, and sponsored-claim policy links), plus `/grants/new` (the shared five-step template-aware creation wizard: Template, Grant, Strategy, Conditions, Review) and `/grants/<GrantVault address>` (public role-aware detail page). The previous `/app/settings/organizations/...` paths remain compatibility redirects. `/visual/dashboard`, `/visual/templates` and `/visual/ai-tools` are local-only deterministic fixtures for the Playwright visual contract and are unavailable in production.
+Destructive actions confirm through the shared in-app dialog in
+`apps/web/components/ui/confirm-dialog.tsx`, never `window.confirm()`: a
+browser dialog renders outside the design system and blocks the main thread.
+It is the only modal shell, and its keyboard contract — initial focus on
+Cancel, Tab kept inside, Escape to leave, focus returned to the opener — is
+covered by `apps/web/tests/confirm-dialog.spec.ts`.
+
+Organization grants are created through `HashVestFactory.createSponsoredGrant`.
+A factory deployed before that function exists cannot serve the call, so the
+wizard inspects the deployed bytecode for the selector
+(`apps/web/lib/protocol/factory-capabilities.ts`) and says so before asking for
+a signature rather than surfacing a bare revert. A factory that could not be
+read stays unknown and never blocks creation.
+
+The application is available at `http://localhost:3000`. Routes are `/` (landing), `/plans` (public Protocol / Cloud and Free / Team / Enterprise presentation), `/app` (live overview), `/app/grants` (Issued / Received / Review), `/app/organizations` (organization list), `/app/organizations/new`, `/app/organizations/<uuid>`, `/app/organizations/<uuid>/members`, `/app/organizations/<uuid>/templates`, `/app/organizations/<uuid>/reports`, `/app/organizations/<uuid>/settings`, `/app/organizations/<uuid>/grants`, and `/app/organizations/<uuid>/grants/new`, `/app/settings` (workspace session, language, network, and sponsored-claim policy links), plus `/grants/new` (the shared five-step template-aware creation wizard: Template, Grant, Strategy, Conditions, Review) and `/grants/<GrantVault address>` (public role-aware detail page). The previous `/app/settings/organizations/...` paths remain compatibility redirects. `/visual/dashboard`, `/visual/templates`, `/visual/ai-tools` and `/visual/confirm-dialog` are local-only deterministic fixtures for the Playwright visual contract and are unavailable in production.
 
 Wallet connection and workspace authentication are separate. After connecting an HSK Testnet wallet, click **Sign in to workspace** and approve one SIWE/EIP-4361 message. The server stores a five-minute, one-time nonce and issues a 24-hour HttpOnly, SameSite session cookie signed with `AUTH_SECRET`. If the connected wallet changes, organization reads and writes are disabled until the new wallet explicitly signs in; the application never silently signs or writes as the previous wallet.
 
