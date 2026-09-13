@@ -386,3 +386,4 @@ supabase/verification    Cloud     Constraint checks for migrations, disposable 
 Imports run one way: Cloud may depend on Protocol, never the reverse. `pnpm boundary:check` enforces this, along with service-role secret containment, protocol export drift, and documentation links. See [`docs/architecture.md`](docs/architecture.md).
 
 Important organization implementation files include `apps/web/lib/auth` (SIWE challenge verification and signed sessions), `apps/web/lib/organizations` (validation, server authorization, HSK GrantVault verification, types, and browser API client), `apps/web/hooks/use-organizations.ts` (TanStack Query data layer), and `apps/web/components/organization-*` / `members-manager.tsx` / `templates-manager.tsx` / `template-editor.tsx` (workspace UI). Organization lifecycle state remains derived from live protocol reads; it is not stored in Supabase.
+
