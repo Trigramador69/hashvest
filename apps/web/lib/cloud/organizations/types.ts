@@ -1,3 +1,5 @@
+import type { OrganizationTemplateDefinition } from "../../shared/grant-presets/organization-template";
+
 export type Organization = {
   id: string;
   name: string;
@@ -25,6 +27,18 @@ export type OrganizationGrant = {
   templateKey: string | null;
   createdByWallet: string;
   createdAt: string;
+};
+
+/**
+ * An organization-owned grant template: draft configuration metadata, never
+ * vault state or permission. See docs/organization-templates.md.
+ */
+export type OrganizationTemplate = OrganizationTemplateDefinition & {
+  organizationId: string;
+  createdByWallet: string;
+  updatedByWallet: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type OrganizationMembership = Pick<
