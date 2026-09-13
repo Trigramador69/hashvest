@@ -27,6 +27,34 @@ export const en = {
   "ai.templates.apply": "Apply to the editor",
   "ai.templates.disclaimer":
     "The owner reviews and explicitly saves the template. Applying a suggestion does not save it or request a wallet transaction. Choose any default reviewer yourself.",
+  "ai.review.title": "Evidence analysis",
+  "ai.review.lede":
+    "Summarize private workspace notes and current grant reads to support your review.",
+  "ai.review.generate": "Analyze evidence",
+  "ai.review.unavailable":
+    "The copilot is unavailable. Manual review and approval remain available.",
+  "ai.review.linksUnread":
+    "Linked content was not downloaded or verified. This analysis uses submitted notes, evidence dates and current HSK reads only.",
+  "ai.review.disclaimer":
+    "Advisory only. Check the sources and decide yourself. Approval requires the existing reviewer action and your wallet; this section cannot execute it.",
+  "ai.review.summary": "Progress summary",
+  "ai.review.findings": "Evidence gaps and inconsistencies",
+  "ai.review.questions": "Questions for the submitter",
+  "ai.review.uncertainty": "Limitations and uncertainty",
+  "ai.review.recommendation": "Non-binding recommendation",
+  "ai.review.approve": "Consider approval after checking the sources",
+  "ai.review.request_information": "Request more information",
+  "ai.review.insufficient_information": "Insufficient information",
+  "ai.review.sources": "Sources used",
+  "ai.review.chainSource": "Current HSK grant reads",
+  "ai.review.evidenceSource": "Evidence for milestone {index}",
+  "ai.review.checkedAt": "Consulted: {date} · block {block}",
+  "ai.review.evidenceDate": "Updated: {date}",
+  "ai.review.stale":
+    "The context has changed or this analysis is over five minutes old. Regenerate before using the recommendation.",
+  "ai.review.missingNotes":
+    "Some pending milestones have no usable evidence note. Their linked content cannot be assessed.",
+  "ai.review.open": "Open evidence analysis",
   // Shell: header, navigation, footer.
   "shell.home": "HashVest home",
   "shell.nav.label": "Main navigation",

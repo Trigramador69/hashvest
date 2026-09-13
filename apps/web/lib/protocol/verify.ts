@@ -5,6 +5,7 @@ import { createPublicClient, http, type Address } from "viem";
 import { grantVaultAbi, hskTestnet } from "@hashvest/web3";
 
 import { ApiError } from "@/lib/shared/api-error";
+import { readRevocationState } from "./revocation";
 
 function publicClient() {
   const rpcUrl =
@@ -94,4 +95,67 @@ export async function verifyGrantMilestone(
   if (milestoneIndex >= milestones.length)
     throw new ApiError(422, "Milestone index is outside this GrantVault.");
   return { milestoneCount: milestones.length };
+}
+
+/** Read-only, block-consistent projection; never accepts browser-supplied grant state. */
+export async function readGrantReviewSnapshot(address: Address) {
+  const client = publicClient();
+  await assertReadableGrantVault(client, address);
+  try {
+    const block = await client.getBlock();
+    const contract = { address, abi: grantVaultAbi, blockNumber: block.number };
+    const [
+      title,
+      strategy,
+      totalAllocation,
+      claimedAmount,
+      unlockedAmount,
+      claimableAmount,
+      milestones,
+      revocation,
+    ] = await Promise.all([
+      client.readContract({ ...contract, functionName: "title" }),
+      client.readContract({ ...contract, functionName: "strategy" }),
+      client.readContract({ ...contract, functionName: "totalAllocation" }),
+      client.readContract({ ...contract, functionName: "claimedAmount" }),
+      client.readContract({ ...contract, functionName: "unlockedAmount" }),
+      client.readContract({ ...contract, functionName: "claimableAmount" }),
+      client.readContract({ ...contract, functionName: "getMilestones" }),
+      readRevocationState({
+        revocable: () =>
+          client.readContract({ ...contract, functionName: "revocable" }),
+        revoked: () =>
+          client.readContract({ ...contract, functionName: "revoked" }),
+        revokedAt: () =>
+          client.readContract({ ...contract, functionName: "revokedAt" }),
+        revocationEarnedAmount: () =>
+          client.readContract({
+            ...contract,
+            functionName: "revocationEarnedAmount",
+          }),
+      }),
+    ]);
+    if (milestones.length > 20)
+      throw new ApiError(422, "Invalid milestone count.");
+    return {
+      blockNumber: block.number.toString(),
+      blockTimestamp: Number(block.timestamp),
+      title,
+      strategy,
+      totalAllocation: totalAllocation.toString(),
+      claimedAmount: claimedAmount.toString(),
+      unlockedAmount: unlockedAmount.toString(),
+      claimableAmount: claimableAmount.toString(),
+      revoked: revocation.revoked,
+      milestones: milestones.map((item, index) => ({
+        index,
+        title: item.title,
+        amount: item.amount.toString(),
+        approved: item.approved,
+      })),
+    };
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw onchainReadError(error);
+  }
 }

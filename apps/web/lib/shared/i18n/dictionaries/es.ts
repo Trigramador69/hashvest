@@ -27,6 +27,34 @@ export const es: TranslationDictionary = {
   "ai.templates.apply": "Aplicar al editor",
   "ai.templates.disclaimer":
     "El propietario revisa y guarda la plantilla explícitamente. Aplicar una sugerencia no la guarda ni solicita transacciones. Elige tú el revisor predeterminado.",
+  "ai.review.title": "Análisis de evidencia",
+  "ai.review.lede":
+    "Resume notas privadas del workspace y lecturas actuales del grant para apoyar tu revisión.",
+  "ai.review.generate": "Analizar evidencia",
+  "ai.review.unavailable":
+    "El copilot no está disponible. Puedes revisar y aprobar manualmente.",
+  "ai.review.linksUnread":
+    "El contenido de los enlaces no se descargó ni verificó. El análisis utiliza solo notas, fechas de evidencia y lecturas actuales de HSK.",
+  "ai.review.disclaimer":
+    "Solo orientativo. Comprueba las fuentes y decide. Aprobar requiere la acción del revisor y tu wallet; esta sección no puede ejecutarla.",
+  "ai.review.summary": "Resumen de progreso",
+  "ai.review.findings": "Vacíos e inconsistencias",
+  "ai.review.questions": "Preguntas para quien envió la evidencia",
+  "ai.review.uncertainty": "Limitaciones e incertidumbre",
+  "ai.review.recommendation": "Recomendación no vinculante",
+  "ai.review.approve": "Considerar aprobación tras comprobar las fuentes",
+  "ai.review.request_information": "Solicitar más información",
+  "ai.review.insufficient_information": "Información insuficiente",
+  "ai.review.sources": "Fuentes utilizadas",
+  "ai.review.chainSource": "Lecturas actuales del grant en HSK",
+  "ai.review.evidenceSource": "Evidencia del milestone {index}",
+  "ai.review.checkedAt": "Consultado: {date} · bloque {block}",
+  "ai.review.evidenceDate": "Actualizada: {date}",
+  "ai.review.stale":
+    "El contexto cambió o el análisis tiene más de cinco minutos. Regenera antes de usar la recomendación.",
+  "ai.review.missingNotes":
+    "Algunos milestones pendientes no tienen notas de evidencia utilizables. No se puede evaluar el contenido enlazado.",
+  "ai.review.open": "Abrir análisis de evidencia",
   "shell.home": "Inicio de HashVest",
   "shell.nav.label": "Navegación principal",
   "shell.footer.tagline": "Concesiones programables en HashKey Chain",

@@ -148,12 +148,20 @@ function ReviewQueueItem({
             />
           </div>
         </div>
-        <Link
-          className={buttonVariants({ variant: "outline" })}
-          href={`/grants/${grant.vaultAddress}`}
-        >
-          {t("overview.review.item.action")} <span aria-hidden>→</span>
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            className={buttonVariants({ variant: "outline" })}
+            href={`/grants/${grant.vaultAddress}`}
+          >
+            {t("overview.review.item.action")} <span aria-hidden>→</span>
+          </Link>
+          <Link
+            className={buttonVariants({ variant: "ghost" })}
+            href={`/grants/${grant.vaultAddress}#ai-evidence-review`}
+          >
+            {t("ai.review.open")}
+          </Link>
+        </div>
       </CardContent>
     </Card>
   );

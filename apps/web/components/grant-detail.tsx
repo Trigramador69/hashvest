@@ -69,6 +69,8 @@ import type {
 } from "@/lib/cloud/organizations/types";
 import { SPONSORED_CLAIM_SIGNING_WINDOW_SECONDS } from "@/lib/shared/sponsored-claims";
 import { MilestoneEvidenceList } from "./milestone-evidence";
+import { AiEvidenceReview } from "./ai-evidence-review";
+import { reviewStateKey } from "@/lib/shared/ai-tools/review";
 
 /** Protocol literals: never translated, only interpolated into messages. */
 const NETWORK = { network: hskTestnet.name, chainId: hskTestnet.id };
@@ -1044,17 +1046,48 @@ export function GrantDetail({ address }: { address: Address }) {
                   ))}
                 </ol>
                 {grantContext.data && (
-                  <MilestoneEvidenceList
-                    evidence={grantEvidence.data}
-                    isPending={grantEvidence.isPending}
-                    isError={grantEvidence.isError}
-                    onRetry={() => void grantEvidence.refetch()}
-                    milestones={g.milestones.map((milestone, index) => ({
-                      index,
-                      title: milestone.title,
-                    }))}
-                    members={organizationMembers.data}
-                  />
+                  <div className="space-y-5">
+                    <MilestoneEvidenceList
+                      evidence={grantEvidence.data}
+                      isPending={grantEvidence.isPending}
+                      isError={grantEvidence.isError}
+                      onRetry={() => void grantEvidence.refetch()}
+                      milestones={g.milestones.map((milestone, index) => ({
+                        index,
+                        title: milestone.title,
+                      }))}
+                      members={organizationMembers.data}
+                    />
+                    {grantEvidence.data !== undefined &&
+                      !grantEvidence.isError && (
+                        <AiEvidenceReview
+                          organizationId={grantContext.data.organization.id}
+                          vaultAddress={address}
+                          currentStateKey={reviewStateKey({
+                            ...g,
+                            milestones: g.milestones.map((item, index) => ({
+                              ...item,
+                              index,
+                              amount: String(item.amount),
+                            })),
+                            claimedAmount: String(g.claimedAmount),
+                            unlockedAmount: String(g.unlockedAmount),
+                            claimableAmount: String(g.claimableAmount),
+                          })}
+                          evidenceKey={JSON.stringify(
+                            grantEvidence.data.map((item) => [
+                              item.milestoneIndex,
+                              item.updatedAt,
+                              item.note,
+                              item.evidenceUrl,
+                            ]),
+                          )}
+                          disabled={
+                            grant.isRefetchError || grantEvidence.isFetching
+                          }
+                        />
+                      )}
+                  </div>
                 )}
               </CardContent>
             </Card>
