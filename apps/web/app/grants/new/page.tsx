@@ -34,7 +34,7 @@ import { DemoFaucet } from "@/components/demo-faucet";
 import { CohortCreator } from "@/components/cohort-creator";
 import { MemberPicker } from "@/components/organization-ui";
 import { ParticipantIdentity } from "@/components/grant-card";
-import { useToken } from "@/hooks/use-grant";
+import { useFactorySponsorshipSupport, useToken } from "@/hooks/use-grant";
 import {
   useLinkOrganizationGrant,
   useOrganization,
@@ -69,6 +69,7 @@ import {
   applyReviewerDefault,
   BLANK_PRESET_FIELDS,
   clearPreset,
+  isPresetEdited,
   resyncMilestoneAmounts,
   selectPreset,
   type AppliedPreset,
@@ -145,6 +146,7 @@ function Field({
 function PresetPicker({
   selected,
   appliedPreset,
+  edited,
   onSelect,
 }: {
   selected: AppliedPresetKey | null;
@@ -153,6 +155,11 @@ function PresetPicker({
    * (HAS-18) or an organization template (HAS-13).
    */
   appliedPreset?: GrantPreset;
+  /**
+   * The form no longer matches what this preset wrote, so the summary below
+   * describes where the grant started, not what it is now (HAS-47).
+   */
+  edited?: boolean;
   onSelect: (key: GrantPresetKey | null) => void;
 }) {
   const t = useTranslations();
@@ -203,6 +210,11 @@ function PresetPicker({
       </div>
       {active && (
         <div className="rounded-card border border-primary/20 bg-[rgba(87,217,139,.05)] p-5">
+          {edited && (
+            <p className="mb-4 border-l-2 border-primary pl-3 text-xs leading-5 text-muted-foreground">
+              {t("wizard.preset.editedNotice")}
+            </p>
+          )}
           {active.description && (
             <p className="text-sm leading-6">{active.description}</p>
           )}
@@ -318,6 +330,16 @@ export function NewGrant({ organizationId }: NewGrantProps) {
   const [metadataError, setMetadataError] = useState("");
   const tokenMetadata = useToken(normalizeAddress(token));
   const factory = testnetDeployment.factory;
+  /**
+   * Organization grants are created through `createSponsoredGrant`, which a
+   * factory deployed before HAS-28 does not expose (HAS-48). Detecting that
+   * here is what keeps the wizard from asking for a signature it already knows
+   * the chain will reject. An unknown result never blocks: the simulation
+   * below still decides.
+   */
+  const factorySponsorship = useFactorySponsorshipSupport(factory);
+  const sponsoredCreationUnavailable =
+    Boolean(organizationId) && factorySponsorship.data === "unsupported";
   const canWrite = Boolean(
     address &&
     chainId === 133 &&
@@ -358,6 +380,27 @@ export function NewGrant({ organizationId }: NewGrantProps) {
       reviewerRequired: applied?.fields.reviewerRequired ?? false,
     };
   }
+
+  /**
+   * Whether the form has moved on from the draft or template it started from.
+   *
+   * The review step and the preset summary both attribute the configuration to
+   * its starting point; once this is true, neither of them may describe the
+   * form as if it were still that starting point.
+   */
+  const presetEdited = isPresetEdited(
+    {
+      title,
+      description,
+      allocation,
+      strategy,
+      unit,
+      cliff,
+      duration,
+      milestones,
+    },
+    applied,
+  );
 
   /**
    * Applies a preset to the fields below, or returns to a blank form.
@@ -698,6 +741,8 @@ export function NewGrant({ organizationId }: NewGrantProps) {
         );
       }
       assertTestnetWallet(account, walletMessages);
+      if (sponsoredCreationUnavailable)
+        throw new Error(t("wizard.error.sponsoredUnsupported", NETWORK));
       const createFunction = organizationId
         ? "createSponsoredGrant"
         : "createGrant";
@@ -1134,6 +1179,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                       <PresetPicker
                         selected={applied?.key ?? null}
                         appliedPreset={applied?.preset}
+                        edited={presetEdited}
                         onSelect={choosePreset}
                       />
                     </div>
@@ -1589,9 +1635,12 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                         </p>
                         {applied && (
                           <p className="mt-3 text-xs text-muted-foreground">
-                            {t("wizard.review.fromPreset", {
-                              preset: appliedPresetName,
-                            })}
+                            {t(
+                              presetEdited
+                                ? "wizard.review.fromPresetEdited"
+                                : "wizard.review.fromPreset",
+                              { preset: appliedPresetName },
+                            )}
                           </p>
                         )}
                       </div>
@@ -1760,6 +1809,18 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                           ))}
                         </div>
                       )}
+                      {sponsoredCreationUnavailable && (
+                        <Notice
+                          title={t("wizard.review.sponsoredUnsupported.title")}
+                        >
+                          <p>
+                            {t(
+                              "wizard.review.sponsoredUnsupported.body",
+                              NETWORK,
+                            )}
+                          </p>
+                        </Notice>
+                      )}
                       <Notice
                         title={
                           organizationId
@@ -1820,6 +1881,7 @@ export function NewGrant({ organizationId }: NewGrantProps) {
                         !canWrite ||
                         tx.pending ||
                         !prepared ||
+                        sponsoredCreationUnavailable ||
                         address?.toLowerCase() !== prepared.issuer.toLowerCase()
                       }
                       onClick={() => void createGrant()}
